@@ -225,7 +225,8 @@ def write_table_of_pDeath(pDeath_list, invalid_inds_for_pDeath, n_columns=1):
         pDeath_list_for_table[:len(years_for_prob_table)+1]
 
     # Switch to string formatting to ensure 2 decimal places are shown.
-    for i in range(1, invalid_inds_for_pDeath[0]):
+    max_ind = np.min([invalid_inds_for_pDeath[0], len(pDeath_list_for_table)])
+    for i in range(1, max_ind):
         pDeath_list_for_table[i] = f'{pDeath_list_for_table[i]:.2f}'
 
     # Describe the table, otherwise there's no way of explaining what
