@@ -1,0 +1,65 @@
+# To be printed as markdown on the landing page. 
+# ---------------------------------------------------------------------
+
+# Stroke risk equations 
+
+## Summary 
+
+Conclusion from the paper abstract:
+
+> _"Our model is the first published set of risk equations for use in economic models of acute stroke interventions. Their use provides the opportunity to improve the consistency of modelling the longer-term effects of acute interventions."_
+
+From Methods top summary in the paper:
+
+> _"By combining predictions of resource use with predictions of mortality, annual estimates resource utilisation based on model inputs can be modelled."_
+
+c.f. the UKPDS (UK Prospective Diabetes Study) outcome model:
+[https://www.dtu.ox.ac.uk/outcomesmodel/](https://www.dtu.ox.ac.uk/outcomesmodel/)
+
+
+_Goal:_ calculate probability of death at X years after onset, and convert to a life expectancy. 
+
+
+
+## Background information 
+
+Fill this. 
+
+
+## How to use this app
+
+Go to the "Interactive demo" in the left sidebar.
+There you can change the input parameters of age, sex, and mRS, and see the resulting effect on survival and resource use.
+
+To change between light mode and dark mode or to make the display wider, change the settings under the Menu in the top right of the screen.
+
+
+### Acronym reference
+
+| Acronym | Description | 
+| --- | --- | 
+| mRS | Modified Rankin Scale | 
+| QALY | Quality-adjusted life-year (??) | 
+| WTP | Willingness To Pay | 
+| A&E | Accident and Emergency | 
+| EL | Elective bed days | 
+| NEL | Non-elective bed days | 
+| AIC | Akaike information criterion |
+
+Some words I was unfamiliar with: 
+
+| Vocabulary | Description | 
+| --- | --- | 
+| Hazard | Probability of death |
+| Discounted (as in QALY or resource cost) | ??? | 
+
+
+And some abbreviations that might only be used in the code:
+| Term | Description | 
+| --- | --- | 
+| `adjage` | Adjusted age. (Adjusted how?? Quality-adjusted?) |
+
+
+### Limitations 
+
+Is there anything your app *does not* do but that people might reasonably misunderstand it to be doing? 

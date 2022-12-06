@@ -1,0 +1,9 @@
+matplotlib==3.4.3
+numpy==1.22.3
+pandas==1.4.2
+scipy==1.7.3
+markdown==3.3.7
+pip==22.2.2
+# Don't give a version for streamlit 
+# to ensure the app has the latest security updates. 
+streamlit

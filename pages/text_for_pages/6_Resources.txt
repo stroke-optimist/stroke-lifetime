@@ -1,0 +1,24 @@
+# To be printed as markdown on the "Resources" page. 
+# ---------------------------------------------------------------------
+
+# Resources 
+
+## About the method 
+
+More detail can be found in these places:
+
+1. Our paper 
+2. Their paper
+3. This website 
+
+## About the app  
+
+The code behind this app is written in `python3` and the app itself is deployed using `streamlit`, which is a free service for hosting [python web apps](https://streamlit.io/). 
+
+If any unusual or particularly useful packages have been used, you could mention them here and encourage others to use them. 
+
+## References
+
++ Me, I. et al., 2022. A Brilliant Paper I Wrote. *Journal* 1, 1-10. DOI
+
+

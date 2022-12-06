@@ -1,0 +1,5 @@
+# To be printed as markdown on the demo page. 
+# ---------------------------------------------------------------------
+
+Goal: calculate probability of death at X years after onset, and convert to a life expectancy. 
+Also resource use, cost for change of outcome. 

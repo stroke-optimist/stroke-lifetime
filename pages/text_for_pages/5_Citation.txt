@@ -1,0 +1,25 @@
+# To be printed as markdown on the "Citation" page. 
+# ---------------------------------------------------------------------
+
+# Citation 
+
+Please cite this model as: 
+
+    @software{your_reference_here,
+        author       = {Me, I and Myself, I},
+        title        = {template\_app Streamlit app v1.0.0},
+        month        = nov,
+        year         = 2022,
+        publisher    = {Zenodo},
+        version      = {v1.0.0},
+        doi          = {your DOI here},
+        url          = {DOI URL here}
+	}
+	
+To make a Zenodo citation, follow the instructions on this link: [https://docs.github.com/en/repositories/archiving-a-github-repository/referencing-and-citing-content](https://docs.github.com/en/repositories/archiving-a-github-repository/referencing-and-citing-content)
+
+There are some parts that you then have to do manually by editing the record on Zenodo. For example, the authors and licence won't copy over from GitHub. 
+	
+On the Zenodo website, you can also copy a markdown badge to use as a link for a DOI.
+Here is a badge for another streamlit app: 
+[![DOI](https://zenodo.org/badge/536700822.svg)](https://zenodo.org/badge/latestdoi/536700822)
