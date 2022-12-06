@@ -13,7 +13,7 @@ def main(table_cost_effectiveness):
 def write_table_cost_effectiveness(table_cost_effectiveness):
     # Use this function to colour values in the table:
     def color_negative_red(val):
-        colour = 'black'
+        colour = None
         if len(val) > 0:
             if val[0] == '-' and val[-1] != '-':
                 # Also check final character to check it's not a

@@ -99,7 +99,7 @@ def write_table_discounted_resource_use(
 def write_table_discounted_change(table_discounted_cost):
     # Use this function to colour values in the table:
     def color_negative_red(val):
-        colour = 'black'
+        colour = None
         if len(val) > 0:
             if val[0] == '-' and val[-1] != '-':
                 # Also check final character to check it's not a
