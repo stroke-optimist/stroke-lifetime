@@ -47,17 +47,20 @@ def plot_survival_vs_time_plotly(
     # Combine both lists into a table:
     table = np.transpose(np.vstack((
         time_list_yr_to_plot,
-        survival_list_to_plot*100
+        survival_list_to_plot*100,
+        survival_list_to_plot
     )))
     # Convert to dataframe for easier use of plotly:
-    df = pd.DataFrame(table, columns=('year', 'survival'))
+    df = pd.DataFrame(table, columns=('year', 'survival', 'survival_frac'))
 
     # Plot content:
     fig = px.line(
         df,
         x='year', y='survival',
+        custom_data=['survival_frac'],
         labels=dict(year='Years since discharge', survival='Survival (%)'),
-        hover_data={'year': True, 'survival': ':.2f'})
+        # hover_data={'survival_frac': ':.2f'}
+        )
 
     # Figure title:
     fig.update_layout(title_text='Survival', title_x=0.5)
@@ -70,6 +73,23 @@ def plot_survival_vs_time_plotly(
     # Update ticks:
     fig.update_xaxes(tick0=0, dtick=5)
     fig.update_yaxes(tick0=0, dtick=25)
+    # Hover settings:
+    # Make it so cursor can hover over any x value to show the
+    # label of the survival line for (x,y), rather than needing to
+    # hover directly over the line:
+    fig.update_layout(hovermode='x')
+    # Remove default bulky hover messages:
+    fig.update_traces(hovertemplate=None)
+    # Show the survival number with two decimal places:
+    # fig.update_traces(yhoverformat='.2%')
+    fig.update_traces(
+        hovertemplate=(
+            # 'mRS=%{customdata[1]}: %{y:>6.2f}' +
+            # 5 * '\U00002002' +
+            '%{customdata[0]:>.2%}' +
+            '<extra></extra>'
+            )
+        )
 
     # Remove the excess margins at the top and bottom by changing
     # figure height:
@@ -111,39 +131,57 @@ def plot_hazard_vs_time_plotly(time_list_yr, all_hazard_lists):
         mRS_list = [  # 'mRS='+f'{i}'
             f'{i}' for year in time_list_yr]
         hazard_list = 100.0*sub_hazard_lists[i]
+        cum_hazard_list = 100.0*all_hazard_lists[i]
         # Use dtype=object to keep the mixed strings (mRS),
         # integers (years) and floats (hazards).
-        data_here = np.array([mRS_list, time_list_yr, hazard_list],
-                             dtype=object).T
+        data_here = np.transpose(np.array(
+            [mRS_list, time_list_yr, hazard_list, cum_hazard_list],
+            dtype=object))
         if i == 0:
             data_to_plot = data_here
         else:
             data_to_plot = np.vstack((data_to_plot, data_here))
 
     # Pop this data into a dataframe:
-    df_to_plot = pd.DataFrame(data_to_plot, columns=['mRS', 'year', 'hazard'])
+    df_to_plot = pd.DataFrame(
+        data_to_plot,
+        columns=['mRS', 'year', 'hazard', 'cumhazard']
+        )
 
     # Plot the data:
     fig = px.area(
         df_to_plot,
         x='year', y='hazard', color='mRS',
+        custom_data=['cumhazard', 'mRS'],
         color_discrete_sequence=colours_excel
         )
+    # The custom_data aren't directly plotted in the previous, but are
+    # loaded ready for use with the hover template later.
 
     # Set axis labels:
     fig.update_xaxes(title_text='Years since discharge')
     fig.update_yaxes(title_text='Cumulative hazard (%)')
     # fig.update_layout(legend_title='mRS', title_x=0.5)
 
-    # Hover setings:
+    # Hover settings:
     # When hovering, highlight all mRS bins' points for chosen x:
     fig.update_layout(hovermode='x unified')
     # Remove default bulky hover messages:
     fig.update_traces(hovertemplate=None)
-    # Remove the 'mRS<=' labels from the hover info:
-    # fig.update_traces(hoverinfo='x+y')
-    # Change format of the values printed in the hover label:
-    fig.update_traces(xhoverformat='i', yhoverformat='.2f')
+    # I don't know why, but the line with <extra></extra> is required
+    # to remove the default hover label before the rest of this.
+    # Otherwise get "0 mRS=0 ..."
+    fig.update_traces(
+        hovertemplate=(
+            # 'mRS=%{customdata[1]}: %{y:>6.2f}' +
+            # 5 * '\U00002002' +
+            'mRS≤%{customdata[1]}: %{customdata[0]:>6.2f}' +
+            '<extra></extra>'
+            )
+        )
+    # # The followings adds 'Year X' to the hover label,
+    # # but annoyingly also adds it to every xtick.
+    # fig.update_xaxes(tickprefix='Year ')
 
     # Figure title:
     fig.update_layout(title_text='Hazard function for Death by mRS',
