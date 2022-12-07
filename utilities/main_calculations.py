@@ -52,7 +52,8 @@ def find_cumhazard_with_time(time_list_yr, age, sex, mrs):
                 age, sex, mrs, year, hazard_yr1
                 )
         # Manual override if the value is too big:
-        hazard = 1.5 if hazard > 1.5 else hazard
+        # AL has changed this value from Excel's 1.5.
+        hazard = 1.0 if hazard > 1.0 else hazard
         # Add this value to list:
         hazard_list.append(hazard)
 

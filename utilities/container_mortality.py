@@ -21,7 +21,7 @@ def main(
     # plot_hazard_vs_time(time_list_yr, all_hazard_lists, colours_excel)
     plot_survival_vs_time_plotly(
         time_list_yr, all_survival_lists[mRS_input], time_of_death)
-    plot_hazard_vs_time_plotly(time_list_yr, all_hazard_lists, colours_excel)
+    plot_hazard_vs_time_plotly(time_list_yr, all_hazard_lists)
     write_table_of_pDeath(pDeath_list, invalid_inds_for_pDeath, n_columns=3)
     write_table_of_median_survival(survival_times)
 
@@ -91,60 +91,59 @@ def plot_survival_vs_time_plotly(
              f'{months_of_zero_survival:.0f} months.')
 
 
-def plot_survival_vs_time(time_list_yr, survival_list):
-    """Plot survival vs time."""
-    fig, ax = plt.subplots()
-
-    # Plot content:
-    ax.plot(time_list_yr, survival_list*100.0)
-
-    # Plot setup:
-    ax.set_title('Survival')
-    ax.set_xlabel('Years since discharge')
-    ax.set_ylabel('Survival (%)')
-
-    # Change axis ticks:
-    ax.set_xlim(0, time_list_yr[-1])
-    ax.set_ylim(0, 100)
-    ax.set_yticks(np.arange(0, 101, 25))
-    ax.set_yticks(np.arange(0, 101, 5), minor=True)
-    ax.set_xticks(np.arange(0, time_list_yr[-1]+5, 5))
-    ax.set_xticks(np.arange(0, time_list_yr[-1]+1, 1), minor=True)
-    ax.grid(color='k', alpha=0.2)
-
-    # Change how squat or skinny the plot is, where the smaller the
-    # fraction, the squatter the plot:
-    ax.set_aspect(1.0/10.0)
-
-    # Write to streamlit:
-    st.pyplot(fig)
-
-
-def plot_hazard_vs_time_plotly(time_list_yr, all_hazard_lists, colours):
+def plot_hazard_vs_time_plotly(time_list_yr, all_hazard_lists):
     """Plot hazard vs time."""
-    # Remove any data that will push the graph over 100% hazard:
-
+    # Convert cumulative hazard lists into non-cumulative
+    # for easier plotting with plotly.
     sub_hazard_lists = [all_hazard_lists[0]]
     for mRS in np.arange(1, 6):
         # For each mRS, subtract the values that came before it.
         diff_list = np.array(all_hazard_lists[mRS]-all_hazard_lists[mRS-1])
+        # # Attempted fix for weird mRS 5 line for age > 83 or so.
+        # # If any difference is negative, set it to zero:
+        # diff_list[np.where(diff_list < 0)] = 0.0
         sub_hazard_lists.append(diff_list)
 
-    data_to_plot = 100.0*np.array(sub_hazard_lists).T
+    # Build this data into a big dataframe for plotly.
+    # It wants each row in the table to have [mRS, year, hazard].
+    for i in range(6):
+        # The symbol for less than / equal to: ≤
+        mRS_list = [  # 'mRS='+f'{i}'
+            f'{i}' for year in time_list_yr]
+        hazard_list = 100.0*sub_hazard_lists[i]
+        # Use dtype=object to keep the mixed strings (mRS),
+        # integers (years) and floats (hazards).
+        data_here = np.array([mRS_list, time_list_yr, hazard_list],
+                             dtype=object).T
+        if i == 0:
+            data_to_plot = data_here
+        else:
+            data_to_plot = np.vstack((data_to_plot, data_here))
+
+    # Pop this data into a dataframe:
+    df_to_plot = pd.DataFrame(data_to_plot, columns=['mRS', 'year', 'hazard'])
 
     # Plot the data:
-    fig = px.area(data_to_plot, color_discrete_sequence=colours_excel)
+    fig = px.area(
+        df_to_plot,
+        x='year', y='hazard', color='mRS',
+        color_discrete_sequence=colours_excel
+        )
 
-    # Set axis and legend labels:
+    # Set axis labels:
     fig.update_xaxes(title_text='Years since discharge')
     fig.update_yaxes(title_text='Cumulative hazard (%)')
-    fig.update_layout(legend_title='mRS', title_x=0.5)
+    # fig.update_layout(legend_title='mRS', title_x=0.5)
 
     # Hover setings:
-    # Remove default bulky hover messages:
-    fig.update_traces(hovertemplate=None)
     # When hovering, highlight all mRS bins' points for chosen x:
     fig.update_layout(hovermode='x unified')
+    # Remove default bulky hover messages:
+    fig.update_traces(hovertemplate=None)
+    # Remove the 'mRS<=' labels from the hover info:
+    # fig.update_traces(hoverinfo='x+y')
+    # Change format of the values printed in the hover label:
+    fig.update_traces(xhoverformat='i', yhoverformat='.2f')
 
     # Figure title:
     fig.update_layout(title_text='Hazard function for Death by mRS',
@@ -171,57 +170,6 @@ def plot_hazard_vs_time_plotly(time_list_yr, all_hazard_lists, colours):
 
     # Write to streamlit:
     st.plotly_chart(fig, use_container_width=True)
-
-
-def plot_hazard_vs_time(time_list_yr, all_hazard_lists, colours):
-    """Plot hazard vs time."""
-    fig, ax = plt.subplots()
-
-    # Plot content:
-    # Create an array of zeroes for use with fill_between
-    # on the first go round the "for" loop.
-    y_before = np.zeros(len(all_hazard_lists[0]))
-
-    for mRS in np.arange(6):
-        # Get data from the big list
-        # and multiply by 100 for percent:
-        y_vals = all_hazard_lists[mRS] * 100.0
-
-        # Colour the gap between this line and the previous:
-        ax.fill_between(
-            time_list_yr, y_vals, y_before,
-            color=colours[mRS],
-            label=mRS
-            )
-
-        # Update the y-values of the previous line
-        # for the next go round the loop.
-        y_before = y_vals
-
-    # Plot setup:
-    ax.set_title('Hazard function for Death by mRS')
-    ax.set_xlabel('Years since discharge')
-    ax.set_ylabel('Cumulative hazard (%)')
-
-    # Change axis ticks:
-    ax.set_xlim(0, time_list_yr[-1])
-    ax.set_ylim(0, 100)
-    ax.set_yticks(np.arange(0, 101, 10))
-    ax.set_yticks(np.arange(0, 101, 5), minor=True)
-    ax.set_xticks(np.arange(0, time_list_yr[-1]+5, 5))
-    ax.set_xticks(np.arange(0, time_list_yr[-1]+1, 1), minor=True)
-    ax.grid(color='k', alpha=0.2)
-
-    # Change how squat or skinny the plot is, where the smaller the
-    # fraction, the squatter the plot:
-    ax.set_aspect(1.0/5.0)
-
-    # Add legend below the axis:
-    ax.legend(title='mRS', bbox_to_anchor=[0.5, -0.2],
-              loc='upper center', ncol=6)
-
-    # Write to streamlit:
-    st.pyplot(fig)
 
 
 def write_table_of_pDeath(pDeath_list, invalid_inds_for_pDeath, n_columns=1):
@@ -308,3 +256,91 @@ def write_table_of_median_survival(survival_times):
     st.markdown('### Survival')
     st.write('The survival estimates for each mRS (0 to 5): ')
     st.table(df_table.style.format("{:.2f}"))
+
+
+# #####################################################################
+# The following plots use matplotlib.pyplot and have been replaced
+# with the plotly versions elsewhere.
+def plot_survival_vs_time(time_list_yr, survival_list):
+    """
+    REPLACED with plotly version.
+    Plot survival vs time."""
+    fig, ax = plt.subplots()
+
+    # Plot content:
+    ax.plot(time_list_yr, survival_list*100.0)
+
+    # Plot setup:
+    ax.set_title('Survival')
+    ax.set_xlabel('Years since discharge')
+    ax.set_ylabel('Survival (%)')
+
+    # Change axis ticks:
+    ax.set_xlim(0, time_list_yr[-1])
+    ax.set_ylim(0, 100)
+    ax.set_yticks(np.arange(0, 101, 25))
+    ax.set_yticks(np.arange(0, 101, 5), minor=True)
+    ax.set_xticks(np.arange(0, time_list_yr[-1]+5, 5))
+    ax.set_xticks(np.arange(0, time_list_yr[-1]+1, 1), minor=True)
+    ax.grid(color='k', alpha=0.2)
+
+    # Change how squat or skinny the plot is, where the smaller the
+    # fraction, the squatter the plot:
+    ax.set_aspect(1.0/10.0)
+
+    # Write to streamlit:
+    st.pyplot(fig)
+
+
+def plot_hazard_vs_time(time_list_yr, all_hazard_lists, colours):
+    """
+    REPLACED with plotly version.
+    Plot hazard vs time.
+    """
+    fig, ax = plt.subplots()
+
+    # Plot content:
+    # Create an array of zeroes for use with fill_between
+    # on the first go round the "for" loop.
+    y_before = np.zeros(len(all_hazard_lists[0]))
+
+    for mRS in np.arange(6):
+        # Get data from the big list
+        # and multiply by 100 for percent:
+        y_vals = all_hazard_lists[mRS] * 100.0
+
+        # Colour the gap between this line and the previous:
+        ax.fill_between(
+            time_list_yr, y_vals, y_before,
+            color=colours[mRS],
+            label=mRS
+            )
+
+        # Update the y-values of the previous line
+        # for the next go round the loop.
+        y_before = y_vals
+
+    # Plot setup:
+    ax.set_title('Hazard function for Death by mRS')
+    ax.set_xlabel('Years since discharge')
+    ax.set_ylabel('Cumulative hazard (%)')
+
+    # Change axis ticks:
+    ax.set_xlim(0, time_list_yr[-1])
+    ax.set_ylim(0, 100)
+    ax.set_yticks(np.arange(0, 101, 10))
+    ax.set_yticks(np.arange(0, 101, 5), minor=True)
+    ax.set_xticks(np.arange(0, time_list_yr[-1]+5, 5))
+    ax.set_xticks(np.arange(0, time_list_yr[-1]+1, 1), minor=True)
+    ax.grid(color='k', alpha=0.2)
+
+    # Change how squat or skinny the plot is, where the smaller the
+    # fraction, the squatter the plot:
+    ax.set_aspect(1.0/5.0)
+
+    # Add legend below the axis:
+    ax.legend(title='mRS', bbox_to_anchor=[0.5, -0.2],
+              loc='upper center', ncol=6)
+
+    # Write to streamlit:
+    st.pyplot(fig)
