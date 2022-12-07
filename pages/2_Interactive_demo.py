@@ -13,8 +13,7 @@ import streamlit as st
 # Constants and custom functions:
 from utilities.fixed_params import page_setup, perc_care_home_over70, \
     perc_care_home_not_over70
-from utilities.inputs import \
-    write_text_from_file
+from utilities.inputs import write_text_from_file
 # Containers:
 import utilities.container_inputs
 import utilities.container_mortality
@@ -108,6 +107,10 @@ table_discounted_cost = utilities.main_calculations.\
 table_cost_effectiveness = utilities.main_calculations.\
     main_cost_effectiveness(qalys_table, table_discounted_cost)
 
+# Build a dictionary of variables used in these calculations:
+variables_dict = utilities.main_calculations.build_variables_dict(
+    age_input, sex_input, mRS_input)
+
 
 # ###########################
 # ######### RESULTS #########
@@ -122,7 +125,7 @@ with tabs[0]:
         time_list_yr, all_survival_lists,
         mRS_input, all_hazard_lists,
         pDeath_list, invalid_inds_for_pDeath, survival_times,
-        time_of_zero_survival)
+        time_of_zero_survival, variables_dict)
 
 
 with tabs[1]:

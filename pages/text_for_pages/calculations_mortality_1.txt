@@ -1,0 +1,14 @@
+# To be printed as markdown on the demo page. 
+# ---------------------------------------------------------------------
+
+## Mortality calculations
+
+Why two mortality models are used (from Methods in the paper):
+> _"Increased mortality risk in the 12months following discharge followed by lower risks in subsequent years means they are unsuitable for use during this period as the hazard of death potentially decreases."_
+
+All patients survive the first twelve months after discharge. 
+
+### Mortality during year one: 
+
++ Logistic model: 
+

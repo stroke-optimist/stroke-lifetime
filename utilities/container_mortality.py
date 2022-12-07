@@ -8,22 +8,31 @@ import pandas as pd
 import plotly.express as px
 
 from utilities.fixed_params import colours_excel
+from utilities.inputs import write_text_from_file
 
 
 def main(
         time_list_yr, all_survival_lists,
         mRS_input, all_hazard_lists,
         pDeath_list, invalid_inds_for_pDeath, survival_times,
-        time_of_death
+        time_of_death, variables_dict
         ):
     # These older plots use matplotlib instead of plotly:
     # plot_survival_vs_time(time_list_yr, all_survival_lists[mRS_input])
     # plot_hazard_vs_time(time_list_yr, all_hazard_lists, colours_excel)
+
+    # Plot:
     plot_survival_vs_time_plotly(
         time_list_yr, all_survival_lists[mRS_input], time_of_death)
+    # Plot:
     plot_hazard_vs_time_plotly(time_list_yr, all_hazard_lists)
+    # Table:
     write_table_of_pDeath(pDeath_list, invalid_inds_for_pDeath, n_columns=3)
+    # Table:
     write_table_of_median_survival(survival_times)
+
+    with st.expander('Details behind the calculation'):
+        write_details(variables_dict, mRS_input)
 
 
 def plot_survival_vs_time_plotly(
@@ -294,6 +303,100 @@ def write_table_of_median_survival(survival_times):
     st.markdown('### Survival')
     st.write('The survival estimates for each mRS (0 to 5): ')
     st.table(df_table.style.format("{:.2f}"))
+
+
+def write_details(vd, mrs):
+    """
+    Read in and print a series of markdown text files.
+    These are stored in the folder: pages/text_for_pages.
+
+    When appropriate, split into two columns to show both
+    the general formula and the version with variables subbed in.
+
+    Equations will be labelled with numbers with \begin{equation},
+    but that numbering doesn't carry through between tabs
+    i.e. there could be multiple "Equation 1"s.
+    Instead use \tag to manually label equations, e.g.
+    \begin{equation}\tag{5}.
+
+    "vd" is short for variables_dict.
+    """
+    write_text_from_file(
+        'pages/text_for_pages/calculations_mortality_1.txt',
+        head_lines_to_skip=2
+        )
+    cols = st.columns(2)
+    with cols[0]:
+        st.latex(
+            r'''
+            \begin{equation}\tag{1}
+            P_1 = \frac{1}{1+e^{-LP_{\mathrm{yr1}}}}
+            \end{equation}
+            '''
+            )
+
+    with cols[1]:
+        st.latex(
+            r'''
+            \begin{align*}
+            P_1 &= \frac{1}{1+e^{-
+            \textcolor{red}{
+            ''' +
+            f'{vd["LP_yr1"]:.2f}' +
+            r'''
+            }
+            }} \\
+            &=
+            \textcolor{red}{
+            ''' +
+            f'{vd["P_yr1"]:.2f}' +
+            r'''
+            }
+            \end{align*}
+            '''
+            )
+
+    st.markdown('with linear predictor')
+
+    st.latex(
+        r'''
+        \begin{equation}\tag{2}
+        LP_{\mathrm{yr1}} =
+        \alpha_{\mathrm{yr1}} +
+        \displaystyle\sum_{i=1}^{n}
+        \beta_{\mathrm{yr1},\ i}
+        \cdot
+        X_{\mathrm{yr1},\ i}
+        \end{equation}
+        '''
+        )
+        
+    st.latex(
+        r'''\begin{align*}
+        LP_{\mathrm{yr1}} =&''' +
+        # alpha
+        f'{vd["lg_coeffs"][0]}' + r''' + & \mathrm{constant} \\''' +
+        # 1st coeff
+        r'''& \left(''' +
+        f'{vd["lg_coeffs"][1]}' + r'''\times [\textcolor{red}{''' +
+        f'{vd["age"]}' + r'''}-\textcolor{blue}{''' +
+        f'{vd["lg_mean_ages"][mrs]}' +
+        r'''}]\right) + & \mathrm{age} \\''' +
+        # 2nd coeff
+        r'''& \left(''' +
+        f'{vd["lg_coeffs"][2]}' + r'''\times \textcolor{red}{''' +
+        f'{vd["sex"]}' + r'''}\right) + & \mathrm{sex}^{*} \\''' +
+        # 3rd coeff
+        r'''& \left(\textcolor{blue}{''' +
+        f'{vd["lg_coeffs"][3+mrs]}' + r'''} \times \textcolor{red}{''' +
+        f'{vd["mrs"]}' + r'''}\right) + & \mathrm{mRS} \\''' +
+        # Next line, value equal to:
+        r'''=& \textcolor{red}{''' +
+        f'{vd["LP_yr1"]:.2f}' +
+        r'''}
+        \end{align*}'''
+        )
+    st.write('\* This value is 0 for female patients and 1 for male.')
 
 
 # #####################################################################

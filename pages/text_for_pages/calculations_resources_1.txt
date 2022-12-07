@@ -1,0 +1,67 @@
+# To be printed as markdown on the demo page. 
+# ---------------------------------------------------------------------
+
+## Resource use
+
+For each mRS, the number of each of the following can be calculated:
++ A&E admissions
++ NEL bed days
++ EL bed days 
++ Residential care 
+
+These are calculated separately for discounted and undiscounted. (Whatever they are??)
+
+
+
+### Resource use models
+
+For a given individual and a number of years, the total number of A&E admissions, elective bed days, and non-elective bed days can be calculated.
+
+The method is broadly similar for each (comments from the R code):
+  1. _"calculates the normalized age"_
+  2. _"calculates the linear predictor for EL bed days"_
+  3. _"creates the lambda function for the equation"_
+  4. _"equation that estimates the EL bed days count"_
+  
+And each of the three models uses a separate set of coefficients (constant, age, sex, gamma) and a different weight for each mRS.
+
+> One of these variables is called "gamma". Is it related to the gamma for the Gompertz mortality function? 
+
++ A&E admissions model:
+$$ 
+\mathrm{Count} = 
+  \exp{( 
+    \gamma_{\mathrm{AE}} \times LP_{\mathrm{AE}}
+    \times 
+    \mathrm{yrs} ^{\gamma_{\mathrm{AE}}}
+  )}
+$$
+Weibull distribution.
+
+
++ Elective bed days model:
+$$ 
+  \mathrm{Count} = 
+    -\log{\left( 
+      \frac{1}{
+        1+ [\mathrm{yrs}*\exp{(-LP_\mathrm{EL})} ] ^{1/ \gamma_{\mathrm{EL}}} 
+      }
+    \right)}
+$$
+Log-logistic distribution.
+
++ Non-elective bed days model:
+$$ 
+  \mathrm{Count} = 
+    -\log{\left( 
+      \frac{1}{
+        1+ [\mathrm{yrs}*\exp{(-LP_\mathrm{NEL})} ] ^{1/ \gamma_{\mathrm{NEL}}} 
+      }
+    \right)}
+$$
+Log-logistic distribution. 
+
+Then the calculated numbers of days are multiplied by the cost of each day or cost of each trip to A&E to give the total cost of resource use. 
+
+Notes: 
++ Log-logistic function = log of a logistic distribution. 

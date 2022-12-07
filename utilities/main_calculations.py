@@ -12,10 +12,13 @@ from utilities.fixed_params import \
     cost_elective_bed_day_gbp, \
     cost_non_elective_bed_day_gbp, \
     cost_residential_day_gbp, \
-    WTP_QALY_gpb
+    WTP_QALY_gpb, \
+    lg_coeffs, lg_mean_ages, gz_coeffs, gz_mean_age, gz_gamma
+
 from utilities.models import \
     find_iDeath, \
     find_pDeath_yr1, \
+    find_lpDeath_yr1, \
     find_pDeath_yrn, \
     find_lpDeath_yrn, \
     find_survival_time_for_pDeath, \
@@ -326,3 +329,28 @@ def build_table_discounted_change(total_discounted_cost):
 def main_cost_effectiveness(qaly_table, cost_table):
     table_cost_effectiveness = (WTP_QALY_gpb * qaly_table) + cost_table
     return table_cost_effectiveness
+
+
+def build_variables_dict(
+        age, sex, mrs):
+    # Calculate some bits we're missing:
+    P_yr1 = find_pDeath_yr1(age, sex, mrs)
+    LP_yr1 = find_lpDeath_yr1(age, sex, mrs)
+
+    # Fill the dictionary:
+    variables_dict = dict(
+        # Input variables:
+        age=age,
+        sex=sex,
+        mrs=mrs,
+        # Constants from fixed_params file:
+        lg_coeffs=lg_coeffs,
+        lg_mean_ages=lg_mean_ages,
+        gz_coeffs=gz_coeffs,
+        gz_mean_age=gz_mean_age,
+        gz_gamma=gz_gamma,
+        # For mortality:
+        P_yr1=P_yr1,
+        LP_yr1=LP_yr1,
+        )
+    return variables_dict
