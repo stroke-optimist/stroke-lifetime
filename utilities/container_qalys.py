@@ -66,7 +66,8 @@ def write_table_discounted_qalys_outcome(qaly_table):
                 # Format the number as a nice string:
                 row_vals.append(f'{val:4.2f}')
             elif column == row:
-                row_vals.append('-')
+                # Show only a dash on the right-hand-side of the cell.
+                row_vals.append(3*'\U00002002' + '-')
             else:
                 row_vals.append('')
         table.append(row_vals)

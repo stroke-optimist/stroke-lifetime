@@ -216,10 +216,12 @@ def write_table_of_pDeath(pDeath_list, invalid_inds_for_pDeath, n_columns=1):
     # Streamlit always writes an index column. To fudge this into a year
     # column, add a '-' to the pDeath list for the year 0 value.
     pDeath_list_for_table = np.concatenate(
-        (['-'], pDeath_list_for_table), dtype=object)
+        ([3*'\U00002002' + '\U00002006' + '-'], pDeath_list_for_table),
+        dtype=object)
     # ^ dtype=object keeps the floats instead of converting all to str.
-    # Set invalid data to '-':
-    pDeath_list_for_table[invalid_inds_for_pDeath[0]:] = '-'
+    # Set invalid data to '-' with a few spaces in front:
+    pDeath_list_for_table[invalid_inds_for_pDeath[0]:] = \
+        3*'\U00002002' + '\U00002006' + '-'
     # Cut off the list at the required number of years:
     pDeath_list_for_table = \
         pDeath_list_for_table[:len(years_for_prob_table)+1]
@@ -227,7 +229,10 @@ def write_table_of_pDeath(pDeath_list, invalid_inds_for_pDeath, n_columns=1):
     # Switch to string formatting to ensure 2 decimal places are shown.
     max_ind = np.min([invalid_inds_for_pDeath[0], len(pDeath_list_for_table)])
     for i in range(1, max_ind):
-        pDeath_list_for_table[i] = f'{pDeath_list_for_table[i]:.2f}'
+        str_here = f'{pDeath_list_for_table[i]:.2f}'
+        # Whack a space on the front for aligning percentages under 10%:
+        str_here = '\U00002002'*(5-len(str_here)) + str_here
+        pDeath_list_for_table[i] = str_here
 
     # Describe the table, otherwise there's no way of explaining what
     # the first row means.

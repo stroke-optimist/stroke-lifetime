@@ -43,7 +43,8 @@ def write_table_cost_effectiveness(table_cost_effectiveness):
                 )
                 row_vals.append(diff)
             elif column == row:
-                row_vals.append('-')
+                # Show only a dash on the right-hand-side of the cell.
+                row_vals.append(9*'\U00002002' + '-')
             else:
                 row_vals.append('')
         table.append(row_vals)
