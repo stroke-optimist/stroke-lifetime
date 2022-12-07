@@ -13,31 +13,51 @@ from utilities.fixed_params import colours_excel
 def main(
         time_list_yr, all_survival_lists,
         mRS_input, all_hazard_lists,
-        pDeath_list, invalid_inds_for_pDeath, survival_times
+        pDeath_list, invalid_inds_for_pDeath, survival_times,
+        time_of_death
         ):
     # These older plots use matplotlib instead of plotly:
     # plot_survival_vs_time(time_list_yr, all_survival_lists[mRS_input])
     # plot_hazard_vs_time(time_list_yr, all_hazard_lists, colours_excel)
-    plot_survival_vs_time_plotly(time_list_yr, all_survival_lists[mRS_input])
+    plot_survival_vs_time_plotly(
+        time_list_yr, all_survival_lists[mRS_input], time_of_death)
     plot_hazard_vs_time_plotly(time_list_yr, all_hazard_lists, colours_excel)
     write_table_of_pDeath(pDeath_list, invalid_inds_for_pDeath, n_columns=3)
     write_table_of_median_survival(survival_times)
 
 
-def plot_survival_vs_time_plotly(time_list_yr, survival_list):
-    # Don't plot values with negative survival rates
-    # after the first negative survival rate point
-    # (which we include to make sure the plot hits zero%).
+def plot_survival_vs_time_plotly(
+        time_list_yr, survival_list, time_of_zero_survival
+        ):
+    # Don't plot values with negative survival rates.
     try:
-        v = np.where(survival_list <= 0.0)[0][1]
+        v = np.where(survival_list <= 0.0)[0][0]
     except IndexError:
         v = len(survival_list)
 
+    # Merge the time of death into these lists:
+    time_list_yr_to_plot = np.append(time_list_yr[:v], time_of_zero_survival)
+    survival_list_to_plot = np.append(survival_list[:v], 0.0)
+
+    # # Put the lists in order:
+    # sorted_inds = time_list_yr_to_plot.argsort()
+    # time_list_yr_to_plot = time_list_yr_to_plot[sorted_inds]
+    # survival_list_to_plot = survival_list_to_plot[sorted_inds]
+
+    # Combine both lists into a table:
+    table = np.transpose(np.vstack((
+        time_list_yr_to_plot,
+        survival_list_to_plot*100
+    )))
+    # Convert to dataframe for easier use of plotly:
+    df = pd.DataFrame(table, columns=('year', 'survival'))
+
     # Plot content:
     fig = px.line(
-        x=time_list_yr[:v], y=survival_list[:v]*100,
-        labels={'x': 'Years since discharge', 'y': 'Survival (%)'}
-        )
+        df,
+        x='year', y='survival',
+        labels=dict(year='Years since discharge', survival='Survival (%)'),
+        hover_data={'year': True, 'survival': ':.2f'})
 
     # Figure title:
     fig.update_layout(title_text='Survival', title_x=0.5)
@@ -65,6 +85,10 @@ def plot_survival_vs_time_plotly(time_list_yr, survival_list):
 
     # Write to streamlit:
     st.plotly_chart(fig, use_container_width=True)
+    year_of_zero_survival = time_of_zero_survival // 1
+    months_of_zero_survival = (time_of_zero_survival % 1)*12.0
+    st.write(f'Survival falls to 0% at {year_of_zero_survival:.0f} years ',
+             f'{months_of_zero_survival:.0f} months.')
 
 
 def plot_survival_vs_time(time_list_yr, survival_list):

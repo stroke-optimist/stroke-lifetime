@@ -59,7 +59,7 @@ with st.sidebar:
 # Calculate the important quantities:
 # Probabilities:
 (time_list_yr, all_hazard_lists, all_survival_lists,
- pDeath_list, invalid_inds_for_pDeath) \
+ pDeath_list, invalid_inds_for_pDeath, time_of_zero_survival) \
     = utilities.main_calculations.main_probabilities(
         age_input, sex_input, mRS_input)
 
@@ -113,7 +113,7 @@ table_cost_effectiveness = utilities.main_calculations.\
 # ######### RESULTS #########
 # ###########################
 
-# Put each section into its own tab. 
+# Put each section into its own tab.
 tabs = st.tabs(['Mortality', 'QALYs', 'Resources', 'Cost'])
 
 with tabs[0]:
@@ -121,7 +121,8 @@ with tabs[0]:
     utilities.container_mortality.main(
         time_list_yr, all_survival_lists,
         mRS_input, all_hazard_lists,
-        pDeath_list, invalid_inds_for_pDeath, survival_times)
+        pDeath_list, invalid_inds_for_pDeath, survival_times,
+        time_of_zero_survival)
 
 
 with tabs[1]:

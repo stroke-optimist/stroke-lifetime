@@ -23,7 +23,8 @@ from utilities.models import \
     find_A_E_Count, \
     find_NEL_Count, \
     find_EL_Count, \
-    find_residential_care_average_time
+    find_residential_care_average_time, \
+    find_tDeath
 
 # Functions:
 # def find_hazard_with_time(time_list_yr, age_input, sex_input, mrs_input):
@@ -104,8 +105,11 @@ def main_probabilities(age_input, sex_input, mrs_input):
         pDeath_list.append(pDeath)
     pDeath_list = np.array(pDeath_list)
 
+    # Find when survival=0%:
+    time_of_zero_survival = find_tDeath(age_input, sex_input, mrs_input, 1.0)
+
     return (time_list_yr, all_hazard_lists, all_survival_lists,
-            pDeath_list, invalid_inds_for_pDeath)
+            pDeath_list, invalid_inds_for_pDeath, time_of_zero_survival)
 
 
 def main_survival_times(age, sex):

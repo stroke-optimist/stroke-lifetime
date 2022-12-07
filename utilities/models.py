@@ -79,7 +79,7 @@ def find_pDeath_yrn(age, sex, mrs, yr, p1=None):
 
 def find_iDeath(age, sex, mrs, yr):
     """prob of death in year n"""
-    rVal = 0.0
+    # rVal = 0.0
     if yr == 1:
         # AL changed the above from original "if(yr==0)".
         rVal = find_pDeath_yr1(age, sex, mrs)
@@ -100,20 +100,28 @@ def find_tDeath(age, sex, mrs, prob):
     """
     Time of death based on probability, need to check year zero
     Think it is fixed
-    """
 
-    rVal = -0.0
+    "years_to_death" was called "rVal" in the R function.
+    """
+    # Probability of death in year one:
     pd1 = find_pDeath_yr1(age, sex, mrs)
     if pd1 < prob:
-        prob_prime = ((1.0 + prob)/(1.0 + pd1)) - 1.0
+        # AL has changed the following line from R:
+        # prob_prime = ((1.0 + prob)/(1.0 + pd1)) - 1.0
+        # ... because using the following line instead
+        # gives the expected result for the survival-time graph.
+        prob_prime = prob
+        # Linear predictor for death in year n:
         glp = find_lpDeath_yrn(age, sex, mrs)
+        # Invert the pDeath_yrn formula to get time:
         days = np.log((gz_gamma * prob_prime * np.exp(-glp)) + 1.0) / gz_gamma
-        rVal = (days/365) + 1
+        # Convert days to years:
+        years_to_death = (days/365) + 1
     else:
         # AL - is the following correct?
-        rVal = np.log(prob) / -(-(np.log(1.0 - pd1))/365.0) / 365.0
+        years_to_death = np.log(prob) / -(-(np.log(1.0 - pd1))/365.0) / 365.0
 
-    return (rVal)
+    return years_to_death
 
 
 def find_survival_time_for_pDeath(pDeath, pDeath_yr1, lpDeath_yrn):
