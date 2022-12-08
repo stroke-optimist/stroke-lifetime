@@ -31,8 +31,12 @@ def main(
     # Table:
     write_table_of_median_survival(survival_times)
 
-    with st.expander('Details behind the calculation'):
+    with st.expander('Mortality during year one'):
         write_details(variables_dict, mRS_input)
+
+    with st.expander('Mortality in subsequent years'):
+        pass
+        # write_details(variables_dict, mRS_input)
 
 
 def plot_survival_vs_time_plotly(
@@ -321,43 +325,59 @@ def write_details(vd, mrs):
 
     "vd" is short for variables_dict.
     """
-    write_text_from_file(
-        'pages/text_for_pages/calculations_mortality_1.txt',
-        head_lines_to_skip=2
+    # write_text_from_file(
+    #     'pages/text_for_pages/calculations_mortality_1.txt',
+    #     head_lines_to_skip=2
+    #     )
+    st.markdown('## Mortality during year one')
+    # ----- Tables of constants -----
+    st.markdown(
+        'The following constants are used to calculate the probability ' +\
+        'of death during year one.'
         )
-    cols = st.columns(2)
-    with cols[0]:
-        st.latex(
+    table_cols = st.columns(2)
+    with table_cols[0]:
+        st.markdown(
             r'''
-            \begin{equation}\tag{1}
-            P_1 = \frac{1}{1+e^{-LP_{\mathrm{yr1}}}}
-            \end{equation}
+            | Coefficient | Description |
+            | --- | --- |
+            | ''' + f'{vd["lg_coeffs"][0]}' + r'''| Constant |
+            | ''' + f'{vd["lg_coeffs"][1]}' + r'''| Adjusted age |
+            | ''' + f'{vd["lg_coeffs"][2]}' + r'''| Sex |
+            '''
+            )
+    with table_cols[1]:
+        st.markdown(
+            r'''
+            | mRS | mRS coefficient | Mean age coefficient|
+            | --- | --- | --- |
+            | 0 | ''' + f'{vd["lg_coeffs"][3+0]}' + r'''| ''' + \
+                f'{vd["lg_mean_ages"][0]}' + r'''|
+            | 1 | ''' + f'{vd["lg_coeffs"][3+1]}' + r'''| ''' + \
+                f'{vd["lg_mean_ages"][1]}' + r'''|
+            | 2 | ''' + f'{vd["lg_coeffs"][3+2]}' + r'''| ''' + \
+                f'{vd["lg_mean_ages"][2]}' + r'''|
+            | 3 | ''' + f'{vd["lg_coeffs"][3+3]}' + r'''| ''' + \
+                f'{vd["lg_mean_ages"][3]}' + r'''|
+            | 4 | ''' + f'{vd["lg_coeffs"][3+4]}' + r'''| ''' + \
+                f'{vd["lg_mean_ages"][4]}' + r'''|
+            | 5 | ''' + f'{vd["lg_coeffs"][3+5]}' + r'''| ''' + \
+                f'{vd["lg_mean_ages"][5]}' + r'''|
             '''
             )
 
-    with cols[1]:
-        st.latex(
-            r'''
-            \begin{align*}
-            P_1 &= \frac{1}{1+e^{-
-            \textcolor{red}{
-            ''' +
-            f'{vd["LP_yr1"]:.2f}' +
-            r'''
-            }
-            }} \\
-            &=
-            \textcolor{red}{
-            ''' +
-            f'{vd["P_yr1"]:.2f}' +
-            r'''
-            }
-            \end{align*}
-            '''
-            )
+    # ----- Equation for probability -----
+    st.markdown('The probability is calculated as:')
+    st.latex(
+        r'''
+        \begin{equation}\tag{1}
+        P_{\mathrm{yr1}} = \frac{1}{1+e^{-LP_{\mathrm{yr1}}}}
+        \end{equation}
+        '''
+        )
 
+    # ----- Equation for linear predictor -----
     st.markdown('with linear predictor')
-
     st.latex(
         r'''
         \begin{equation}\tag{2}
@@ -370,7 +390,17 @@ def write_details(vd, mrs):
         \end{equation}
         '''
         )
-        
+
+    # ----- Calculations with user input -----
+    st.markdown(
+        'For the current patient details, these are calculated as follows.' +\
+        ' Values in red change with the patient details, and values in ' +\
+        'pink use a different constant from the tables above depending ' +\
+        'on the patient details.'
+        )
+
+    # ----- Calculation for linear predictor -----
+    st.markdown('The linear predictor:')
     st.latex(
         r'''\begin{align*}
         LP_{\mathrm{yr1}} =&''' +
@@ -379,7 +409,7 @@ def write_details(vd, mrs):
         # 1st coeff
         r'''& \left(''' +
         f'{vd["lg_coeffs"][1]}' + r'''\times [\textcolor{red}{''' +
-        f'{vd["age"]}' + r'''}-\textcolor{blue}{''' +
+        f'{vd["age"]}' + r'''}-\textcolor{Fuchsia}{''' +
         f'{vd["lg_mean_ages"][mrs]}' +
         r'''}]\right) + & \mathrm{age} \\''' +
         # 2nd coeff
@@ -387,9 +417,9 @@ def write_details(vd, mrs):
         f'{vd["lg_coeffs"][2]}' + r'''\times \textcolor{red}{''' +
         f'{vd["sex"]}' + r'''}\right) + & \mathrm{sex}^{*} \\''' +
         # 3rd coeff
-        r'''& \left(\textcolor{blue}{''' +
+        r'''& \left(\textcolor{Fuchsia}{''' +
         f'{vd["lg_coeffs"][3+mrs]}' + r'''} \times \textcolor{red}{''' +
-        f'{vd["mrs"]}' + r'''}\right) + & \mathrm{mRS} \\''' +
+        f'{vd["mrs"]}' + r'''}\right) & \mathrm{mRS} \\''' +
         # Next line, value equal to:
         r'''=& \textcolor{red}{''' +
         f'{vd["LP_yr1"]:.2f}' +
@@ -397,6 +427,28 @@ def write_details(vd, mrs):
         \end{align*}'''
         )
     st.write('\* This value is 0 for female patients and 1 for male.')
+
+    # ----- Calculation for probability -----
+    st.markdown('Probability:')
+    st.latex(
+        r'''
+        \begin{align*}
+        P_1 &= \frac{1}{1+e^{-
+        \textcolor{red}{
+        ''' +
+        f'{vd["LP_yr1"]:.2f}' +
+        r'''
+        }
+        }} \\
+        &=
+        \textcolor{red}{
+        ''' +
+        f'{100.0*vd["P_yr1"]:.2f}' +
+        r'''
+        \%}
+        \end{align*}
+        '''
+        )
 
 
 # #####################################################################
