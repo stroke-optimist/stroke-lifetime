@@ -107,9 +107,12 @@ table_discounted_cost = utilities.main_calculations.\
 table_cost_effectiveness = utilities.main_calculations.\
     main_cost_effectiveness(qalys_table, table_discounted_cost)
 
-# Build a dictionary of variables used in these calculations:
+# Build a dictionary of variables used in these calculations.
+# This is mostly for the use of the detailed explanations and examples.
 variables_dict = utilities.main_calculations.build_variables_dict(
-    age_input, sex_input, mRS_input)
+    age_input, sex_input, mRS_input, pDeath_list,
+    all_survival_lists[mRS_input]
+    )
 
 
 # ###########################

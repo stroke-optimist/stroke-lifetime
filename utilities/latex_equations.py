@@ -124,7 +124,7 @@ def prob_yr1(vd):
 
 def survival_yr1(S_t, P_t):
     # Line with values in percent:
-    # & = 1 - \textcolor{red}{''' + 
+    # & = 1 - \textcolor{red}{''' +
     # f'{100.0*P_t:.2f}' + r'''\%} \\
     if S_t < 0.0:
         # Add an extra line showing an inequality.
@@ -151,7 +151,7 @@ def table_gz_coeffs(vd):
         r'''
         | Description | Coefficient |
         | --- | --- |
-        | Constant $\alpha_{\mathrm{H}}$ | ''' + f'{vd["gz_coeffs"][0]}' + r'''|
+        | Constant $\alpha_\mathrm{H}$ | ''' + f'{vd["gz_coeffs"][0]}' + r'''|
         | Adjusted age | ''' + f'{vd["gz_coeffs"][1]}' + r'''|
         | (Adjusted age)$^{2}$ | ''' + f'{vd["gz_coeffs"][2]}' + r'''|
         | Sex | ''' + f'{vd["gz_coeffs"][3]}' + r'''|
@@ -188,7 +188,7 @@ def hazard_yrn_generic():
     str = (
         r'''
         \begin{equation}\tag{3}
-        H_t = \frac{e^{LP_{\mathrm{H}}}(e^{\gamma t} - 1)}{\gamma} 
+        H_t = \frac{e^{LP_{\mathrm{H}}}(e^{\gamma t} - 1)}{\gamma}
         \end{equation}
         '''
         )
@@ -199,23 +199,23 @@ def lp_yrn_generic():
     str = (
         r'''
         \begin{equation}\tag{4}
-        LP_{\mathrm{H}} = 
-            \alpha_{\mathrm{H}} + 
-            \displaystyle\sum_{i=1}^{n} 
-            \beta_{\mathrm{H},\ i} 
+        LP_{\mathrm{H}} =
+            \alpha_{\mathrm{H}} +
+            \displaystyle\sum_{i=1}^{n}
+            \beta_{\mathrm{H},\ i}
             \cdot
-            X_{\mathrm{H},\ i} 
+            X_{\mathrm{H},\ i}
         \end{equation}
         '''
         )
     return str
 
 
-def pDeath_yrn_generic():
+def FDeath_yrn_generic():
     str = (
         r'''
         \begin{equation}\tag{5}
-        P_{t} = 1 - (1-H_t)\times(1-P_{1})
+        F_{t} = 1 - (1-H_t)\times(1-P_{1})
         \end{equation}
         '''
         )
@@ -224,9 +224,10 @@ def pDeath_yrn_generic():
 
 def survival_generic():
     str = (
-        r'''S_t = 1 - P_t'''
+        r'''S_t = 1 - F_t'''
         )
     return str
+
 
 def lp_yrn(vd):
     str = (
@@ -275,8 +276,9 @@ def lp_yrn(vd):
 def hazard_yrn(vd, time_input_yr, H_t):
     if H_t > 1.0:
         # Add an extra line showing an inequality.
-        extra_str = (r''' \\ 
-            H_{\textcolor{red}{''' + f'{time_input_yr}' + r'''}} 
+        extra_str = (
+            r''' \\
+            H_{\textcolor{red}{''' + f'{time_input_yr}' + r'''}}
             &> \textcolor{red}{100\%} '''
         )
     else:
@@ -284,7 +286,7 @@ def hazard_yrn(vd, time_input_yr, H_t):
     str = (
         r'''
         \begin{align*}
-        H_{\textcolor{red}{''' + f'{time_input_yr}' + r'''}} 
+        H_{\textcolor{red}{''' + f'{time_input_yr}' + r'''}}
         &= \frac{1}{\gamma} \cdot
         e^{
         \textcolor{red}{
@@ -297,34 +299,35 @@ def hazard_yrn(vd, time_input_yr, H_t):
         ''' +
         f'{100.0*H_t:.2f}' +
         r'''
-        \%}''' + 
+        \%}''' +
         extra_str + r'''
         \end{align*}
         '''
     )
     return str
 
-def pDeath_yrn(H_t, P_yr1, P_t, time_input_yr):
-    # Line with values in percent: 
+
+def FDeath_yrn(H_t, P_yr1, P_t, time_input_yr):
+    # Line with values in percent:
     # 1 - (1-\textcolor{red}{'''
     # + f'{100.0*H_t:.2f}' + r'''\%})\times(1-\textcolor{red}{'''
     # + f'{100.0*P_yr1:.2f}' + r'''\%}) \\
     if P_t > 1.0:
         # Add an extra line showing an inequality.
-        extra_str = (r''' \\ 
-            P_{\textcolor{red}{''' + f'{time_input_yr}' + r'''}}
+        extra_str = (r''' \\
+            F_{\textcolor{red}{''' + f'{time_input_yr}' + r'''}}
             &> \textcolor{red}{100\%} ''')
     else:
         extra_str = ''
     str = (
         r'''
         \begin{align*}
-        P_{\textcolor{red}{''' + f'{time_input_yr}' + r'''}} &= '''
+        F_{\textcolor{red}{''' + f'{time_input_yr}' + r'''}} &= '''
         r'''1 - (1-\textcolor{red}{'''
         + f'{H_t:.4f}' + r'''})\times(1-\textcolor{red}{'''
         + f'{P_yr1:.4f}' + r'''}) \\
         &= \textcolor{red}{'''
-        + f'{100.0*P_t:.2f}' + r'''\%}''' + 
+        + f'{100.0*P_t:.2f}' + r'''\%}''' +
         extra_str + r'''
         \end{align*}
         '''
@@ -334,11 +337,12 @@ def pDeath_yrn(H_t, P_yr1, P_t, time_input_yr):
 
 def survival(S_t, P_t, time_input_yr):
     # Line with values in percent:
-    # & = 1 - \textcolor{red}{''' + 
-    # f'{100.0*P_t:.2f}' + r'''\%} \\   
+    # & = 1 - \textcolor{red}{''' +
+    # f'{100.0*P_t:.2f}' + r'''\%} \\
     if S_t < 0.0:
         # Add an extra line showing an inequality.
-        extra_str = (r''' \\ 
+        extra_str = (
+            r''' \\
             S_{\textcolor{red}{''' + f'{time_input_yr}' + r'''}}
             &< \textcolor{red}{0\%} '''
             )
@@ -356,4 +360,82 @@ def survival(S_t, P_t, time_input_yr):
         \end{align*}
         '''
         )
+    return str
+
+
+def pDeath_yr2_generic():
+    str = (
+        r'''
+        \begin{equation}\tag{6}
+        P_2 = 1 - \exp{(P_1 - F_2)}
+        \end{equation}
+        '''
+        )
+    return str
+
+
+def pDeath_yrn_generic():
+    str = (
+        r'''
+        \begin{equation}\tag{6}
+        P_t = 1 - \exp{(F_{t-1} - F_{t})}
+        \end{equation}
+        '''
+        )
+    return str
+
+
+def pDeath_yrn(P1, F0, F1, time, S1):
+    # Highlight if survival is below 0%.
+    if S1 <= 0.0:
+        # Survival is zero, so probability is zero.
+        extra_str = (
+            r''' \\
+            P_{\textcolor{red}{''' + f'{time}' + r'''}}
+            &= \textcolor{red}{0\%}'''
+            )
+    # Highlight other weird cases:
+    elif P1 > 1.0:
+        # Add an extra line showing an inequality.
+        extra_str = (
+            r''' \\
+            P_{\textcolor{red}{''' + f'{time}' + r'''}}
+            &> \textcolor{red}{100\%}'''
+            )
+    elif P1 < 0.0:
+        # Add an extra line showing an inequality.
+        extra_str = (
+            r''' \\
+            P_{\textcolor{red}{''' + f'{time}' + r'''}}
+            &< \textcolor{red}{0\%}'''
+            )
+    else:
+        extra_str = ''
+    str = (
+        r'''
+        \begin{align*}
+        P_{\textcolor{red}{''' + f'{time}' + r'''}} &=
+        1 - \exp{(
+        \textcolor{red}{''' + f'{F0:.4f}' + r'''}
+        -
+        \textcolor{red}{''' + f'{F1:.4f}' + r'''}
+        )} \\
+        &= \textcolor{red}{''' + f'{100*P1:.2f}' + r'''\%}''' +
+        extra_str + r'''
+        \end{align*}
+        '''
+        )
+    return str
+
+
+def survival_display(time, survival):
+    str = (
+        r'''
+        \begin{equation*}
+        S_{\textcolor{red}{''' +
+        f'{time}' + r'''}} =  \textcolor{red}{''' +
+        f'{100.0*survival:.2f}' + r'''\%}
+        \end{equation*}
+        '''
+    )
     return str

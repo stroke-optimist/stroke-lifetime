@@ -1,35 +1,6 @@
 # To be printed as markdown on the demo page. 
 # ---------------------------------------------------------------------
 
-$P_{\mathrm{within\ 12mo}}$ or mortality within twelve months of discharge.  
-
-
-### Mortality after year one:
-
-+ Gompertz model: 
-$$ 
-H_t = \frac{e^{LP_{\mathrm{H}}}(e^{\gamma t} - 1)}{\gamma} 
-$$
-with linear predictor 
-$$ 
-  LP_{\mathrm{H}} = 
-    \alpha_{\mathrm{H}} + 
-    \displaystyle\sum_{i=1}^{n} 
-    \beta_{\mathrm{H},\ i} 
-    \cdot
-    X_{\mathrm{H},\ i} 
-$$ 
-Mortality after twelve months of discharge. 
-
-
-The mortality at $t$ years after admission is: 
-
-$$ P_{\mathrm{chosen\ time}} = 1 - e^{(H_{t-1} - H_{t})} $$
-_Unless_ the earlier year is the first year, in which case:
-
-$$ P_{\mathrm{chosen\ time}} = 1 - e^{(P_{\mathrm{within\ 12mo}} - H_{t})} $$
- 
-
 ### Life expectancy
 
 The resulting probabilities of death can be thrown into the same formula for calculating the expected lifespan in years. 

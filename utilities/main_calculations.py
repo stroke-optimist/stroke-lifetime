@@ -19,7 +19,7 @@ from utilities.models import \
     find_iDeath, \
     find_pDeath_yr1, \
     find_lpDeath_yr1, \
-    find_pDeath_yrn, \
+    find_FDeath_yrn, \
     find_lpDeath_yrn, \
     find_survival_time_for_pDeath, \
     calculate_qaly, \
@@ -27,7 +27,7 @@ from utilities.models import \
     find_NEL_Count, \
     find_EL_Count, \
     find_residential_care_average_time, \
-    find_tDeath
+    find_t_zero_survival
 
 # Functions:
 # def find_hazard_with_time(time_list_yr, age_input, sex_input, mrs_input):
@@ -59,7 +59,7 @@ def find_cumhazard_with_time(time_list_yr, age, sex, mrs):
             pDeath_yr1 = find_pDeath_yr1(age, sex, mrs)
             pDeath = pDeath_yr1
         else:
-            hazard, pDeath = find_pDeath_yrn(
+            hazard, pDeath = find_FDeath_yrn(
                 age, sex, mrs, year, pDeath_yr1
                 )
             hazard_list.append(hazard)
@@ -119,7 +119,8 @@ def main_probabilities(age_input, sex_input, mrs_input):
     pDeath_list = np.array(pDeath_list)
 
     # Find when survival=0%:
-    time_of_zero_survival = find_tDeath(age_input, sex_input, mrs_input, 1.0)
+    time_of_zero_survival = find_t_zero_survival(
+        age_input, sex_input, mrs_input, 1.0)
 
     return (time_list_yr, all_hazard_lists, all_survival_lists,
             pDeath_list, invalid_inds_for_pDeath, time_of_zero_survival)
@@ -341,9 +342,9 @@ def main_cost_effectiveness(qaly_table, cost_table):
 
 
 def build_variables_dict(
-        age, sex, mrs):
+        age, sex, mrs, pDeath_list, survival_list):
     # Calculate some bits we're missing:
-    P_yr1 = find_pDeath_yr1(age, sex, mrs)
+    # P_yr1 = find_pDeath_yr1(age, sex, mrs)
     LP_yr1 = find_lpDeath_yr1(age, sex, mrs)
     LP_yrn = find_lpDeath_yrn(age, sex, mrs)
 
@@ -360,8 +361,10 @@ def build_variables_dict(
         gz_mean_age=gz_mean_age,
         gz_gamma=gz_gamma,
         # For mortality:
-        P_yr1=P_yr1,
+        P_yr1=pDeath_list[0],
         LP_yr1=LP_yr1,
-        LP_yrn=LP_yrn
+        LP_yrn=LP_yrn,
+        pDeath_list=pDeath_list,
+        survival_list=survival_list
         )
     return variables_dict

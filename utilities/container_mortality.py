@@ -9,7 +9,7 @@ import plotly.express as px
 
 from utilities.fixed_params import colours_excel
 # from utilities.inputs import write_text_from_file
-from utilities.models import find_pDeath_yrn
+from utilities.models import find_FDeath_yrn
 import utilities.latex_equations
 
 
@@ -39,8 +39,8 @@ def main(
     with st.expander('Mortality after year one'):
         write_details_mortality_after_year_one(variables_dict)
 
-    # with st.expander('Mortality in a specific year'):
-    #     write_details_mortality_in_chosen_year(variables_dict)
+    with st.expander('Mortality in a chosen year'):
+        write_details_mortality_in_chosen_year(variables_dict)
 
 
 def plot_survival_vs_time_plotly(
@@ -458,10 +458,14 @@ def write_details_mortality_after_year_one(vd):
     st.markdown(''.join([
         'This hazard $H_t$ can be combined with the probability of '
         'death in year one, $P_{1}$, to give the '
-        'cumulative probability of death by time $t$, $P_t$:'
+        'cumulative probability of death by time $t$, $F_t$:'
         ]))
-    latex_pDeath_yrn_generic = utilities.latex_equations.pDeath_yrn_generic()
-    st.latex(latex_pDeath_yrn_generic)
+    latex_FDeath_yrn_generic = utilities.latex_equations.FDeath_yrn_generic()
+    st.latex(latex_FDeath_yrn_generic)
+    st.markdown(''.join([
+        'This quantity $F_t$ is plotted in the cumulative hazard ',
+        'vs. time plot near the top of this page. '
+    ]))
 
     # ----- Equation for survival -----
     st.markdown(''.join([
@@ -502,7 +506,9 @@ def write_details_mortality_after_year_one(vd):
         )
 
     # Calculate the hazard and probability of death:
-    H_t, P_t = find_pDeath_yrn(
+    # (hazard is currently not stored in main_calculations
+    # so have to find it specially here.)
+    H_t, P_t = find_FDeath_yrn(
         vd["age"], vd["sex"], vd["mrs"], time_input_yr, p1=vd["P_yr1"])
     # Survival:
     S_t = 1.0 - P_t
@@ -518,26 +524,93 @@ def write_details_mortality_after_year_one(vd):
         'Cumulative probability of death by time $t$ ',
         '(using the previously-calculated $P_{1}$):',
     ]))
-    latex_pDeath_yrn = utilities.latex_equations.pDeath_yrn(
+    latex_FDeath_yrn = utilities.latex_equations.FDeath_yrn(
         H_t, vd["P_yr1"], P_t, time_input_yr)
-    st.latex(latex_pDeath_yrn)
+    st.latex(latex_FDeath_yrn)
 
     # ----- Calculation for survival -----
     st.markdown(''.join([
         'Survival at time $t$:'
     ]))
-    latex_survival = utilities.latex_equations.survival(S_t, P_t, time_input_yr)
+    latex_survival = utilities.latex_equations.\
+        survival(S_t, P_t, time_input_yr)
     st.latex(latex_survival)
 
 
-
 def write_details_mortality_in_chosen_year(vd):
-    
-    # ----- Equation for probability of death -----
-    st.markdown('The mortality at $t$ years after admission is: ')
-    st.markdown('$$ P_{\mathrm{chosen\ time}} = 1 - e^{(H_{t-1} - H_{t})} $$')
-    st.markdown('_Unless_ the earlier year is the first year, in which case:')
-    st.markdown('$$ P_{\mathrm{chosen\ time}} = 1 - e^{(P_{\mathrm{within\ 12mo}} - H_{t})} $$')
+    st.markdown('## Mortality in a chosen year')
+    st.markdown(''.join([
+        'The probability of death during a chosen year $t$ after '
+        'year one, $P_t$, ',
+        'can be found by combining the cumulative probabilities ',
+        'of death in that year and in the previous year. '
+        ]))
+
+    # ----- Equation for probability of death in year two -----
+    st.markdown('In year 2,')
+    latex_pDeath_yr2_generic = utilities.latex_equations.pDeath_yr2_generic()
+    st.latex(latex_pDeath_yr2_generic)
+
+    # ----- Equation for probability of death after year two -----
+    st.markdown('In years where $t>2$,')
+    latex_pDeath_yrn_generic = utilities.latex_equations.pDeath_yrn_generic()
+    st.latex(latex_pDeath_yrn_generic)
+
+    st.markdown(''.join([
+        'In either case, the probability is only valid when survival is ',
+        'greater than 0%.'
+        ]))
+
+    # ##### EXAMPLE #####
+    # ----- Calculations with user input -----
+    st.markdown('### Example')
+    st.markdown(''.join([
+        'For the current patient details, these are calculated as follows.',
+        ' Values in red change with the patient details.'
+        ]))
+
+    # ----- Input number of years -----
+    # Put slider between two empty columns to make it skinnier.
+    # cols = st.columns(3)
+    # with cols[1]:
+    time_input_yr = st.slider(
+        'Choose t in years for this example',
+        min_value=2,
+        max_value=25,
+        value=2
+        )
+    # ----- Gather some data -----
+    # Probability of death in this year:
+    P1 = vd["pDeath_list"][time_input_yr-1]
+    # Survival in this year:
+    S1 = vd["survival_list"][time_input_yr]
+    # (cumulative) probabilities in the other two years:
+    # Earlier year:
+    if time_input_yr == 2:
+        F0 = vd["P_yr1"]
+    else:
+        H0, F0 = find_FDeath_yrn(
+            vd["age"], vd["sex"], vd["mrs"], time_input_yr-1, p1=vd["P_yr1"])
+    # Later year:
+    H1, F1 = find_FDeath_yrn(
+        vd["age"], vd["sex"], vd["mrs"], time_input_yr, p1=vd["P_yr1"])
+
+    # ----- Show survival -----
+    st.markdown('Survival (previously calculated): ')
+    latex_survival_display = utilities.latex_equations.\
+        survival_display(time_input_yr, S1)
+    st.latex(latex_survival_display)
+
+    # ----- Calculate probability -----
+    st.markdown('Probability:')
+    latex_pDeath_yrn = utilities.latex_equations.\
+        pDeath_yrn(P1, F0, F1, time_input_yr, S1)
+    st.latex(latex_pDeath_yrn)
+    if S1 <= 0.0:
+        st.markdown(''.join([
+            'The probability is zero because the survival rate ',
+            'is not above zero.'
+            ]))
 
 
 # #####################################################################

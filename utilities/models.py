@@ -59,7 +59,7 @@ def find_lpDeath_yrn(age, sex, mrs):
     return lp
 
 
-def find_pDeath_yrn(age, sex, mrs, yr, p1=None):
+def find_FDeath_yrn(age, sex, mrs, yr, p1=None):
     """Cumm hazard Gompertz"""
 
     lp = find_lpDeath_yrn(age, sex, mrs)
@@ -88,14 +88,40 @@ def find_iDeath(age, sex, mrs, yr):
     elif yr == 2:
         # AL changed the above from original
         # "else if (rVal == 1)"
-        p0_orig, p0 = find_pDeath_yrn(age, sex, mrs, yr)
+        p0_orig, p0 = find_FDeath_yrn(age, sex, mrs, yr)
         p1 = find_pDeath_yr1(age, sex, mrs)
         rVal = 1.0 - np.exp(p1 - p0)
     else:
-        p0_orig, p0 = find_pDeath_yrn(age, sex, mrs, yr)
-        p1_orig, p1 = find_pDeath_yrn(age, sex, mrs, yr-1.0)
+        p0_orig, p0 = find_FDeath_yrn(age, sex, mrs, yr)
+        p1_orig, p1 = find_FDeath_yrn(age, sex, mrs, yr-1.0)
         rVal = 1.0 - np.exp(p1 - p0)
     return rVal
+
+
+def find_t_zero_survival(age, sex, mrs, prob):
+    """
+    Find the time where survival is zero.
+    Based on find_tDeath.
+    """
+    # Probability of death in year one:
+    pd1 = find_pDeath_yr1(age, sex, mrs)
+    if pd1 < prob:
+        # AL has changed the following line from R:
+        # prob_prime = ((1.0 + prob)/(1.0 + pd1)) - 1.0
+        # ... because using the following line instead
+        # gives the expected result for the survival-time graph.
+        prob_prime = prob
+        # Linear predictor for death in year n:
+        glp = find_lpDeath_yrn(age, sex, mrs)
+        # Invert the pDeath_yrn formula to get time:
+        days = np.log((gz_gamma * prob_prime * np.exp(-glp)) + 1.0) / gz_gamma
+        # Convert days to years:
+        years_to_death = (days/365) + 1
+    else:
+        # AL - is the following correct?
+        years_to_death = np.log(prob) / -(-(np.log(1.0 - pd1))/365.0) / 365.0
+
+    return years_to_death
 
 
 def find_tDeath(age, sex, mrs, prob):
@@ -108,11 +134,7 @@ def find_tDeath(age, sex, mrs, prob):
     # Probability of death in year one:
     pd1 = find_pDeath_yr1(age, sex, mrs)
     if pd1 < prob:
-        # AL has changed the following line from R:
-        # prob_prime = ((1.0 + prob)/(1.0 + pd1)) - 1.0
-        # ... because using the following line instead
-        # gives the expected result for the survival-time graph.
-        prob_prime = prob
+        prob_prime = ((1.0 + prob)/(1.0 + pd1)) - 1.0
         # Linear predictor for death in year n:
         glp = find_lpDeath_yrn(age, sex, mrs)
         # Invert the pDeath_yrn formula to get time:
