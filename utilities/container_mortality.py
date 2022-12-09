@@ -8,7 +8,9 @@ import pandas as pd
 import plotly.express as px
 
 from utilities.fixed_params import colours_excel
-from utilities.inputs import write_text_from_file
+# from utilities.inputs import write_text_from_file
+from utilities.models import find_pDeath_yrn
+import utilities.latex_equations
 
 
 def main(
@@ -32,11 +34,13 @@ def main(
     write_table_of_median_survival(survival_times)
 
     with st.expander('Mortality during year one'):
-        write_details(variables_dict, mRS_input)
+        write_details_mortality_in_year_one(variables_dict)
 
-    with st.expander('Mortality in subsequent years'):
-        pass
-        # write_details(variables_dict, mRS_input)
+    with st.expander('Mortality after year one'):
+        write_details_mortality_after_year_one(variables_dict)
+
+    # with st.expander('Mortality in a specific year'):
+    #     write_details_mortality_in_chosen_year(variables_dict)
 
 
 def plot_survival_vs_time_plotly(
@@ -78,8 +82,6 @@ def plot_survival_vs_time_plotly(
     # Figure title:
     fig.update_layout(title_text='Survival', title_x=0.5)
     # Change axis:
-    # (I've set the upper limits slightly above the data limits so that
-    # in dark mode, there's a border on the top and right sides.)
     fig.update_yaxes(range=[0, 100])
     fig.update_xaxes(range=[0, time_list_yr[-1]],
                      constrain='domain')  # For aspect ratio.
@@ -145,11 +147,13 @@ def plot_hazard_vs_time_plotly(time_list_yr, all_hazard_lists):
             f'{i}' for year in time_list_yr]
         hazard_list = 100.0*sub_hazard_lists[i]
         cum_hazard_list = 100.0*all_hazard_lists[i]
+
         # Use dtype=object to keep the mixed strings (mRS),
         # integers (years) and floats (hazards).
         data_here = np.transpose(np.array(
             [mRS_list, time_list_yr, hazard_list, cum_hazard_list],
             dtype=object))
+
         if i == 0:
             data_to_plot = data_here
         else:
@@ -309,14 +313,8 @@ def write_table_of_median_survival(survival_times):
     st.table(df_table.style.format("{:.2f}"))
 
 
-def write_details(vd, mrs):
+def write_details_mortality_in_year_one(vd):
     """
-    Read in and print a series of markdown text files.
-    These are stored in the folder: pages/text_for_pages.
-
-    When appropriate, split into two columns to show both
-    the general formula and the version with variables subbed in.
-
     Equations will be labelled with numbers with \begin{equation},
     but that numbering doesn't carry through between tabs
     i.e. there could be multiple "Equation 1"s.
@@ -331,124 +329,215 @@ def write_details(vd, mrs):
     #     )
     st.markdown('## Mortality during year one')
     # ----- Tables of constants -----
-    st.markdown(
-        'The following constants are used to calculate the probability ' +\
+    st.markdown(''.join([
+        'The following constants are used to calculate the probability ',
         'of death during year one.'
-        )
+        ]))
     table_cols = st.columns(2)
     with table_cols[0]:
-        st.markdown(
-            r'''
-            | Coefficient | Description |
-            | --- | --- |
-            | ''' + f'{vd["lg_coeffs"][0]}' + r'''| Constant |
-            | ''' + f'{vd["lg_coeffs"][1]}' + r'''| Adjusted age |
-            | ''' + f'{vd["lg_coeffs"][2]}' + r'''| Sex |
-            '''
-            )
+        markdown_lg_coeffs = utilities.latex_equations.table_lg_coeffs(vd)
+        st.markdown(markdown_lg_coeffs)
+
     with table_cols[1]:
-        st.markdown(
-            r'''
-            | mRS | mRS coefficient | Mean age coefficient|
-            | --- | --- | --- |
-            | 0 | ''' + f'{vd["lg_coeffs"][3+0]}' + r'''| ''' + \
-                f'{vd["lg_mean_ages"][0]}' + r'''|
-            | 1 | ''' + f'{vd["lg_coeffs"][3+1]}' + r'''| ''' + \
-                f'{vd["lg_mean_ages"][1]}' + r'''|
-            | 2 | ''' + f'{vd["lg_coeffs"][3+2]}' + r'''| ''' + \
-                f'{vd["lg_mean_ages"][2]}' + r'''|
-            | 3 | ''' + f'{vd["lg_coeffs"][3+3]}' + r'''| ''' + \
-                f'{vd["lg_mean_ages"][3]}' + r'''|
-            | 4 | ''' + f'{vd["lg_coeffs"][3+4]}' + r'''| ''' + \
-                f'{vd["lg_mean_ages"][4]}' + r'''|
-            | 5 | ''' + f'{vd["lg_coeffs"][3+5]}' + r'''| ''' + \
-                f'{vd["lg_mean_ages"][5]}' + r'''|
-            '''
-            )
+        markdown_lg_mrs_coeffs = utilities.latex_equations.\
+            table_lg_mrs_coeffs(vd)
+        st.markdown(markdown_lg_mrs_coeffs)
 
     # ----- Equation for probability -----
-    st.markdown('The probability is calculated as:')
-    st.latex(
-        r'''
-        \begin{equation}\tag{1}
-        P_{\mathrm{yr1}} = \frac{1}{1+e^{-LP_{\mathrm{yr1}}}}
-        \end{equation}
-        '''
-        )
+    st.markdown(''.join([
+        'The probability of death during year one, ',
+        '$P_{1}$, is calculated as:'
+        ]))
+    latex_pDeath_yr1_generic = utilities.latex_equations.pDeath_yr1_generic()
+    st.latex(latex_pDeath_yr1_generic)
 
     # ----- Equation for linear predictor -----
-    st.markdown('with linear predictor')
-    st.latex(
-        r'''
-        \begin{equation}\tag{2}
-        LP_{\mathrm{yr1}} =
-        \alpha_{\mathrm{yr1}} +
-        \displaystyle\sum_{i=1}^{n}
-        \beta_{\mathrm{yr1},\ i}
-        \cdot
-        X_{\mathrm{yr1},\ i}
-        \end{equation}
-        '''
-        )
+    st.markdown('with linear predictor $LP_{1}$ where:')
+    latex_lp_yr1_generic = utilities.latex_equations.lp_yr1_generic()
+    st.latex(latex_lp_yr1_generic)
+    st.markdown(''.join([
+        r'''where $\alpha$ and $\beta$ are constants and ''',
+        '$X$ are values of the patient details (i.e. age, sex, and mRS).'
+        ]))
+
+    # ----- Equation for survival -----
+    st.markdown(''.join([
+        'The opposite of this value is survival in year one, $S_1$:'
+        ]))
+    latex_survival_yr1_generic = utilities.latex_equations.\
+        survival_yr1_generic()
+    st.latex(latex_survival_yr1_generic)
+    st.markdown(''.join([
+        'This is the quantity plotted in the survival vs. time chart ',
+        'at the top of this page.'
+    ]))
 
     # ----- Calculations with user input -----
-    st.markdown(
-        'For the current patient details, these are calculated as follows.' +\
-        ' Values in red change with the patient details, and values in ' +\
-        'pink use a different constant from the tables above depending ' +\
+    st.markdown('### Example')
+    st.markdown(''.join([
+        'For the current patient details, these are calculated as follows.',
+        ' Values in red change with the patient details, and values in ',
+        'pink use a different constant from the tables above depending ',
         'on the patient details.'
-        )
+        ]))
 
     # ----- Calculation for linear predictor -----
     st.markdown('The linear predictor:')
-    st.latex(
-        r'''\begin{align*}
-        LP_{\mathrm{yr1}} =&''' +
-        # alpha
-        f'{vd["lg_coeffs"][0]}' + r''' + & \mathrm{constant} \\''' +
-        # 1st coeff
-        r'''& \left(''' +
-        f'{vd["lg_coeffs"][1]}' + r'''\times [\textcolor{red}{''' +
-        f'{vd["age"]}' + r'''}-\textcolor{Fuchsia}{''' +
-        f'{vd["lg_mean_ages"][mrs]}' +
-        r'''}]\right) + & \mathrm{age} \\''' +
-        # 2nd coeff
-        r'''& \left(''' +
-        f'{vd["lg_coeffs"][2]}' + r'''\times \textcolor{red}{''' +
-        f'{vd["sex"]}' + r'''}\right) + & \mathrm{sex}^{*} \\''' +
-        # 3rd coeff
-        r'''& \left(\textcolor{Fuchsia}{''' +
-        f'{vd["lg_coeffs"][3+mrs]}' + r'''} \times \textcolor{red}{''' +
-        f'{vd["mrs"]}' + r'''}\right) & \mathrm{mRS} \\''' +
-        # Next line, value equal to:
-        r'''=& \textcolor{red}{''' +
-        f'{vd["LP_yr1"]:.2f}' +
-        r'''}
-        \end{align*}'''
-        )
-    st.write('\* This value is 0 for female patients and 1 for male.')
+    latex_lp_yr1 = utilities.latex_equations.lp_yr1(vd)
+    st.latex(latex_lp_yr1)
+    st.write('$^{*}$ This value is 0 for female patients and 1 for male.')
 
     # ----- Calculation for probability -----
     st.markdown('Probability:')
-    st.latex(
-        r'''
-        \begin{align*}
-        P_1 &= \frac{1}{1+e^{-
-        \textcolor{red}{
-        ''' +
-        f'{vd["LP_yr1"]:.2f}' +
-        r'''
-        }
-        }} \\
-        &=
-        \textcolor{red}{
-        ''' +
-        f'{100.0*vd["P_yr1"]:.2f}' +
-        r'''
-        \%}
-        \end{align*}
-        '''
+    latex_prob_yr1 = utilities.latex_equations.prob_yr1(vd)
+    st.latex(latex_prob_yr1)
+
+    # ----- Calculation for survival -----
+    S_1 = 1.0 - vd["P_yr1"]
+    st.markdown(''.join([
+        'Survival:'
+    ]))
+    latex_survival_yr1 = utilities.latex_equations.\
+        survival_yr1(S_1, vd["P_yr1"])
+    st.latex(latex_survival_yr1)
+
+
+def write_details_mortality_after_year_one(vd):
+    """
+    Equations will be labelled with numbers with \begin{equation},
+    but that numbering doesn't carry through between tabs
+    i.e. there could be multiple "Equation 1"s.
+    Instead use \tag to manually label equations, e.g.
+    \begin{equation}\tag{5}.
+
+    "vd" is short for variables_dict.
+    """
+    # write_text_from_file(
+    #     'pages/text_for_pages/calculations_mortality_1.txt',
+    #     head_lines_to_skip=2
+    #     )
+    st.markdown('## Mortality after year one')
+    # ----- Tables of constants -----
+    st.markdown(''.join([
+        'The following constants are used to calculate the probability ',
+        'of death after year one.'
+        ]))
+    table_cols = st.columns(2)
+    with table_cols[0]:
+        markdown_table_gz_coeffs = utilities.latex_equations\
+            .table_gz_coeffs(vd)
+        st.markdown(markdown_table_gz_coeffs)
+
+    with table_cols[1]:
+        markdown_table_gz_mRS_coeffs = utilities.latex_equations\
+            .table_gz_mRS_coeffs(vd)
+        st.markdown(markdown_table_gz_mRS_coeffs)
+
+    # ----- Equation for hazard -----
+    st.markdown(''.join([
+        'The cumulative hazard at time $t$ ',
+        '(where $t$ is the time in days ',
+        'after year one), ',
+        '$H_t$, is calculated as:'
+        ]))
+    latex_hazard_yrn_generic = utilities.latex_equations\
+        .hazard_yrn_generic()
+    st.latex(latex_hazard_yrn_generic)
+
+    # ----- Equation for linear predictor -----
+    st.markdown('with linear predictor $LP_{\mathrm{H}}$ where:')
+    latex_lp_yrn_generic = utilities.latex_equations.lp_yrn_generic()
+    st.latex(latex_lp_yrn_generic)
+
+    st.markdown(''.join([
+        r'''where $\alpha$ and $\beta$ are constants and ''',
+        '$X$ are values of the patient details (e.g. age, sex, and mRS).'
+        ]))
+
+    # ----- Equation for probability of death -----
+    st.markdown(''.join([
+        'This hazard $H_t$ can be combined with the probability of '
+        'death in year one, $P_{1}$, to give the '
+        'cumulative probability of death by time $t$, $P_t$:'
+        ]))
+    latex_pDeath_yrn_generic = utilities.latex_equations.pDeath_yrn_generic()
+    st.latex(latex_pDeath_yrn_generic)
+
+    # ----- Equation for survival -----
+    st.markdown(''.join([
+        'The opposite of this value is survival, $S_t$:'
+        ]))
+    latex_survival_generic = utilities.latex_equations.survival_generic()
+    st.latex(latex_survival_generic)
+    st.markdown(''.join([
+        'This is the quantity plotted in the survival vs. time chart ',
+        'at the top of this page.'
+    ]))
+
+    # ##### EXAMPLE #####
+    # ----- Calculations with user input -----
+    st.markdown('### Example')
+    st.markdown(''.join([
+        'For the current patient details, these are calculated as follows.',
+        ' Values in red change with the patient details, and values in ',
+        'pink use a different constant from the tables above depending ',
+        'on the patient details.'
+        ]))
+
+    # ----- Calculation for linear predictor -----
+    st.markdown('The linear predictor:')
+    latex_lp_yrn = utilities.latex_equations.lp_yrn(vd)
+    st.latex(latex_lp_yrn)
+    st.markdown('$^{*}$ This value is 0 for female patients and 1 for male.')
+
+    # ----- Input number of years -----
+    # Put slider between two empty columns to make it skinnier.
+    # cols = st.columns(3)
+    # with cols[1]:
+    time_input_yr = st.slider(
+        'Choose a number of years for this example',
+        min_value=2,
+        max_value=25,
+        value=2
         )
+
+    # Calculate the hazard and probability of death:
+    H_t, P_t = find_pDeath_yrn(
+        vd["age"], vd["sex"], vd["mrs"], time_input_yr, p1=vd["P_yr1"])
+    # Survival:
+    S_t = 1.0 - P_t
+
+    # ----- Calculation for hazard -----
+    st.markdown('Cumulative hazard $H_t$ at the chosen time $t$:')
+    latex_hazard_yrn = utilities.latex_equations.hazard_yrn(
+        vd, time_input_yr, H_t)
+    st.latex(latex_hazard_yrn)
+
+    # ----- Calculation for probability -----
+    st.markdown(''.join([
+        'Cumulative probability of death by time $t$ ',
+        '(using the previously-calculated $P_{1}$):',
+    ]))
+    latex_pDeath_yrn = utilities.latex_equations.pDeath_yrn(
+        H_t, vd["P_yr1"], P_t, time_input_yr)
+    st.latex(latex_pDeath_yrn)
+
+    # ----- Calculation for survival -----
+    st.markdown(''.join([
+        'Survival at time $t$:'
+    ]))
+    latex_survival = utilities.latex_equations.survival(S_t, P_t, time_input_yr)
+    st.latex(latex_survival)
+
+
+
+def write_details_mortality_in_chosen_year(vd):
+    
+    # ----- Equation for probability of death -----
+    st.markdown('The mortality at $t$ years after admission is: ')
+    st.markdown('$$ P_{\mathrm{chosen\ time}} = 1 - e^{(H_{t-1} - H_{t})} $$')
+    st.markdown('_Unless_ the earlier year is the first year, in which case:')
+    st.markdown('$$ P_{\mathrm{chosen\ time}} = 1 - e^{(P_{\mathrm{within\ 12mo}} - H_{t})} $$')
 
 
 # #####################################################################
@@ -457,7 +546,8 @@ def write_details(vd, mrs):
 def plot_survival_vs_time(time_list_yr, survival_list):
     """
     REPLACED with plotly version.
-    Plot survival vs time."""
+    Plot survival vs time.
+    """
     fig, ax = plt.subplots()
 
     # Plot content:

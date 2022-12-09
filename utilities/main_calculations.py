@@ -44,27 +44,36 @@ from utilities.models import \
 
 
 def find_cumhazard_with_time(time_list_yr, age, sex, mrs):
-    # Start with hazard in year 0, which is 0:
-    hazard_list = [0.0]
+    """
+    AL - I'm confused about what is hazard and what is pDeath.
+    The description in the Word doc doesn't match the Excel sheet.
+    For now, I'm collecting hazard (Gompertz, year>1)
+    but not returning or using it elsewhere in the code.
+    """
+    # Start with hazard in year 2.
+    hazard_list = []
+    # Start with prob in year 0, which is zero:
+    pDeath_list = [0.0]
     for year in time_list_yr[1:]:
         if year == 1:
-            hazard_yr1 = find_pDeath_yr1(age, sex, mrs)
-            hazard = hazard_yr1
+            pDeath_yr1 = find_pDeath_yr1(age, sex, mrs)
+            pDeath = pDeath_yr1
         else:
-            hazard_orig, hazard = find_pDeath_yrn(
-                age, sex, mrs, year, hazard_yr1
+            hazard, pDeath = find_pDeath_yrn(
+                age, sex, mrs, year, pDeath_yr1
                 )
+            hazard_list.append(hazard)
         # Manual override if the value is too big:
         # AL has changed this value from Excel's 1.5.
-        hazard = 1.0 if hazard > 1.0 else hazard
+        pDeath = 1.0 if pDeath > 1.0 else pDeath
         # Add this value to list:
-        hazard_list.append(hazard)
+        pDeath_list.append(pDeath)
 
     # Convert to survival:
-    hazard_list = np.array(hazard_list)
-    survival_list = 1.0 - hazard_list
+    pDeath_list = np.array(pDeath_list)
+    survival_list = 1.0 - pDeath_list
 
-    return hazard_list, survival_list
+    return pDeath_list, survival_list
 
 
 def calculate_survival_iqr(age, sex, mRS):
@@ -97,7 +106,7 @@ def main_probabilities(age_input, sex_input, mrs_input):
         all_hazard_lists.append(hazard_list)
         all_survival_lists.append(survival_list)
 
-    # Find probability of death:
+    # Find hazard for selected mRS:
     hazard_list = all_hazard_lists[mrs_input]
     invalid_inds_for_pDeath = np.where(hazard_list >= 1.0)[0] + 1
     # Add one to the index because we start hazard_list from year 0
@@ -336,6 +345,7 @@ def build_variables_dict(
     # Calculate some bits we're missing:
     P_yr1 = find_pDeath_yr1(age, sex, mrs)
     LP_yr1 = find_lpDeath_yr1(age, sex, mrs)
+    LP_yrn = find_lpDeath_yrn(age, sex, mrs)
 
     # Fill the dictionary:
     variables_dict = dict(
@@ -352,5 +362,6 @@ def build_variables_dict(
         # For mortality:
         P_yr1=P_yr1,
         LP_yr1=LP_yr1,
+        LP_yrn=LP_yrn
         )
     return variables_dict

@@ -66,15 +66,17 @@ def find_pDeath_yrn(age, sex, mrs, yr, p1=None):
     days = (yr - 1.0)*365.0
     # ^ AL changed this definition of days to match the Excel
     # Calculations sheet.
-    p_orig = np.exp(lp)*(np.exp(days*gz_gamma)-1.0) / gz_gamma
+    # Cumulative hazard at time t:
+    hazard = np.exp(lp)*(np.exp(days*gz_gamma)-1.0) / gz_gamma
 
     # Also calculate the adjustment for year 1.
-    # (comment this better - why do we bother with two different p?)
     if p1 is None:
         # Calculate the prob in year 1 if it's not given:
         p1 = find_pDeath_yr1(age, sex, mrs)
-    p = 1.0 - ((1.0 - p_orig)*(1.0 - p1))
-    return p_orig, p
+
+    # Cumulative probability of death by time t:
+    cum_prob = 1.0 - ((1.0 - hazard)*(1.0 - p1))
+    return hazard, cum_prob
 
 
 def find_iDeath(age, sex, mrs, yr):
