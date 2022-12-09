@@ -42,6 +42,9 @@ def main(
     with st.expander('Mortality in a chosen year'):
         write_details_mortality_in_chosen_year(variables_dict)
 
+    with st.expander('Median survival'):
+        write_details_median_survival(variables_dict)
+
 
 def plot_survival_vs_time_plotly(
         time_list_yr, survival_list, time_of_zero_survival
@@ -275,7 +278,7 @@ def write_table_of_pDeath(pDeath_list, invalid_inds_for_pDeath, n_columns=1):
             # Convert to a pandas series so we can give it a title:
             df_pDeath = pd.Series(
                 pDeath_list_for_table[first_row:last_row],
-                name=('Probability of death')
+                name=('Probability of death (%)')
             )
             df_pDeath.index = df_pDeath.index + n_rows*c
             df_pDeath.index.name = 'Year'
@@ -290,7 +293,7 @@ def write_table_of_pDeath(pDeath_list, invalid_inds_for_pDeath, n_columns=1):
         # Convert to a pandas series so we can give it a title:
         df_pDeath = pd.Series(
             pDeath_list_for_table,
-            name=('pDeath')
+            name=('Probability of death (%)')
         )
         # Write to streamlit:
         st.table(df_pDeath)
@@ -611,6 +614,63 @@ def write_details_mortality_in_chosen_year(vd):
             'The probability is zero because the survival rate ',
             'is not above zero.'
             ]))
+
+
+def write_details_median_survival(vd):
+    st.markdown('## Median survival time')
+
+    st.markdown(''.join([
+        'The method used to calculate a time of death depends ',
+        'on whether the probability $P$ for which a time of death is ',
+        'being calculated from is less than $P_1$, ',
+        'the probability of death in year one.'
+        ]))
+
+    # ----- Case 1 -----
+    st.markdown('### Case 1')
+    st.markdown(''.join([
+        'If $P > P_1$, the time of death is based on the probability ',
+        'of death after year one. The time equation '
+        'has to be modified to allow for the probability of death. ',
+        'Instead of $P$, we consider $P^{\prime}$ where:'
+        ]))
+    # ----- Prob prime -----
+    latex_prob_prime_generic = utilities.latex_equations.prob_prime_generic()
+    st.latex(latex_prob_prime_generic)
+
+    # ----- Time to death (case 1) -----
+    st.markdown(''.join([
+        'The time of death is derived from Equation [REF] ',
+        'and has the form:'
+        ]))
+    latex_death_time_case1_generic = utilities.latex_equations.\
+        death_time_case1_generic()
+    st.latex(latex_death_time_case1_generic)
+
+    # ----- Case 2 -----
+    st.markdown('### Case 2')
+    st.markdown(''.join([
+        'If $P < P_1$, the time of death is based on the probability ',
+        'of death in year one. '
+        ]))
+    # ----- Time to death (case 2) -----
+    latex_death_time_case2_generic = utilities.latex_equations.\
+        death_time_case2_generic()
+    st.latex(latex_death_time_case2_generic)
+    st.markdown(''.join([
+        'This method is taken from _Decision Modelling for Health ',
+        'Economic Evaluations_.'
+    ]))
+
+    # to do - explain how to use these to find median and IQR
+
+    # ##### EXAMPLE #####
+    # ----- Calculations with user input -----
+    st.markdown('### Example')
+    st.markdown(''.join([
+        'For the current patient details, these are calculated as follows.',
+        ' Values in red change with the patient details.'
+        ]))
 
 
 # #####################################################################

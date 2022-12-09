@@ -439,3 +439,43 @@ def survival_display(time, survival):
         '''
     )
     return str
+
+
+def prob_prime_generic():
+    str = (
+        r'''
+        \begin{equation*}
+        P^{\prime} = \frac{1 + P}{1 + P_1} - 1
+        \end{equation*}
+        '''
+    )
+    return str
+
+
+def death_time_case1_generic():
+    str = (
+        r'''
+        \begin{equation*}
+        t_{\mathrm{death}}(P) = 1 + 
+        \frac{1}{\gamma \times 365} \cdot
+        \log\left(
+            \frac{P^{\prime} \times \gamma}{
+                \exp{(LP_\mathrm{H})}} + 1.0
+            \right)      
+        \end{equation*}
+        '''
+    )
+    return str
+
+
+def death_time_case2_generic():
+    str = (
+        r'''
+        \begin{equation*}
+        t_{\mathrm{death}}(P) =
+        \frac{\log{(1 - P)}}
+        {\log{(1 - P_1)}\cdot 365}
+        \end{equation*}
+        '''
+    )
+    return str
