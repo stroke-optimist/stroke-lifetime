@@ -288,7 +288,7 @@ def hazard_yrn(vd, time_input_yr, H_t):
         # Add an extra line showing an inequality.
         extra_str = (
             r''' \\
-            H_{\textcolor{red}{''' + f'{time_input_yr}' + r'''}}
+            H_{\textcolor{Fuchsia}{''' + f'{time_input_yr}' + r'''}}
             &> \textcolor{red}{100\%} '''
         )
     else:
@@ -296,14 +296,14 @@ def hazard_yrn(vd, time_input_yr, H_t):
     str = (
         r'''
         \begin{align*}
-        H_{\textcolor{red}{''' + f'{time_input_yr}' + r'''}}
+        H_{\textcolor{Fuchsia}{''' + f'{time_input_yr}' + r'''}}
         &= \frac{1}{\gamma} \cdot
         e^{
         \textcolor{red}{
         ''' +
         f'{vd["LP_yrn"]:.2f}' +
         r'''
-        }} \cdot \left(e^{\gamma \times [\textcolor{red}{''' +
+        }} \cdot \left(e^{\gamma \times [\textcolor{Fuchsia}{''' +
         f'{time_input_yr}' + r'''}-1] \times 365} - 1 \right) \\
         &= \textcolor{red}{
         ''' +
@@ -325,14 +325,14 @@ def FDeath_yrn(H_t, P_yr1, P_t, time_input_yr):
     if P_t > 1.0:
         # Add an extra line showing an inequality.
         extra_str = (r''' \\
-            F_{\textcolor{red}{''' + f'{time_input_yr}' + r'''}}
+            F_{\textcolor{Fuchsia}{''' + f'{time_input_yr}' + r'''}}
             &> \textcolor{red}{100\%} ''')
     else:
         extra_str = ''
     str = (
         r'''
         \begin{align*}
-        F_{\textcolor{red}{''' + f'{time_input_yr}' + r'''}} &= '''
+        F_{\textcolor{Fuchsia}{''' + f'{time_input_yr}' + r'''}} &= '''
         r'''1 - (1-\textcolor{red}{'''
         + f'{H_t:.4f}' + r'''})\times(1-\textcolor{red}{'''
         + f'{P_yr1:.4f}' + r'''}) \\
@@ -353,7 +353,7 @@ def survival(S_t, P_t, time_input_yr):
         # Add an extra line showing an inequality.
         extra_str = (
             r''' \\
-            S_{\textcolor{red}{''' + f'{time_input_yr}' + r'''}}
+            S_{\textcolor{Fuchsia}{''' + f'{time_input_yr}' + r'''}}
             &< \textcolor{red}{0\%} '''
             )
     else:
@@ -361,7 +361,7 @@ def survival(S_t, P_t, time_input_yr):
     str = (
         r'''
         \begin{align*}
-        S_{\textcolor{red}{''' + f'{time_input_yr}' + r'''}}
+        S_{\textcolor{Fuchsia}{''' + f'{time_input_yr}' + r'''}}
         & = 1 - \textcolor{red}{''' +
         f'{P_t:.4f}' + r'''} \\
         & = \textcolor{red}{''' +
@@ -401,7 +401,7 @@ def pDeath_yrn(P1, F0, F1, time, S1):
         # Survival is zero, so probability is zero.
         extra_str = (
             r''' \\
-            P_{\textcolor{red}{''' + f'{time}' + r'''}}
+            P_{\textcolor{Fuchsia}{''' + f'{time}' + r'''}}
             &= \textcolor{red}{0\%}'''
             )
     # Highlight other weird cases:
@@ -409,14 +409,14 @@ def pDeath_yrn(P1, F0, F1, time, S1):
         # Add an extra line showing an inequality.
         extra_str = (
             r''' \\
-            P_{\textcolor{red}{''' + f'{time}' + r'''}}
+            P_{\textcolor{Fuchsia}{''' + f'{time}' + r'''}}
             &> \textcolor{red}{100\%}'''
             )
     elif P1 < 0.0:
         # Add an extra line showing an inequality.
         extra_str = (
             r''' \\
-            P_{\textcolor{red}{''' + f'{time}' + r'''}}
+            P_{\textcolor{Fuchsia}{''' + f'{time}' + r'''}}
             &< \textcolor{red}{0\%}'''
             )
     else:
@@ -424,7 +424,7 @@ def pDeath_yrn(P1, F0, F1, time, S1):
     str = (
         r'''
         \begin{align*}
-        P_{\textcolor{red}{''' + f'{time}' + r'''}} &=
+        P_{\textcolor{Fuchsia}{''' + f'{time}' + r'''}} &=
         1 - \exp{(
         \textcolor{red}{''' + f'{F0:.4f}' + r'''}
         -
@@ -442,7 +442,7 @@ def survival_display(time, survival):
     str = (
         r'''
         \begin{equation*}
-        S_{\textcolor{red}{''' +
+        S_{\textcolor{Fuchsia}{''' +
         f'{time}' + r'''}} =  \textcolor{red}{''' +
         f'{100.0*survival:.2f}' + r'''\%}
         \end{equation*}

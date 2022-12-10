@@ -506,6 +506,10 @@ def write_details_mortality_after_year_one(vd):
         max_value=25,
         value=2
         )
+    st.markdown(''.join([
+        'The following values in pink change with ',
+        'the chosen time.'
+        ]))
 
     # Calculate the hazard and probability of death:
     # (hazard is currently not stored in main_calculations
@@ -572,7 +576,8 @@ def write_details_mortality_in_chosen_year(vd):
     st.markdown('### Example')
     st.markdown(''.join([
         'For the current patient details, these are calculated as follows.',
-        ' Values in red change with the patient details.'
+        ' Values in red change with the patient details, ',
+        'and values in pink change with the chosen time.'
         ]))
 
     # ----- Input number of years -----
@@ -591,7 +596,7 @@ def write_details_mortality_in_chosen_year(vd):
     # Survival in previous year:
     S0 = vd["survival_list"][time_input_yr-1]
     # Survival in this year:
-    S1 = vd["survival_list"][time_input_yr]
+    # S1 = vd["survival_list"][time_input_yr]
     # (cumulative) probabilities in the other two years:
     # Earlier year:
     if time_input_yr == 2:
