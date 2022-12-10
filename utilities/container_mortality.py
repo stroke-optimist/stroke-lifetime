@@ -372,8 +372,7 @@ def write_details_mortality_in_year_one(vd):
         survival_yr1_generic()
     st.latex(latex_survival_yr1_generic)
     st.markdown(''.join([
-        'This is the quantity plotted in the survival vs. time chart ',
-        'at the top of this page.'
+        'This is the quantity plotted in the survival vs. time chart.'
     ]))
 
     # ----- Calculations with user input -----
@@ -468,7 +467,7 @@ def write_details_mortality_after_year_one(vd):
     st.latex(latex_FDeath_yrn_generic)
     st.markdown(''.join([
         'This quantity $F_t$ is plotted in the cumulative hazard ',
-        'vs. time plot near the top of this page. '
+        'vs. time plot. '
     ]))
 
     # ----- Equation for survival -----
@@ -478,8 +477,7 @@ def write_details_mortality_after_year_one(vd):
     latex_survival_generic = utilities.latex_equations.survival_generic()
     st.latex(latex_survival_generic)
     st.markdown(''.join([
-        'This is the quantity plotted in the survival vs. time chart ',
-        'at the top of this page.'
+        'This is the quantity plotted in the survival vs. time chart.'
     ]))
 
     # ##### EXAMPLE #####
