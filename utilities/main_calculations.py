@@ -342,7 +342,7 @@ def main_cost_effectiveness(qaly_table, cost_table):
 
 
 def build_variables_dict(
-        age, sex, mrs, pDeath_list, survival_list):
+        age, sex, mrs, pDeath_list, survival_list, survival_times):
     # Calculate some bits we're missing:
     # P_yr1 = find_pDeath_yr1(age, sex, mrs)
     LP_yr1 = find_lpDeath_yr1(age, sex, mrs)
@@ -365,6 +365,7 @@ def build_variables_dict(
         LP_yr1=LP_yr1,
         LP_yrn=LP_yrn,
         pDeath_list=pDeath_list,
-        survival_list=survival_list
+        survival_list=survival_list,
+        survival_meds_IQRs=survival_times
         )
     return variables_dict

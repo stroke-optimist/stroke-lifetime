@@ -66,7 +66,13 @@ def lp_yr1_generic():
 
 
 def survival_yr1_generic():
-    str = r'''S_1 = 1 - P_{1}'''
+    str = (
+        r'''
+        \begin{equation}\tag{3}
+        S_1 = 1 - P_{1}
+        \end{equation}
+        '''
+    )
     return str
 
 
@@ -187,7 +193,7 @@ def table_gz_mRS_coeffs(vd):
 def hazard_yrn_generic():
     str = (
         r'''
-        \begin{equation}\tag{3}
+        \begin{equation}\tag{4}
         H_t = \frac{e^{LP_{\mathrm{H}}}(e^{\gamma t} - 1)}{\gamma}
         \end{equation}
         '''
@@ -198,7 +204,7 @@ def hazard_yrn_generic():
 def lp_yrn_generic():
     str = (
         r'''
-        \begin{equation}\tag{4}
+        \begin{equation}\tag{5}
         LP_{\mathrm{H}} =
             \alpha_{\mathrm{H}} +
             \displaystyle\sum_{i=1}^{n}
@@ -214,7 +220,7 @@ def lp_yrn_generic():
 def FDeath_yrn_generic():
     str = (
         r'''
-        \begin{equation}\tag{5}
+        \begin{equation}\tag{6}
         F_{t} = 1 - (1-H_t)\times(1-P_{1})
         \end{equation}
         '''
@@ -224,7 +230,11 @@ def FDeath_yrn_generic():
 
 def survival_generic():
     str = (
-        r'''S_t = 1 - F_t'''
+        r'''
+        \begin{equation}\tag{7}
+        S_t = 1 - F_t
+        \end{equation}
+        '''
         )
     return str
 
@@ -366,7 +376,7 @@ def survival(S_t, P_t, time_input_yr):
 def pDeath_yr2_generic():
     str = (
         r'''
-        \begin{equation}\tag{6}
+        \begin{equation}\tag{8}
         P_2 = 1 - \exp{(P_1 - F_2)}
         \end{equation}
         '''
@@ -377,7 +387,7 @@ def pDeath_yr2_generic():
 def pDeath_yrn_generic():
     str = (
         r'''
-        \begin{equation}\tag{6}
+        \begin{equation}\tag{9}
         P_t = 1 - \exp{(F_{t-1} - F_{t})}
         \end{equation}
         '''
@@ -444,7 +454,7 @@ def survival_display(time, survival):
 def prob_prime_generic():
     str = (
         r'''
-        \begin{equation*}
+        \begin{equation*}\tag{10}
         P^{\prime} = \frac{1 + P}{1 + P_1} - 1
         \end{equation*}
         '''
@@ -455,7 +465,7 @@ def prob_prime_generic():
 def death_time_case1_generic():
     str = (
         r'''
-        \begin{equation*}
+        \begin{equation*}\tag{11}
         t_{\mathrm{death}}(P) = 1 + 
         \frac{1}{\gamma \times 365} \cdot
         \log\left(
@@ -471,11 +481,114 @@ def death_time_case1_generic():
 def death_time_case2_generic():
     str = (
         r'''
-        \begin{equation*}
+        \begin{equation*}\tag{12}
         t_{\mathrm{death}}(P) =
         \frac{\log{(1 - P)}}
-        {\log{(1 - P_1)}\cdot 365}
+        {\log{(1 - P_1)}}\times\frac{1}{365}
         \end{equation*}
+        '''
+    )
+    return str
+
+
+def Pyr1_display(P_yr1):
+    str = (
+        r'''
+        P_{1} =  \textcolor{red}{''' +
+        f'{100.0*P_yr1:.2f}' + r'''\%}
+        '''
+    )
+    return str
+
+
+def LPyrn_display(LP_yrn):
+    str = (
+        r'''
+        LP_{H} =  \textcolor{red}{''' +
+        f'{LP_yrn:.2f}' + r'''}
+        '''
+    )
+    return str
+
+
+def gammaH_display(gamma):
+    str = (
+        r'''
+        \gamma = ''' + f'{gamma}' + r'''
+        '''
+    )
+    return str
+
+
+def prob_prime(p, Pprime, P_yr1):
+    str = (
+        r'''
+        \begin{align*}
+        P^{\prime} &= \frac{1 + \textcolor{Fuchsia}{''' +
+        f'{p:.4f}' + r'''}}{1 + \textcolor{red}{''' +
+        f'{P_yr1:.4f}' + r'''}} - 1 \\
+        &= \textcolor{red}{''' + f'{100.0*Pprime:.2f}' + r'''\%}
+        \end{align*}
+        '''
+    )
+    return str
+
+
+def death_time_case2(tDeath, p, P_yr1):
+    str = (
+        r'''
+        \begin{align*}
+        t_{\mathrm{death}}(\textcolor{Fuchsia}{''' + 
+        f'{100.0*p:.0f}' + r'''\%}) &=
+        \frac{\log{(1 - \textcolor{Fuchsia}{''' +
+        f'{p:.4f}' + r'''})}}
+        {\log{(1 - \textcolor{red}{''' + 
+        f'{P_yr1:.4f}' + r'''})}}\times \frac{1}{365} \\
+        &= \textcolor{red}{''' + 
+        f'{tDeath:.2f}' + r'''} \mathrm{\ years}
+        \end{align*}
+        '''
+    )
+    return str
+
+
+def death_time_case1(
+        tDeath, prob_prime, LP_yrn, gamma, P):
+    str = (
+        r'''
+        \begin{align*}
+        t_{\mathrm{death}}(\textcolor{Fuchsia}{''' +
+        f'{100.0*P:.0f}' + r'''\%}) &= 1 +
+        \frac{1}{''' +
+        f'{gamma}' + r''' \times 365} \cdot
+        \log\left(
+            \frac{\textcolor{red}{''' +
+            f'{prob_prime:.4f}' + r'''}\times ''' +
+            f'{gamma}' + r'''}{
+                \exp{(\textcolor{red}{''' +
+                f'{LP_yrn:.2f}' + r'''})}} + 1.0
+            \right) \\
+        &= \textcolor{red}{''' + 
+        f'{tDeath:.2f}' + r'''} \mathrm{\ years}
+        \end{align*}
+        '''
+    )
+    return str
+
+
+def life_expectancy(life_expectancy, tDeath_med, age):
+    str = (
+        r'''
+        \begin{align*}
+        \textcolor{red}{''' + f'{age}' + r'''} +
+        \textcolor{red}{''' + f'{tDeath_med:.2f}' + r'''} &=
+        \textcolor{red}{''' + f'{life_expectancy:.2f}' +
+        r'''} \mathrm{\ years} \\
+        &\approx \textcolor{red}{''' +
+        f'{life_expectancy // 1:.0f}' + r'''} \mathrm{\ years\ }
+        \textcolor{red}{''' +
+        f'{12*(life_expectancy % 1):.0f}' + r'''} \mathrm{\ months}
+        \end{align*}
         '''
     )
     return str
