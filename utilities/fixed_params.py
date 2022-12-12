@@ -46,7 +46,7 @@ cost_non_elective_bed_day_gbp = 532.56
 cost_residential_day_gbp = 102.71
 # QALYs:
 # for mRS = [0,    1,    2,    3,    4,    5   ]
-utilities = [0.95, 0.93, 0.83, 0.62, 0.42, 0.11]
+utility_list = [0.95, 0.93, 0.83, 0.62, 0.42, 0.11]
 
 
 # ----- From the R script -----

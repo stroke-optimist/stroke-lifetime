@@ -6,7 +6,7 @@ import numpy as np
 
 from utilities.fixed_params import \
     time_max_post_discharge_yr, \
-    utilities, \
+    utility_list, \
     discount_factor_QALYs_perc, \
     cost_ae_gbp, \
     cost_elective_bed_day_gbp, \
@@ -31,7 +31,10 @@ from utilities.models import \
     find_residential_care_average_time, \
     find_t_zero_survival
 
-# Functions:
+
+# #####################################################################
+# ####################### Container: Mortality ########################
+# #####################################################################
 # def find_hazard_with_time(time_list_yr, age_input, sex_input, mrs_input):
 #     hazard_list = []
 #     for year in time_list_yr:
@@ -140,11 +143,16 @@ def main_survival_times(age, sex):
     return survival_times
 
 
+# #####################################################################
+# ######################### Container: QALYs ##########################
+# #####################################################################
+
 def main_qalys(median_survival_times):
     qalys = []
     for i in range(6):
         qaly = calculate_qaly(
-            utilities[i], median_survival_times[i], dfq=0.035)
+            utility_list[i], median_survival_times[i],
+            dfq=discount_factor_QALYs_perc/100.0)
         qalys.append(qaly)
     return qalys
 
@@ -165,6 +173,10 @@ def make_table_qaly_by_change_in_outcome(qalys):
     table = np.array(table, dtype=object)
     return table
 
+
+# #####################################################################
+# ####################### Container: Resources ########################
+# #####################################################################
 
 def find_resource_count_for_all_years(
         age, sex, median_survival_years, count_function, care_home=0,
@@ -338,14 +350,23 @@ def build_table_discounted_change(total_discounted_cost):
     return table
 
 
+# #####################################################################
+# ################### Container: Cost effectiveness ###################
+# #####################################################################
+
 def main_cost_effectiveness(qaly_table, cost_table):
     table_cost_effectiveness = (WTP_QALY_gpb * qaly_table) + cost_table
     return table_cost_effectiveness
 
 
+# #####################################################################
+# ############################## General ##############################
+# #####################################################################
+
 def build_variables_dict(
         age, sex, mrs, pDeath_list, survival_list, survival_times,
-        A_E_count_list, NEL_count_list, EL_count_list, care_years_list
+        A_E_count_list, NEL_count_list, EL_count_list, care_years_list,
+        qalys
         ):
     # Calculate some bits we're missing:
     # P_yr1 = find_pDeath_yr1(age, sex, mrs)
@@ -369,7 +390,6 @@ def build_variables_dict(
         (EL_coeffs[2]*sex) +
         EL_mRS[mrs]
     )
-    # lambda_A_E = np.exp(A_E_coeffs[3] * LP_A_E)
 
     # Fill the dictionary:
     variables_dict = dict(
@@ -383,14 +403,18 @@ def build_variables_dict(
         gz_coeffs=gz_coeffs,
         gz_mean_age=gz_mean_age,
         gz_gamma=gz_gamma,
-        # For mortality:
+        # ----- For mortality: -----
         P_yr1=pDeath_list[0],
         LP_yr1=LP_yr1,
         LP_yrn=LP_yrn,
         pDeath_list=pDeath_list,
         survival_list=survival_list,
         survival_meds_IQRs=survival_times,
-        # For resource use:
+        # ----- For QALYs: -----
+        discount_factor_QALYs_perc=discount_factor_QALYs_perc,
+        utility_list=utility_list,
+        qalys=qalys,
+        # ----- For resource use: -----
         # A&E:
         A_E_coeffs=A_E_coeffs,
         A_E_mRS=A_E_mRS,
@@ -410,6 +434,6 @@ def build_variables_dict(
         # Care home
         care_years_list=care_years_list,
         perc_care_home_over70=perc_care_home_over70,
-        perc_care_home_not_over70=perc_care_home_not_over70,
+        perc_care_home_not_over70=perc_care_home_not_over70
         )
     return variables_dict

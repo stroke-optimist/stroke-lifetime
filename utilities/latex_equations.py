@@ -600,6 +600,47 @@ def life_expectancy(life_expectancy, tDeath_med, age):
 
 
 # #####################################################################
+# ######################### Container: QALYs ##########################
+# #####################################################################
+
+def discounted_qalys_generic():
+    str = (
+        r'''
+        \begin{equation*}\tag{13}
+        Q = u +
+        \frac{u}{1+d} \times
+        \frac{1 - (1+d)^{-[\mathrm{yrs}-1]}}{1 - (1+d)^{-1}}
+        \end{equation*}
+        '''
+    )
+    return str
+
+
+def discounted_qalys(vd):
+    str = (
+        r'''
+        \begin{align*}
+        Q &= \textcolor{Fuchsia}{''' +
+        f'{vd["utility_list"][vd["mrs"]]}' + r'''} +
+        \frac{\textcolor{Fuchsia}{''' +
+        f'{vd["utility_list"][vd["mrs"]]}' + r'''}}{1+''' +
+        f'{vd["discount_factor_QALYs_perc"]/100.0:.4f}' +
+        r'''} \times \frac{1 - (1+''' +
+        f'{vd["discount_factor_QALYs_perc"]/100.0:.4f}' +
+        r''')^{-[\textcolor{red}{''' +
+        f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
+        r'''}-1]}}{1 - (1+''' +
+        f'{vd["discount_factor_QALYs_perc"]/100.0:.4f}' +
+        r''')^{-1}} \\
+        &= \textcolor{red}{''' + f'{vd["qalys"][vd["mrs"]]:.4f}' +
+        r'''}
+        \end{align*}
+        '''
+    )
+    return str
+
+
+# #####################################################################
 # ####################### Container: resources ########################
 # #####################################################################
 
@@ -663,7 +704,7 @@ def ae_count_generic():
     # )
     str = (
         r'''
-        \begin{equation}\tag{13}
+        \begin{equation}\tag{14}
         \mathrm{Count} =
         \exp{
             \left(\gamma_\mathrm{AE}
@@ -693,7 +734,7 @@ def ae_count_generic():
 def ae_lp_generic():
     str = (
         r'''
-        \begin{equation}\tag{14}
+        \begin{equation}\tag{15}
         LP_{\mathrm{AE}} =
         \alpha_{\mathrm{AE}} +
         \displaystyle\sum_{i=1}^{n}
@@ -829,7 +870,7 @@ def table_nel_mrs_coeffs(vd):
 def nel_bed_days_generic():
     str = (
         r'''
-        \begin{equation}\tag{14}
+        \begin{equation}\tag{16}
         \mathrm{Count} =
             -\log{\left(
             \frac{1}{
@@ -846,7 +887,7 @@ def nel_bed_days_generic():
 def nel_lp_generic():
     str = (
         r'''
-        \begin{equation}\tag{14}
+        \begin{equation}\tag{17}
         LP_{\mathrm{NEL}} =
         \alpha_{\mathrm{NEL}} +
         \displaystyle\sum_{i=1}^{n}
@@ -953,7 +994,7 @@ def table_el_mrs_coeffs(vd):
 def el_bed_days_generic():
     str = (
         r'''
-        \begin{equation}\tag{15}
+        \begin{equation}\tag{18}
         \mathrm{Count} =
             -\log{\left(
             \frac{1}{
@@ -970,7 +1011,7 @@ def el_bed_days_generic():
 def el_lp_generic():
     str = (
         r'''
-        \begin{equation}\tag{14}
+        \begin{equation}\tag{19}
         LP_{\mathrm{EL}} =
         \alpha_{\mathrm{EL}} +
         \displaystyle\sum_{i=1}^{n}
@@ -1078,7 +1119,7 @@ def table_time_in_care_coeffs(vd):
 def tic_generic():
     str = (
         r'''
-        \begin{equation}\tag{14}
+        \begin{equation}\tag{20}
         \mathrm{Count} =
         95\% \times c \times \mathrm{yrs}
         \end{equation}
