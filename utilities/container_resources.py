@@ -251,7 +251,6 @@ def write_details_ae_admissions(vd):
     st.latex(latex_ae_count)
 
 
-
 def write_details_nel_admissions(vd):
 
     # ----- Tables of constants -----
@@ -269,10 +268,63 @@ def write_details_nel_admissions(vd):
             table_nel_mrs_coeffs(vd)
         st.markdown(markdown_nel_mrs_coeffs)
 
-    # latex_ae_admissions_generic = utilities.latex_equations.\
-    #     ae_admissions_generic()
-    # st.latex(latex_ae_admissions_generic)
+    # ----- Formula -----
+    st.markdown(''.join([
+        'The non-elective bed day model is a log-logistic distribution. ',
+        'The number of bed days over $\mathrm{yrs}$, ',
+        'a number of years, is given by: '
+        ]))
+    latex_nel_bed_days_generic = utilities.latex_equations.\
+        nel_bed_days_generic()
+    st.latex(latex_nel_bed_days_generic)
+
+    # # ----- Lambda function -----
+    # st.markdown('with Lambda function $\Lambda_\mathrm{AE}$: ')
+    # latex_ae_lambda_generic = utilities.latex_equations.\
+    #     ae_lambda_generic()
+    # st.latex(latex_ae_lambda_generic)
+
+    # ----- linear predictor -----
+    st.markdown('and with linear predictor: ')
+    latex_nel_lp_generic = utilities.latex_equations.\
+        nel_lp_generic()
+    st.latex(latex_nel_lp_generic)
+    st.markdown(''.join([
+        r'''where $\alpha$ and $\beta$ are constants and ''',
+        '$X$ are values of the patient details (e.g. age, sex, and mRS).'
+        ]))
+
     # ##### EXAMPLE #####
+    # ----- Calculations with user input -----
+    st.markdown('### Example')
+    st.markdown(''.join([
+        'For the current patient details, these are calculated as follows.',
+        ' Values in red change with the patient details, and values in ',
+        'pink use a different constant from the tables above depending ',
+        'on the patient details.'
+        ]))
+
+    # ----- Calculation for linear predictor -----
+    st.markdown('The linear predictor:')
+    latex_nel_lp = utilities.latex_equations.nel_lp(vd)
+    st.latex(latex_nel_lp)
+    st.write('$^{*}$ This value is 0 for female patients and 1 for male.')
+
+    # # ----- Calculation for Lambda -----
+    # st.markdown('The Lambda function:')
+    # latex_ae_lambda = utilities.latex_equations.ae_lambda(vd)
+    # st.latex(latex_ae_lambda)
+
+    # ----- Show median survival years for this patient -----
+    st.markdown('For the median survival years: ')
+    latex_median_survival_display = utilities.latex_equations.\
+        median_survival_display(vd)
+    st.latex(latex_median_survival_display)
+
+    # ----- Calculation for count -----
+    st.markdown('The final count:')
+    latex_nel_bed_days = utilities.latex_equations.nel_bed_days(vd)
+    st.latex(latex_nel_bed_days)
 
 
 def write_details_el_admissions(vd):
@@ -292,10 +344,63 @@ def write_details_el_admissions(vd):
             table_el_mrs_coeffs(vd)
         st.markdown(markdown_el_mrs_coeffs)
 
-    # latex_ae_admissions_generic = utilities.latex_equations.\
-    #     ae_admissions_generic()
-    # st.latex(latex_ae_admissions_generic)
+    # ----- Formula -----
+    st.markdown(''.join([
+        'The elective bed day model is a log-logistic distribution. ',
+        'The number of bed days over $\mathrm{yrs}$, ',
+        'a number of years, is given by: '
+        ]))
+    latex_el_bed_days_generic = utilities.latex_equations.\
+        el_bed_days_generic()
+    st.latex(latex_el_bed_days_generic)
+
+    # # ----- Lambda function -----
+    # st.markdown('with Lambda function $\Lambda_\mathrm{AE}$: ')
+    # latex_ae_lambda_generic = utilities.latex_equations.\
+    #     ae_lambda_generic()
+    # st.latex(latex_ae_lambda_generic)
+
+    # ----- linear predictor -----
+    st.markdown('and with linear predictor: ')
+    latex_el_lp_generic = utilities.latex_equations.\
+        el_lp_generic()
+    st.latex(latex_el_lp_generic)
+    st.markdown(''.join([
+        r'''where $\alpha$ and $\beta$ are constants and ''',
+        '$X$ are values of the patient details (e.g. age, sex, and mRS).'
+        ]))
+
     # ##### EXAMPLE #####
+    # ----- Calculations with user input -----
+    st.markdown('### Example')
+    st.markdown(''.join([
+        'For the current patient details, these are calculated as follows.',
+        ' Values in red change with the patient details, and values in ',
+        'pink use a different constant from the tables above depending ',
+        'on the patient details.'
+        ]))
+
+    # ----- Calculation for linear predictor -----
+    st.markdown('The linear predictor:')
+    latex_el_lp = utilities.latex_equations.el_lp(vd)
+    st.latex(latex_el_lp)
+    st.write('$^{*}$ This value is 0 for female patients and 1 for male.')
+
+    # # ----- Calculation for Lambda -----
+    # st.markdown('The Lambda function:')
+    # latex_ae_lambda = utilities.latex_equations.ae_lambda(vd)
+    # st.latex(latex_ae_lambda)
+
+    # ----- Show median survival years for this patient -----
+    st.markdown('For the median survival years: ')
+    latex_median_survival_display = utilities.latex_equations.\
+        median_survival_display(vd)
+    st.latex(latex_median_survival_display)
+
+    # ----- Calculation for count -----
+    st.markdown('The final count:')
+    latex_el_bed_days = utilities.latex_equations.el_bed_days(vd)
+    st.latex(latex_el_bed_days)
 
 
 def write_details_time_in_care(vd):
@@ -313,8 +418,41 @@ def write_details_time_in_care(vd):
         table_time_in_care_coeffs(vd)
     st.markdown(markdown_tic_coeffs)
 
+    st.markdown(''.join([
+        'The number of years spent in residential care ',
+        'is estimated from the mRS score at discharge ',
+        'and the average number of years spent in care ',
+        'for people with that mRS score. ',
+        'The average time spent in care per mRS is 95\% of ',
+        'each value in the table above. '
+    ]))
+    # ----- Formula -----
+    st.markdown('The number of years spent in residential care is: ')
+    latex_tic_generic = utilities.latex_equations.\
+        tic_generic()
+    st.latex(latex_tic_generic)
+    st.markdown(''.join([
+        'for $c$, the value from the table.'
+    ]))
 
-    # latex_ae_admissions_generic = utilities.latex_equations.\
-    #     ae_admissions_generic()
-    # st.latex(latex_ae_admissions_generic)
     # ##### EXAMPLE #####
+    # ----- Calculations with user input -----
+    st.markdown('### Example')
+    st.markdown(''.join([
+        'For the current patient details, these are calculated as follows.',
+        ' Values in red change with the patient details, and values in ',
+        'pink use a different constant from the tables above depending ',
+        'on the patient details.'
+        ]))
+
+    # ----- Show median survival years for this patient -----
+    st.markdown('For the median survival years: ')
+    latex_median_survival_display = utilities.latex_equations.\
+        median_survival_display(vd)
+    st.latex(latex_median_survival_display)
+
+    # ----- Calculation for linear predictor -----
+    st.markdown('The number of years spent in residential care is:')
+    latex_tic = utilities.latex_equations.tic(vd)
+    st.latex(latex_tic)
+

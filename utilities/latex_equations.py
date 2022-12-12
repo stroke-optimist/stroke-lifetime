@@ -725,8 +725,7 @@ def ae_lp(vd):
         f'{vd["sex"]}' + r'''}\right) + & \mathrm{sex}^{*} \\''' +
         # 3rd coeff
         r'''& \left(\textcolor{Fuchsia}{''' +
-        f'{vd["A_E_mRS"][vd["mrs"]]}' + r'''} \times \textcolor{red}{''' +
-        f'{vd["mrs"]}' + r'''}\right) & \mathrm{mRS} \\''' +
+        f'{vd["A_E_mRS"][vd["mrs"]]}' + r'''}\right) & \mathrm{mRS} \\''' +
         # Next line, value equal to:
         r'''=& \textcolor{red}{''' +
         f'{vd["LP_A_E"]:.4f}' +
@@ -789,8 +788,6 @@ def ae_count(vd):
     return str
 
 
-
-
 def table_nel_coeffs(vd):
     str = (
         r'''
@@ -805,6 +802,7 @@ def table_nel_coeffs(vd):
         '''
         )
     return str
+
 
 def table_nel_mrs_coeffs(vd):
     str = (
@@ -835,7 +833,7 @@ def nel_bed_days_generic():
         \mathrm{Count} =
             -\log{\left(
             \frac{1}{
-                1+ [\mathrm{yrs}*\exp{(-LP_\mathrm{NEL})} ] ^{
+                1+ [\mathrm{yrs}\times\exp{(-LP_\mathrm{NEL})} ] ^{
                     1/ \gamma_{\mathrm{NEL}}}
             }
             \right)}
@@ -856,6 +854,60 @@ def nel_lp_generic():
         \cdot
         X_{\mathrm{NEL},\ i}
         \end{equation}
+        '''
+    )
+    return str
+
+
+def nel_lp(vd):
+    str = (
+        r'''
+        \begin{align*}
+        LP_{\mathrm{NEL}} =&''' +
+        # alpha
+        f'{vd["NEL_coeffs"][0]}' + r''' + & \mathrm{constant} \\''' +
+        # 1st coeff
+        r'''& \left(''' +
+        f'{vd["NEL_coeffs"][1]}' + r'''\times [\textcolor{red}{''' +
+        f'{vd["age"]}' + r'''}-\textcolor{Fuchsia}{''' +
+        f'{vd["lg_mean_ages"][vd["mrs"]]}' +
+        r'''}]\right) + & \mathrm{age} \\''' +
+        # 2nd coeff
+        r'''& \left(''' +
+        f'{vd["NEL_coeffs"][2]}' + r'''\times \textcolor{red}{''' +
+        f'{vd["sex"]}' + r'''}\right) + & \mathrm{sex}^{*} \\''' +
+        # 3rd coeff
+        r'''& \left(\textcolor{Fuchsia}{''' +
+        f'{vd["NEL_mRS"][vd["mrs"]]}' + r'''} \right) & \mathrm{mRS} \\''' +
+        # Next line, value equal to:
+        r'''=& \textcolor{red}{''' +
+        f'{vd["LP_NEL"]:.4f}' +
+        r'''}
+        \end{align*}
+        '''
+    )
+    return str
+
+
+def nel_bed_days(vd):
+    str = (
+        r'''
+        \begin{align*}
+        \mathrm{Count} &=
+            -\log{\left(
+            \frac{1}{
+                1+ [\textcolor{red}{''' +
+                f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
+                r'''} \times \exp{(-\textcolor{red}{''' +
+                f'{vd["LP_NEL"]:.4f}' + r'''})} ]^{
+                1/ \textcolor{red}{''' +
+                f'{vd["NEL_coeffs"][3]}' +
+                r'''}}}
+            \right)} \\
+            & = \textcolor{red}{''' +
+            f'{vd["NEL_count_list"][vd["mrs"]]:.4f}' + r'''}
+            \mathrm{\ days}
+        \end{align*}
         '''
     )
     return str
@@ -905,7 +957,7 @@ def el_bed_days_generic():
         \mathrm{Count} =
             -\log{\left(
             \frac{1}{
-                1+ [\mathrm{yrs}*\exp{(-LP_\mathrm{EL})} ] ^{
+                1+ [\mathrm{yrs} \times \exp{(-LP_\mathrm{EL})} ] ^{
                     1/ \gamma_{\mathrm{EL}}}
             }
             \right)}
@@ -926,6 +978,60 @@ def el_lp_generic():
         \cdot
         X_{\mathrm{EL},\ i}
         \end{equation}
+        '''
+    )
+    return str
+
+
+def el_lp(vd):
+    str = (
+        r'''
+        \begin{align*}
+        LP_{\mathrm{EL}} =&''' +
+        # alpha
+        f'{vd["EL_coeffs"][0]}' + r''' + & \mathrm{constant} \\''' +
+        # 1st coeff
+        r'''& \left(''' +
+        f'{vd["EL_coeffs"][1]}' + r'''\times [\textcolor{red}{''' +
+        f'{vd["age"]}' + r'''}-\textcolor{Fuchsia}{''' +
+        f'{vd["lg_mean_ages"][vd["mrs"]]}' +
+        r'''}]\right) + & \mathrm{age} \\''' +
+        # 2nd coeff
+        r'''& \left(''' +
+        f'{vd["EL_coeffs"][2]}' + r'''\times \textcolor{red}{''' +
+        f'{vd["sex"]}' + r'''}\right) + & \mathrm{sex}^{*} \\''' +
+        # 3rd coeff
+        r'''& \left(\textcolor{Fuchsia}{''' +
+        f'{vd["EL_mRS"][vd["mrs"]]}' + r'''} \right) & \mathrm{mRS} \\''' +
+        # Next line, value equal to:
+        r'''=& \textcolor{red}{''' +
+        f'{vd["LP_EL"]:.4f}' +
+        r'''}
+        \end{align*}
+        '''
+    )
+    return str
+
+
+def el_bed_days(vd):
+    str = (
+        r'''
+        \begin{align*}
+        \mathrm{Count} &=
+            -\log{\left(
+            \frac{1}{
+                1+ [\textcolor{red}{''' +
+                f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
+                r'''} \times \exp{(-\textcolor{red}{''' +
+                f'{vd["LP_EL"]:.4f}' + r'''})} ]^{
+                1/ \textcolor{red}{''' +
+                f'{vd["EL_coeffs"][3]}' +
+                r'''}}}
+            \right)} \\
+            & = \textcolor{red}{''' +
+            f'{vd["EL_count_list"][vd["mrs"]]:.4f}' + r'''}
+            \mathrm{\ days}
+        \end{align*}
         '''
     )
     return str
@@ -966,4 +1072,36 @@ def table_time_in_care_coeffs(vd):
             f'{100.0*vd["perc_care_home_not_over70"][5]:.4f}' + r'''\%
         '''
         )
+    return str
+
+
+def tic_generic():
+    str = (
+        r'''
+        \begin{equation}\tag{14}
+        \mathrm{Count} =
+        95\% \times c \times \mathrm{yrs}
+        \end{equation}
+        '''
+    )
+    return str
+
+
+def tic(vd):
+    if vd["age"] > 70:
+        perc = vd["perc_care_home_over70"][vd["mrs"]]
+    else:
+        perc = vd["perc_care_home_not_over70"][vd["mrs"]]
+    str = (
+        r'''
+        \begin{align*}
+        \mathrm{Count} &=
+        95\% \times \textcolor{Fuchsia}{''' + 
+        f'{100.0*perc:.4f}' + r'''\%} \times \textcolor{red}{''' +
+        f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' + r'''} \\
+        &= \textcolor{red}{''' + 
+        f'{vd["care_years_list"][vd["mrs"]]:.4f}' +r'''} \mathrm{\ years}
+        \end{align*}
+        '''
+    )
     return str

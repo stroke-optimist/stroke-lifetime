@@ -357,6 +357,18 @@ def build_variables_dict(
         (A_E_coeffs[2]*sex) +
         A_E_mRS[mrs]
     )
+    LP_NEL = (
+        NEL_coeffs[0] +
+        (NEL_coeffs[1]*(age-lg_mean_ages[mrs])) +
+        (NEL_coeffs[2]*sex) +
+        NEL_mRS[mrs]
+    )
+    LP_EL = (
+        EL_coeffs[0] +
+        (EL_coeffs[1]*(age-lg_mean_ages[mrs])) +
+        (EL_coeffs[2]*sex) +
+        EL_mRS[mrs]
+    )
     # lambda_A_E = np.exp(A_E_coeffs[3] * LP_A_E)
 
     # Fill the dictionary:
@@ -388,10 +400,12 @@ def build_variables_dict(
         # Non-elective bed days
         NEL_coeffs=NEL_coeffs,
         NEL_mRS=NEL_mRS,
+        LP_NEL=LP_NEL,
         NEL_count_list=NEL_count_list,
         # Elective bed days
         EL_coeffs=EL_coeffs,
         EL_mRS=EL_mRS,
+        LP_EL=LP_EL,
         EL_count_list=EL_count_list,
         # Care home
         care_years_list=care_years_list,
