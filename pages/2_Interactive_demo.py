@@ -111,7 +111,8 @@ table_cost_effectiveness = utilities.main_calculations.\
 # This is mostly for the use of the detailed explanations and examples.
 variables_dict = utilities.main_calculations.build_variables_dict(
     age_input, sex_input, mRS_input, pDeath_list,
-    all_survival_lists[mRS_input], survival_times
+    all_survival_lists[mRS_input], survival_times,
+    A_E_count_list, NEL_count_list, EL_count_list, care_years_list
     )
 
 
@@ -145,7 +146,8 @@ with tabs[2]:
         EL_discounted_cost,
         care_years_discounted_cost,
         total_discounted_cost,
-        table_discounted_cost
+        table_discounted_cost,
+        variables_dict
         )
 
 

@@ -4,6 +4,11 @@ Each formula is pretty bulky and throws up lots of python linting
 errors, so they've been banished to this file for easier reading
 of the container scripts.
 """
+
+# #####################################################################
+# ####################### Container: mortality ########################
+# #####################################################################
+
 def table_lg_coeffs(vd):
     str = (
         r'''
@@ -19,7 +24,7 @@ def table_lg_coeffs(vd):
 def table_lg_mrs_coeffs(vd):
     str = (
         r'''
-        | mRS | mRS coefficient | Mean age coefficient|
+        | mRS | mRS coefficient | Mean age coefficient |
         | --- | --- | --- |
         | 0 | ''' + f'{vd["lg_coeffs"][3+0]}' + r'''| ''' + \
             f'{vd["lg_mean_ages"][0]}' + r'''|
@@ -98,7 +103,7 @@ def lp_yr1(vd):
         f'{vd["mrs"]}' + r'''}\right) & \mathrm{mRS} \\''' +
         # Next line, value equal to:
         r'''=& \textcolor{red}{''' +
-        f'{vd["LP_yr1"]:.2f}' +
+        f'{vd["LP_yr1"]:.4f}' +
         r'''}
         \end{align*}'''
         )
@@ -112,7 +117,7 @@ def prob_yr1(vd):
         P_{1} &= \frac{1}{1+e^{-
         \textcolor{red}{
         ''' +
-        f'{vd["LP_yr1"]:.2f}' +
+        f'{vd["LP_yr1"]:.4f}' +
         r'''
         }
         }} \\
@@ -276,7 +281,7 @@ def lp_yrn(vd):
         f'{vd["mrs"]}' + r'''}\right) & \mathrm{mRS} \\''' +
         # Next line, value equal to:
         r'''=& \textcolor{red}{''' +
-        f'{vd["LP_yrn"]:.2f}' +
+        f'{vd["LP_yrn"]:.4f}' +
         r'''}
         \end{align*}'''
     )
@@ -301,7 +306,7 @@ def hazard_yrn(vd, time_input_yr, H_t):
         e^{
         \textcolor{red}{
         ''' +
-        f'{vd["LP_yrn"]:.2f}' +
+        f'{vd["LP_yrn"]:.4f}' +
         r'''
         }} \cdot \left(e^{\gamma \times [\textcolor{Fuchsia}{''' +
         f'{time_input_yr}' + r'''}-1] \times 365} - 1 \right) \\
@@ -505,7 +510,7 @@ def LPyrn_display(LP_yrn):
     str = (
         r'''
         LP_{H} =  \textcolor{red}{''' +
-        f'{LP_yrn:.2f}' + r'''}
+        f'{LP_yrn:.4f}' + r'''}
         '''
     )
     return str
@@ -566,7 +571,7 @@ def death_time_case1(
             f'{prob_prime:.4f}' + r'''}\times ''' +
             f'{gamma}' + r'''}{
                 \exp{(\textcolor{red}{''' +
-                f'{LP_yrn:.2f}' + r'''})}} + 1.0
+                f'{LP_yrn:.4f}' + r'''})}} + 1.0
             \right) \\
         &= \textcolor{red}{''' + 
         f'{tDeath:.2f}' + r'''} \mathrm{\ years}
@@ -591,4 +596,374 @@ def life_expectancy(life_expectancy, tDeath_med, age):
         \end{align*}
         '''
     )
+    return str
+
+
+# #####################################################################
+# ####################### Container: resources ########################
+# #####################################################################
+
+def table_ae_coeffs(vd):
+    str = (
+        r'''
+        | Description | Coefficient |
+        | --- | --- |
+        | Constant $\alpha_{\mathrm{AE}}$ | ''' + \
+            f'{vd["A_E_coeffs"][0]}' + r'''|
+        | Adjusted age | ''' + f'{vd["A_E_coeffs"][1]}' + r'''|
+        | Sex | ''' + f'{vd["A_E_coeffs"][2]}' + r'''|
+        | $\gamma_{\mathrm{AE}}$ (gamma) | ''' + \
+            f'{vd["A_E_coeffs"][3]}' + r'''|
+        '''
+        )
+    return str
+
+
+def table_ae_mrs_coeffs(vd):
+    str = (
+        r'''
+        | mRS | mRS coefficient | Mean age coefficient |
+        | --- | --- | --- |
+        | 0 | ''' + f'{vd["A_E_mRS"][0]}' + r'''| ''' + \
+            f'{vd["lg_mean_ages"][0]}' + r'''|
+        | 1 | ''' + f'{vd["A_E_mRS"][1]}' + r'''| ''' + \
+            f'{vd["lg_mean_ages"][1]}' + r'''|
+        | 2 | ''' + f'{vd["A_E_mRS"][2]}' + r'''| ''' + \
+            f'{vd["lg_mean_ages"][2]}' + r'''|
+        | 3 | ''' + f'{vd["A_E_mRS"][3]}' + r'''| ''' + \
+            f'{vd["lg_mean_ages"][3]}' + r'''|
+        | 4 | ''' + f'{vd["A_E_mRS"][4]}' + r'''| ''' + \
+            f'{vd["lg_mean_ages"][4]}' + r'''|
+        | 5 | ''' + f'{vd["A_E_mRS"][5]}'  + r'''| ''' + \
+            f'{vd["lg_mean_ages"][5]}' + r'''|
+        '''
+        )
+    return str
+
+
+def ae_count_generic():
+    # str = (
+    #     r'''
+    #     \begin{equation}\tag{13}
+    #     \mathrm{Count} =
+    #     # -
+    #     # \log{\left[
+    #             # \exp({-
+    #     \exp{
+    #         \left(\gamma_\mathrm{AE}
+    #         \times 
+    #         LP_{\mathrm{AE}}\right)
+    #         }
+    #     \times 
+    #     \mathrm{yrs}^{\gamma_{\mathrm{AE}}}
+    #             # })
+    #     # \right] }
+    #     \end{equation}
+    #     '''
+    # )
+    str = (
+        r'''
+        \begin{equation}\tag{13}
+        \mathrm{Count} =
+        \exp{
+            \left(\gamma_\mathrm{AE}
+            \times 
+            LP_{\mathrm{AE}}\right)
+            }
+        \times 
+        \mathrm{yrs}^{\gamma_{\mathrm{AE}}}
+        \end{equation}
+        '''
+    )
+    return str
+
+
+# def ae_lambda_generic():
+#     str = (
+#         r'''
+#         \begin{equation}\tag{14}
+#         \Lambda_\mathrm{AE} =
+#         \exp{\left(\gamma_\mathrm{AE} \times LP_{\mathrm{AE}}\right)}
+#         \end{equation}
+#         '''
+#     )
+#     return str
+
+
+def ae_lp_generic():
+    str = (
+        r'''
+        \begin{equation}\tag{14}
+        LP_{\mathrm{AE}} =
+        \alpha_{\mathrm{AE}} +
+        \displaystyle\sum_{i=1}^{n}
+        \beta_{\mathrm{AE},\ i}
+        \cdot
+        X_{\mathrm{AE},\ i}
+        \end{equation}
+        '''
+    )
+    return str
+
+
+def ae_lp(vd):
+    str = (
+        r'''
+        \begin{align*}
+        LP_{\mathrm{AE}} =&''' +
+        # alpha
+        f'{vd["A_E_coeffs"][0]}' + r''' + & \mathrm{constant} \\''' +
+        # 1st coeff
+        r'''& \left(''' +
+        f'{vd["A_E_coeffs"][1]}' + r'''\times [\textcolor{red}{''' +
+        f'{vd["age"]}' + r'''}-\textcolor{Fuchsia}{''' +
+        f'{vd["lg_mean_ages"][vd["mrs"]]}' +
+        r'''}]\right) + & \mathrm{age} \\''' +
+        # 2nd coeff
+        r'''& \left(''' +
+        f'{vd["A_E_coeffs"][2]}' + r'''\times \textcolor{red}{''' +
+        f'{vd["sex"]}' + r'''}\right) + & \mathrm{sex}^{*} \\''' +
+        # 3rd coeff
+        r'''& \left(\textcolor{Fuchsia}{''' +
+        f'{vd["A_E_mRS"][vd["mrs"]]}' + r'''} \times \textcolor{red}{''' +
+        f'{vd["mrs"]}' + r'''}\right) & \mathrm{mRS} \\''' +
+        # Next line, value equal to:
+        r'''=& \textcolor{red}{''' +
+        f'{vd["LP_A_E"]:.4f}' +
+        r'''}
+        \end{align*}
+        '''
+    )
+    return str
+
+
+# def ae_lambda(vd):
+#     str = (
+#         r'''
+#         \begin{align*}
+#         \Lambda_\mathrm{AE} &=
+#         \exp{\left(\textcolor{red}{''' +
+#         f'{vd["A_E_coeffs"][3]}' + r'''}\times \textcolor{red}{''' +
+#         f'{vd["LP_A_E"]:.4f}' + r'''}\right)} \\
+#         &= \textcolor{red}{''' + f'{vd["lambda_A_E"]:.2f}' +
+#         r'''}
+#         \end{align*}
+#         '''
+#     )
+#     return str
+
+
+def median_survival_display(vd):
+    str = (
+        r'''
+        \begin{equation*}
+        \mathrm{yrs} = \textcolor{red}{''' + 
+        f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' + r'''}
+        \end{equation*}
+        '''
+        )
+    return str
+
+
+def ae_count(vd):
+    str = (
+        r'''
+        \begin{align*}
+        \mathrm{Count} &=
+        \exp{
+            \left( \textcolor{red}{''' +
+            f'{vd["A_E_coeffs"][3]}' + r'''}
+            \times \textcolor{red}{''' +
+            f'{vd["LP_A_E"]:.4f}' + r'''} \right)
+            }
+        \times \textcolor{red}{''' +
+        f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' + r'''}
+        ^{\textcolor{red}{''' +
+        f'{vd["A_E_coeffs"][3]}' + r'''}} \\
+        &= \textcolor{red}{''' +
+        f'{vd["A_E_count_list"][vd["mrs"]]:.4f}' + r'''}
+        \mathrm{\ admissions}
+        \end{align*}
+        '''
+    )
+    return str
+
+
+
+
+def table_nel_coeffs(vd):
+    str = (
+        r'''
+        | Description | Coefficient |
+        | --- | --- |
+        | Constant $\alpha_{\mathrm{NEL}}$ | ''' + \
+            f'{vd["NEL_coeffs"][0]}' + r'''|
+        | Adjusted age | ''' + f'{vd["NEL_coeffs"][1]}' + r'''|
+        | Sex | ''' + f'{vd["NEL_coeffs"][2]}' + r'''|
+        | $\gamma_{\mathrm{NEL}}$ (gamma) | ''' + \
+            f'{vd["NEL_coeffs"][3]}' + r'''|
+        '''
+        )
+    return str
+
+def table_nel_mrs_coeffs(vd):
+    str = (
+        r'''
+        | mRS | mRS coefficient | Mean age coefficient |
+        | --- | --- | --- |
+        | 0 | ''' + f'{vd["NEL_mRS"][0]}' + r'''| ''' + \
+            f'{vd["lg_mean_ages"][0]}' + r'''|
+        | 1 | ''' + f'{vd["NEL_mRS"][1]}' + r'''| ''' + \
+            f'{vd["lg_mean_ages"][1]}' + r'''|
+        | 2 | ''' + f'{vd["NEL_mRS"][2]}' + r'''| ''' + \
+            f'{vd["lg_mean_ages"][2]}' + r'''|
+        | 3 | ''' + f'{vd["NEL_mRS"][3]}' + r'''| ''' + \
+            f'{vd["lg_mean_ages"][3]}' + r'''|
+        | 4 | ''' + f'{vd["NEL_mRS"][4]}' + r'''| ''' + \
+            f'{vd["lg_mean_ages"][4]}' + r'''|
+        | 5 | ''' + f'{vd["NEL_mRS"][5]}'  + r'''| ''' + \
+            f'{vd["lg_mean_ages"][5]}' + r'''|
+        '''
+        )
+    return str
+
+
+def nel_bed_days_generic():
+    str = (
+        r'''
+        \begin{equation}\tag{14}
+        \mathrm{Count} =
+            -\log{\left(
+            \frac{1}{
+                1+ [\mathrm{yrs}*\exp{(-LP_\mathrm{NEL})} ] ^{
+                    1/ \gamma_{\mathrm{NEL}}}
+            }
+            \right)}
+        \end{equation}
+        '''
+    )
+    return str
+
+
+def nel_lp_generic():
+    str = (
+        r'''
+        \begin{equation}\tag{14}
+        LP_{\mathrm{NEL}} =
+        \alpha_{\mathrm{NEL}} +
+        \displaystyle\sum_{i=1}^{n}
+        \beta_{\mathrm{NEL},\ i}
+        \cdot
+        X_{\mathrm{NEL},\ i}
+        \end{equation}
+        '''
+    )
+    return str
+
+
+def table_el_coeffs(vd):
+    str = (
+        r'''
+        | Description | Coefficient |
+        | --- | --- |
+        | Constant $\alpha_{\mathrm{EL}}$ | ''' + \
+            f'{vd["EL_coeffs"][0]}' + r'''|
+        | Adjusted age | ''' + f'{vd["EL_coeffs"][1]}' + r'''|
+        | Sex | ''' + f'{vd["EL_coeffs"][2]}' + r'''|
+        | $\gamma_{\mathrm{EL}}$ (gamma) | ''' + \
+            f'{vd["EL_coeffs"][3]}' + r'''|
+        '''
+        )
+    return str
+
+def table_el_mrs_coeffs(vd):
+    str = (
+        r'''
+        | mRS | mRS coefficient | Mean age coefficient |
+        | --- | --- | --- |
+        | 0 | ''' + f'{vd["EL_mRS"][0]}' + r'''| ''' + \
+            f'{vd["lg_mean_ages"][0]}' + r'''|
+        | 1 | ''' + f'{vd["EL_mRS"][1]}' + r'''| ''' + \
+            f'{vd["lg_mean_ages"][1]}' + r'''|
+        | 2 | ''' + f'{vd["EL_mRS"][2]}' + r'''| ''' + \
+            f'{vd["lg_mean_ages"][2]}' + r'''|
+        | 3 | ''' + f'{vd["EL_mRS"][3]}' + r'''| ''' + \
+            f'{vd["lg_mean_ages"][3]}' + r'''|
+        | 4 | ''' + f'{vd["EL_mRS"][4]}' + r'''| ''' + \
+            f'{vd["lg_mean_ages"][4]}' + r'''|
+        | 5 | ''' + f'{vd["EL_mRS"][5]}'  + r'''| ''' + \
+            f'{vd["lg_mean_ages"][5]}' + r'''|
+        '''
+        )
+    return str
+
+
+def el_bed_days_generic():
+    str = (
+        r'''
+        \begin{equation}\tag{15}
+        \mathrm{Count} =
+            -\log{\left(
+            \frac{1}{
+                1+ [\mathrm{yrs}*\exp{(-LP_\mathrm{EL})} ] ^{
+                    1/ \gamma_{\mathrm{EL}}}
+            }
+            \right)}
+        \end{equation}
+        '''
+    )
+    return str
+
+
+def el_lp_generic():
+    str = (
+        r'''
+        \begin{equation}\tag{14}
+        LP_{\mathrm{EL}} =
+        \alpha_{\mathrm{EL}} +
+        \displaystyle\sum_{i=1}^{n}
+        \beta_{\mathrm{EL},\ i}
+        \cdot
+        X_{\mathrm{EL},\ i}
+        \end{equation}
+        '''
+    )
+    return str
+
+
+def table_time_in_care_coeffs(vd):
+    str = (
+        r'''
+        | mRS | Age over 70 | Age not over 70 |
+        | --- | --- | --- |
+        | 0 | ''' +
+            f'\U00002002{100.0*vd["perc_care_home_over70"][0]:.4f}' + \
+            r'''\% | ''' + \
+            f'\U00002002{100.0*vd["perc_care_home_not_over70"][0]:.4f}'
+            + r'''\%
+        | 1 | ''' +
+            f'\U00002002{100.0*vd["perc_care_home_over70"][1]:.4f}' + \
+            r'''\% | ''' + \
+            f'\U00002002{100.0*vd["perc_care_home_not_over70"][1]:.4f}'
+            + r'''\%
+        | 2 | ''' +
+            f'\U00002002{100.0*vd["perc_care_home_over70"][2]:.4f}' + \
+            r'''\% | ''' + \
+            f'\U00002002{100.0*vd["perc_care_home_not_over70"][2]:.4f}'
+            + r'''\%
+        | 3 | ''' +
+            f'{100.0*vd["perc_care_home_over70"][3]:.4f}' + \
+            r'''\% | ''' + \
+            f'\U00002002{100.0*vd["perc_care_home_not_over70"][3]:.4f}'
+            + r'''\%
+        | 4 | ''' +
+            f'{100.0*vd["perc_care_home_over70"][4]:.4f}' + \
+            r'''\% | ''' + \
+            f'{100.0*vd["perc_care_home_not_over70"][4]:.4f}' + r'''\%
+        | 5 | ''' + 
+            f'{100.0*vd["perc_care_home_over70"][5]:.4f}' + \
+            r'''\% | ''' + \
+            f'{100.0*vd["perc_care_home_not_over70"][5]:.4f}' + r'''\%
+        '''
+        )
     return str

@@ -13,7 +13,9 @@ from utilities.fixed_params import \
     cost_non_elective_bed_day_gbp, \
     cost_residential_day_gbp, \
     WTP_QALY_gpb, \
-    lg_coeffs, lg_mean_ages, gz_coeffs, gz_mean_age, gz_gamma
+    lg_coeffs, lg_mean_ages, gz_coeffs, gz_mean_age, gz_gamma, \
+    A_E_coeffs, A_E_mRS, NEL_coeffs, NEL_mRS, EL_coeffs, EL_mRS, \
+    perc_care_home_over70, perc_care_home_not_over70
 
 from utilities.models import \
     find_iDeath, \
@@ -342,11 +344,20 @@ def main_cost_effectiveness(qaly_table, cost_table):
 
 
 def build_variables_dict(
-        age, sex, mrs, pDeath_list, survival_list, survival_times):
+        age, sex, mrs, pDeath_list, survival_list, survival_times,
+        A_E_count_list, NEL_count_list, EL_count_list, care_years_list
+        ):
     # Calculate some bits we're missing:
     # P_yr1 = find_pDeath_yr1(age, sex, mrs)
     LP_yr1 = find_lpDeath_yr1(age, sex, mrs)
     LP_yrn = find_lpDeath_yrn(age, sex, mrs)
+    LP_A_E = (
+        A_E_coeffs[0] +
+        (A_E_coeffs[1]*(age-lg_mean_ages[mrs])) +
+        (A_E_coeffs[2]*sex) +
+        A_E_mRS[mrs]
+    )
+    # lambda_A_E = np.exp(A_E_coeffs[3] * LP_A_E)
 
     # Fill the dictionary:
     variables_dict = dict(
@@ -366,6 +377,25 @@ def build_variables_dict(
         LP_yrn=LP_yrn,
         pDeath_list=pDeath_list,
         survival_list=survival_list,
-        survival_meds_IQRs=survival_times
+        survival_meds_IQRs=survival_times,
+        # For resource use:
+        # A&E:
+        A_E_coeffs=A_E_coeffs,
+        A_E_mRS=A_E_mRS,
+        LP_A_E=LP_A_E,
+        A_E_count_list=A_E_count_list,
+        # lambda_A_E=lambda_A_E,
+        # Non-elective bed days
+        NEL_coeffs=NEL_coeffs,
+        NEL_mRS=NEL_mRS,
+        NEL_count_list=NEL_count_list,
+        # Elective bed days
+        EL_coeffs=EL_coeffs,
+        EL_mRS=EL_mRS,
+        EL_count_list=EL_count_list,
+        # Care home
+        care_years_list=care_years_list,
+        perc_care_home_over70=perc_care_home_over70,
+        perc_care_home_not_over70=perc_care_home_not_over70,
         )
     return variables_dict

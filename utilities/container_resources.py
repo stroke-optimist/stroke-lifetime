@@ -4,6 +4,7 @@ This contains everything in the Resources and Costs section.
 import streamlit as st
 import numpy as np
 import pandas as pd
+import utilities.latex_equations
 
 
 def main(
@@ -13,12 +14,19 @@ def main(
         EL_discounted_cost,
         care_years_discounted_cost,
         total_discounted_cost,
-        table_discounted_cost
+        table_discounted_cost,
+        variables_dict
         ):
+    
+    st.write('### Resource use')
+    with st.expander('Details: Resource use'):
+        write_details_resource_use(variables_dict)
     write_table_resource_use(
         A_E_count_list, NEL_count_list,
         EL_count_list, care_years_list
         )
+    
+    st.write('### Discounted Cost of Resource use')
     write_table_discounted_resource_use(
         A_E_discounted_cost,
         NEL_discounted_cost,
@@ -26,6 +34,8 @@ def main(
         care_years_discounted_cost,
         total_discounted_cost
         )
+
+    st.write('### Discounted total costs by change in outcome')
     write_table_discounted_change(table_discounted_cost)
 
 
@@ -51,7 +61,6 @@ def write_table_resource_use(
     df_table = pd.DataFrame(table, columns=headings)
 
     # Write to streamlit:
-    st.write('### Resource use')
     st.table(df_table.style.format("{:4.2f}"))
 
 
@@ -92,7 +101,6 @@ def write_table_discounted_resource_use(
     df_table = pd.DataFrame(table_round, columns=headings)
 
     # Write to streamlit:
-    st.write('### Discounted Cost of Resource use')
     st.table(df_table.style.format('£{:.0f}'))
 
 
@@ -139,8 +147,174 @@ def write_table_discounted_change(table_discounted_cost):
     df_table = pd.DataFrame(table)
 
     # Write to streamlit:
-    st.write('### Discounted total costs by change in outcome')
     st.table(df_table.style.applymap(color_negative_red))
     st.write('Changes in outcome from column value to row value.')
     st.write('Numbers in red are increased costs to the NHS, ',
              'numbers in black represent savings to the NHS')
+
+
+def write_details_resource_use(vd):
+    tabs = st.tabs([
+        'A&E Admissions',
+        'Non-elective bed days',
+        'Elective bed days',
+        'Time in residential care'
+        ])
+
+    with tabs[0]:
+        # A&E admissions:
+        write_details_ae_admissions(vd)
+    with tabs[1]:
+        # A&E admissions:
+        write_details_nel_admissions(vd)
+    with tabs[2]:
+        # A&E admissions:
+        write_details_el_admissions(vd)
+    with tabs[3]:
+        # A&E admissions:
+        write_details_time_in_care(vd)
+
+
+def write_details_ae_admissions(vd):
+
+    # ----- Tables of constants -----
+    st.markdown(''.join([
+        'The following constants are used to calculate the number of ',
+        'admissions to A&E.'
+        ]))
+    ae_coeff_cols = st.columns(2)
+    with ae_coeff_cols[0]:
+        markdown_ae_coeffs = utilities.latex_equations.table_ae_coeffs(vd)
+        st.markdown(markdown_ae_coeffs)
+
+    with ae_coeff_cols[1]:
+        markdown_ae_mrs_coeffs = utilities.latex_equations.\
+            table_ae_mrs_coeffs(vd)
+        st.markdown(markdown_ae_mrs_coeffs)
+
+    # ----- Formula -----
+    st.markdown(''.join([
+        'The A&E admissions model is a Weibull distribution. ',
+        'The number of admissions over $\mathrm{yrs}$, ',
+        'a number of years, is given by: '
+        ]))
+    latex_ae_count_generic = utilities.latex_equations.\
+        ae_count_generic()
+    st.latex(latex_ae_count_generic)
+
+    # # ----- Lambda function -----
+    # st.markdown('with Lambda function $\Lambda_\mathrm{AE}$: ')
+    # latex_ae_lambda_generic = utilities.latex_equations.\
+    #     ae_lambda_generic()
+    # st.latex(latex_ae_lambda_generic)
+
+    # ----- linear predictor -----
+    st.markdown('and with linear predictor: ')
+    latex_ae_lp_generic = utilities.latex_equations.\
+        ae_lp_generic()
+    st.latex(latex_ae_lp_generic)
+    st.markdown(''.join([
+        r'''where $\alpha$ and $\beta$ are constants and ''',
+        '$X$ are values of the patient details (e.g. age, sex, and mRS).'
+        ]))
+
+    # ##### EXAMPLE #####
+    # ----- Calculations with user input -----
+    st.markdown('### Example')
+    st.markdown(''.join([
+        'For the current patient details, these are calculated as follows.',
+        ' Values in red change with the patient details, and values in ',
+        'pink use a different constant from the tables above depending ',
+        'on the patient details.'
+        ]))
+
+    # ----- Calculation for linear predictor -----
+    st.markdown('The linear predictor:')
+    latex_ae_lp = utilities.latex_equations.ae_lp(vd)
+    st.latex(latex_ae_lp)
+    st.write('$^{*}$ This value is 0 for female patients and 1 for male.')
+
+    # # ----- Calculation for Lambda -----
+    # st.markdown('The Lambda function:')
+    # latex_ae_lambda = utilities.latex_equations.ae_lambda(vd)
+    # st.latex(latex_ae_lambda)
+
+    # ----- Show median survival years for this patient -----
+    st.markdown('For the median survival years: ')
+    latex_median_survival_display = utilities.latex_equations.\
+        median_survival_display(vd)
+    st.latex(latex_median_survival_display)
+
+    # ----- Calculation for count -----
+    st.markdown('The final count:')
+    latex_ae_count = utilities.latex_equations.ae_count(vd)
+    st.latex(latex_ae_count)
+
+
+
+def write_details_nel_admissions(vd):
+
+    # ----- Tables of constants -----
+    st.markdown(''.join([
+        'The following constants are used to calculate the number of ',
+        'non-elective bed days.'
+        ]))
+    nel_coeff_cols = st.columns(2)
+    with nel_coeff_cols[0]:
+        markdown_nel_coeffs = utilities.latex_equations.table_nel_coeffs(vd)
+        st.markdown(markdown_nel_coeffs)
+
+    with nel_coeff_cols[1]:
+        markdown_nel_mrs_coeffs = utilities.latex_equations.\
+            table_nel_mrs_coeffs(vd)
+        st.markdown(markdown_nel_mrs_coeffs)
+
+    # latex_ae_admissions_generic = utilities.latex_equations.\
+    #     ae_admissions_generic()
+    # st.latex(latex_ae_admissions_generic)
+    # ##### EXAMPLE #####
+
+
+def write_details_el_admissions(vd):
+
+    # ----- Tables of constants -----
+    st.markdown(''.join([
+        'The following constants are used to calculate the number of ',
+        'elective bed days.'
+        ]))
+    el_coeff_cols = st.columns(2)
+    with el_coeff_cols[0]:
+        markdown_el_coeffs = utilities.latex_equations.table_el_coeffs(vd)
+        st.markdown(markdown_el_coeffs)
+
+    with el_coeff_cols[1]:
+        markdown_el_mrs_coeffs = utilities.latex_equations.\
+            table_el_mrs_coeffs(vd)
+        st.markdown(markdown_el_mrs_coeffs)
+
+    # latex_ae_admissions_generic = utilities.latex_equations.\
+    #     ae_admissions_generic()
+    # st.latex(latex_ae_admissions_generic)
+    # ##### EXAMPLE #####
+
+
+def write_details_time_in_care(vd):
+
+    # ----- Tables of constants -----
+    st.markdown(''.join([
+        'The following constants are used to calculate the number of ',
+        'days spent in residential care. ',
+        'They represent the proportion of people in each mRS ',
+        'category who are discharged into a residential care home, ',
+        'and different proportions are considered for patients over ',
+        'the age of 70.'
+        ]))
+    markdown_tic_coeffs = utilities.latex_equations.\
+        table_time_in_care_coeffs(vd)
+    st.markdown(markdown_tic_coeffs)
+
+
+    # latex_ae_admissions_generic = utilities.latex_equations.\
+    #     ae_admissions_generic()
+    # st.latex(latex_ae_admissions_generic)
+    # ##### EXAMPLE #####

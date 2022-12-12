@@ -375,6 +375,7 @@ def write_details_mortality_in_year_one(vd):
         'This is the quantity plotted in the survival vs. time chart.'
     ]))
 
+    # ##### EXAMPLE #####
     # ----- Calculations with user input -----
     st.markdown('### Example')
     st.markdown(''.join([
