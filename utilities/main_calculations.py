@@ -366,7 +366,7 @@ def main_cost_effectiveness(qaly_table, cost_table):
 def build_variables_dict(
         age, sex, mrs, pDeath_list, survival_list, survival_times,
         A_E_count_list, NEL_count_list, EL_count_list, care_years_list,
-        qalys
+        qalys, total_discounted_cost
         ):
     # Calculate some bits we're missing:
     # P_yr1 = find_pDeath_yr1(age, sex, mrs)
@@ -415,6 +415,7 @@ def build_variables_dict(
         utility_list=utility_list,
         qalys=qalys,
         # ----- For resource use: -----
+        total_discounted_cost=total_discounted_cost,
         # A&E:
         A_E_coeffs=A_E_coeffs,
         A_E_mRS=A_E_mRS,
@@ -434,6 +435,8 @@ def build_variables_dict(
         # Care home
         care_years_list=care_years_list,
         perc_care_home_over70=perc_care_home_over70,
-        perc_care_home_not_over70=perc_care_home_not_over70
+        perc_care_home_not_over70=perc_care_home_not_over70,
+        # ----- For cost-effectiveness -----
+        WTP_QALY_gpb=WTP_QALY_gpb
         )
     return variables_dict

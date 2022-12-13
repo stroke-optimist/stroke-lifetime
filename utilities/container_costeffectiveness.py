@@ -6,9 +6,9 @@ import numpy as np
 import pandas as pd
 
 
-def main(table_cost_effectiveness):
+def main(table_cost_effectiveness, variables_dict):
     st.markdown('### Discounted total Net Benefit by change in outcome')
-    write_details_cost_effectiveness()
+    write_details_cost_effectiveness(variables_dict)
     write_table_cost_effectiveness(table_cost_effectiveness)
 
 
@@ -56,10 +56,31 @@ def write_table_cost_effectiveness(table_cost_effectiveness):
 
     # Write to streamlit:
     st.table(df_table.style.applymap(color_negative_red))
-    st.write('Changes in outcome from column value to row value.')
-    st.write('Net Benefit is QALYs valued at Willingness to pay ',
-             'threshold plus any cost savings')
+    st.caption('Changes in outcome from column value to row value.')
 
 
-def write_details_cost_effectiveness():
-    st.markdown('(WTP_QALY_gpb * qaly_table) + cost_table')
+def write_details_cost_effectiveness(vd):
+    st.markdown(''.join([
+        'Net Benefit is QALYs valued at Willingness to pay (WTP) ',
+        'threshold, which is '
+        f'£{vd["WTP_QALY_gpb"]:.2f}, '
+        'plus any cost savings.'
+        ]))
+    qaly = vd["qalys"][1]-vd["qalys"][2]
+    cost = vd["total_discounted_cost"][2]-vd["total_discounted_cost"][1]
+    total = vd["WTP_QALY_gpb"]*qaly + cost
+    st.markdown(''.join([
+        'For example, the change from outcome mRS=1 to mRS=2 ',
+        'has a discounted QALY of ',
+        f'{qaly:.4f} ',
+        'and a discounted total cost of ',
+        f'£{cost:.0f}, ',
+        'giving a net benefit of: '
+    ]))
+    st.latex(''.join([
+        r'''\begin{equation*} \left(''',
+        f'£{vd["WTP_QALY_gpb"]:.0f}', r'''\times''',
+        f'{qaly:.4f}', r'''\right)''', f'+ £{cost:.0f} ',
+        f'= £{total:.0f}',
+        r'''\end{equation*}'''
+    ]))

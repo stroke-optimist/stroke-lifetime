@@ -27,6 +27,8 @@ def main(
         )
     
     st.write('### Discounted Cost of Resource use')
+    with st.expander('Details: Discounted resource use'):
+        write_details_discounted_resource_use(variables_dict)
     write_table_discounted_resource_use(
         A_E_discounted_cost,
         NEL_discounted_cost,
@@ -36,7 +38,8 @@ def main(
         )
 
     st.write('### Discounted total costs by change in outcome')
-    write_table_discounted_change(table_discounted_cost)
+    write_table_discounted_change(
+        table_discounted_cost, total_discounted_cost)
 
 
 def write_table_resource_use(
@@ -104,7 +107,8 @@ def write_table_discounted_resource_use(
     st.table(df_table.style.format('£{:.0f}'))
 
 
-def write_table_discounted_change(table_discounted_cost):
+def write_table_discounted_change(
+        table_discounted_cost, total_discounted_cost):
     # Use this function to colour values in the table:
     def color_negative_red(val):
         colour = None
@@ -147,6 +151,19 @@ def write_table_discounted_change(table_discounted_cost):
     df_table = pd.DataFrame(table)
 
     # Write to streamlit:
+    st.markdown(''.join([
+        'The change in total costs between two mRS scores ',
+        'is simply the difference between their total cost values ',
+        'in the table above. For example, the change from ',
+        'an outcome of mRS=1 to mRS=2 gives a difference of: ',
+    ]))
+    st.latex(''.join([
+        r'''\begin{equation*}''',
+        f'£{total_discounted_cost[1]:.2f}-',
+        f'£{total_discounted_cost[2]:.2f}=',
+        f'£{total_discounted_cost[2]-total_discounted_cost[1]:.2f}',
+        r'''\end{equation*}'''
+    ]))
     st.table(df_table.style.applymap(color_negative_red))
     st.write('Changes in outcome from column value to row value.')
     st.write('Numbers in red are increased costs to the NHS, ',
@@ -456,3 +473,37 @@ def write_details_time_in_care(vd):
     latex_tic = utilities.latex_equations.tic(vd)
     st.latex(latex_tic)
 
+
+def write_details_discounted_resource_use(vd):
+    tabs = st.tabs([
+        'A&E Admissions',
+        'Non-elective bed days',
+        'Elective bed days',
+        'Time in residential care'
+        ])
+
+    with tabs[0]:
+        # A&E admissions:
+        write_details_discounted_ae(vd)
+    with tabs[1]:
+        # A&E admissions:
+        write_details_discounted_nel(vd)
+    with tabs[2]:
+        # A&E admissions:
+        write_details_discounted_el(vd)
+    with tabs[3]:
+        # A&E admissions:
+        write_details_discounted_care(vd)
+
+
+def write_details_discounted_ae(vd):
+    pass 
+
+def write_details_discounted_nel(vd):
+    pass 
+
+def write_details_discounted_el(vd):
+    pass 
+
+def write_details_discounted_care(vd):
+    pass

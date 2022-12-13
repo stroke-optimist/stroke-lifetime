@@ -113,7 +113,7 @@ variables_dict = utilities.main_calculations.build_variables_dict(
     age_input, sex_input, mRS_input, pDeath_list,
     all_survival_lists[mRS_input], survival_times,
     A_E_count_list, NEL_count_list, EL_count_list, care_years_list,
-    qalys
+    qalys, total_discounted_cost
     )
 
 
@@ -155,6 +155,7 @@ with tabs[2]:
 
 with tabs[3]:
     st.header('Cost-effectiveness')
-    utilities.container_costeffectiveness.main(table_cost_effectiveness)
+    utilities.container_costeffectiveness.main(
+        table_cost_effectiveness, variables_dict)
 
 # ----- The end! -----
