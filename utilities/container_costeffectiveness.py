@@ -7,6 +7,8 @@ import pandas as pd
 
 
 def main(table_cost_effectiveness):
+    st.markdown('### Discounted total Net Benefit by change in outcome')
+    write_details_cost_effectiveness()
     write_table_cost_effectiveness(table_cost_effectiveness)
 
 
@@ -53,8 +55,11 @@ def write_table_cost_effectiveness(table_cost_effectiveness):
     df_table = pd.DataFrame(table)
 
     # Write to streamlit:
-    st.markdown('### Discounted total Net Benefit by change in outcome')
     st.table(df_table.style.applymap(color_negative_red))
     st.write('Changes in outcome from column value to row value.')
     st.write('Net Benefit is QALYs valued at Willingness to pay ',
              'threshold plus any cost savings')
+
+
+def write_details_cost_effectiveness():
+    st.markdown('(WTP_QALY_gpb * qaly_table) + cost_table')
