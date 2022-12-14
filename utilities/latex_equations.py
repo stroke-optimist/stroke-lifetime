@@ -1307,3 +1307,17 @@ def discounted_cost(vd, discounted_sum, cost_str, discounted_cost_str,
         '''
     )
     return str
+
+
+def cost_effectiveness(vd, qaly, cost, total):
+    str = (
+        r'''
+        \begin{equation*}
+        \left(''' +
+        f'£{vd["WTP_QALY_gpb"]:.0f}' + r'''\times \textcolor{red}{''' +
+        f'{qaly:.4f}' + r'''}\right) + \textcolor{red}{''' + f'£{cost:.0f} ' +
+        r'''} = \textcolor{red}{''' + f'£{total:.0f}' + r'''}
+        \end{equation*}
+        '''
+    )
+    return str

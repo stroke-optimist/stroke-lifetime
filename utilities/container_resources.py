@@ -165,9 +165,11 @@ def write_table_discounted_change(
         r'''\end{equation*}'''
     ]))
     st.table(df_table.style.applymap(color_negative_red))
-    st.write('Changes in outcome from column value to row value.')
-    st.write('Numbers in red are increased costs to the NHS, ',
-             'numbers in black represent savings to the NHS')
+    st.caption(''.join([
+        'Changes in outcome from column value to row value. ',
+        'Numbers in red are increased costs to the NHS, ',
+        'numbers in black represent savings to the NHS'
+        ]))
 
 
 def write_details_resource_use(vd):
@@ -549,8 +551,7 @@ def write_details_discounted_resource_use(vd):
         median_survival_display(vd)
     st.latex(latex_median_survival_display)
 
-
-        
+    # Tabs for each category:
     tabs = st.tabs([
         'A&E Admissions',
         'Non-elective bed days',
@@ -575,7 +576,7 @@ def write_details_discounted_resource_use(vd):
             ])
         write_details_discounted_resource(
             vd, "NEL_counts", "discounted_list_NEL", 
-            "cost_non_elective_bed_day_gbp", "NEL_discounted_cost", 
+            "cost_non_elective_bed_day_gbp", "NEL_discounted_cost",
             caption_str)
     with tabs[2]:
         # EL bed days:
@@ -584,8 +585,8 @@ def write_details_discounted_resource_use(vd):
             'and "Discounted use" is from Equation [22].'
             ])
         write_details_discounted_resource(
-            vd, "EL_counts", "discounted_list_EL", 
-            "cost_elective_bed_day_gbp", "EL_discounted_cost", 
+            vd, "EL_counts", "discounted_list_EL",
+            "cost_elective_bed_day_gbp", "EL_discounted_cost",
             caption_str)
     with tabs[3]:
         # Time in care:
@@ -594,7 +595,7 @@ def write_details_discounted_resource_use(vd):
             'and "Discounted use" is from Equation [22].'
             ])
         write_details_discounted_resource(
-            vd, "care_years", "discounted_list_care", 
+            vd, "care_years", "discounted_list_care",
             "cost_residential_day_gbp", "care_years_discounted_cost",
             caption_str, care=1)
 

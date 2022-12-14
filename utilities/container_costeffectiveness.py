@@ -4,7 +4,7 @@ This contains everything in the Cost Effectiveness section.
 import streamlit as st
 import numpy as np
 import pandas as pd
-
+import utilities.latex_equations
 
 def main(table_cost_effectiveness, variables_dict):
     st.markdown('### Discounted total Net Benefit by change in outcome')
@@ -56,7 +56,11 @@ def write_table_cost_effectiveness(table_cost_effectiveness):
 
     # Write to streamlit:
     st.table(df_table.style.applymap(color_negative_red))
-    st.caption('Changes in outcome from column value to row value.')
+    st.caption(''.join([
+        'Changes in outcome from column value to row value. ',
+        'Numbers in red are increased costs to the NHS, ',
+        'numbers in black represent savings to the NHS'
+        ]))
 
 
 def write_details_cost_effectiveness(vd):
@@ -70,17 +74,14 @@ def write_details_cost_effectiveness(vd):
     cost = vd["total_discounted_cost"][2]-vd["total_discounted_cost"][1]
     total = vd["WTP_QALY_gpb"]*qaly + cost
     st.markdown(''.join([
-        'For example, the change from outcome mRS=1 to mRS=2 ',
+        'For example (where values in red change with the patient details) ',
+        'the change from outcome mRS=1 to mRS=2 ',
         'has a discounted QALY of ',
         f'{qaly:.4f} ',
         'and a discounted total cost of ',
         f'£{cost:.0f}, ',
         'giving a net benefit of: '
     ]))
-    st.latex(''.join([
-        r'''\begin{equation*} \left(''',
-        f'£{vd["WTP_QALY_gpb"]:.0f}', r'''\times''',
-        f'{qaly:.4f}', r'''\right)''', f'+ £{cost:.0f} ',
-        f'= £{total:.0f}',
-        r'''\end{equation*}'''
-    ]))
+    latex_cost_effectiveness = utilities.latex_equations.\
+        cost_effectiveness(vd, qaly, cost, total)
+    st.latex(latex_cost_effectiveness)
