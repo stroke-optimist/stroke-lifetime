@@ -620,9 +620,23 @@ def write_details_discounted_resource(
     # ----- Example calculation of discounted resource -----
     st.markdown(''.join([
         'Example of the calculation of the discounted resource ',
-        'for year 2:'
+        'for a chosen year:'
     ]))
-    for year in [2]:
+
+    # ----- Input number of years -----
+    # Put slider between two empty columns to make it skinnier.
+    # cols = st.columns(3)
+    # with cols[1]:
+    # Give this slider a key or streamlit throws warnings
+    # about multiple identical sliders.
+    time_input_yr = st.slider(
+        'Choose number of years for this example',
+        min_value=1,
+        max_value=len(counts_i),
+        value=2,
+        key='TimeForDiscountTable' + cost_str
+        )
+    for year in [time_input_yr]:
         latex_example_di = utilities.latex_equations.\
             discounted_resource(
                 vd, counts_i[year-1], year, discounted_i[year-1])
