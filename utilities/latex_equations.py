@@ -102,8 +102,8 @@ def lp_yr1(vd):
         f'{vd["sex"]}' + r'''}\right) + & \mathrm{sex}^{*} \\''' +
         # 3rd coeff
         r'''& \left(\textcolor{Fuchsia}{''' +
-        f'{vd["lg_coeffs"][3+vd["mrs"]]}' + r'''} \times \textcolor{red}{''' +
-        f'{vd["mrs"]}' + r'''}\right) & \mathrm{mRS} \\''' +
+        f'{vd["lg_coeffs"][3+vd["mrs"]]}' + 
+        r'''} \right) & \mathrm{mRS} \\''' +
         # Next line, value equal to:
         r'''=& \textcolor{red}{''' +
         f'{vd["LP_yr1"]:.4f}' +
@@ -272,16 +272,15 @@ def lp_yrn(vd):
         f'{vd["sex"]}' + r'''}\right) + & \mathrm{sex}^{*} \\''' +
         # 4th coeff
         r'''& \left(\textcolor{Fuchsia}{''' +
-        f'{vd["gz_coeffs"][4+vd["mrs"]]}' + r'''} \times \textcolor{red}{''' +
-        f'{vd["mrs"]}' + r'''} \times [\textcolor{red}{''' +
+        f'{vd["gz_coeffs"][4+vd["mrs"]]}' + 
+        r'''} \times [\textcolor{red}{''' +
         f'{vd["age"]}' + r'''}-''' +
         f'{vd["gz_mean_age"]}' +
         r''']\right) +
         & (\mathrm{mRS}\times\mathrm{age}) \\''' +
         # 5th coeff
         r'''& \left(\textcolor{Fuchsia}{''' +
-        f'{vd["gz_coeffs"][10+vd["mrs"]]}' + r'''} \times \textcolor{red}{''' +
-        f'{vd["mrs"]}' + r'''}\right) & \mathrm{mRS} \\''' +
+        f'{vd["gz_coeffs"][10+vd["mrs"]]}' + r'''}\right) & \mathrm{mRS} \\''' +
         # Next line, value equal to:
         r'''=& \textcolor{red}{''' +
         f'{vd["LP_yrn"]:.4f}' +

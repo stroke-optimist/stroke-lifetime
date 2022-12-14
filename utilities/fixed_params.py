@@ -17,10 +17,10 @@ def page_setup():
         )
 
 
-# Calculate survival and risk up to and including this year:
+# Calculate survival and hazard up to and including this year:
 time_max_post_discharge_yr = 50
 
-# Colour scheme to match Excel risk chart:
+# Colour scheme to match Excel hazard chart:
 colours_excel = [
     '#ffc000',   # mRS 0
     '#ed7d31',   # mRS 1
@@ -36,26 +36,26 @@ colours_excel = [
 #   perc = percentage
 #   GBP = GB pounds
 # Inputs column 2:
-discount_factor_QALYs_perc = 3.50
-discount_factor_costs_perc = 3.50
-WTP_QALY_gpb = 20000
+discount_factor_QALYs_perc = 3.50       # %
+discount_factor_costs_perc = 3.50       # %
+WTP_QALY_gpb = 20000                    # £
 # Inputs column 3:
-cost_ae_gbp = 170.46
-cost_elective_bed_day_gbp = 443.80
-cost_non_elective_bed_day_gbp = 532.56
-cost_residential_day_gbp = 102.71
+cost_ae_gbp = 170.46                    # £
+cost_elective_bed_day_gbp = 443.80      # £
+cost_non_elective_bed_day_gbp = 532.56  # £
+cost_residential_day_gbp = 102.71       # £
 # QALYs:
-# for mRS = [0,    1,    2,    3,    4,    5   ]
+# for mRS    = [0,    1,    2,    3,    4,    5   ]
 utility_list = [0.95, 0.93, 0.83, 0.62, 0.42, 0.11]
 
 
-# ----- From the R script -----
+# ----- Mortality -----
+# From the R script
 # (test.harnes.R, received 17/NOV/2022 from Peter McMeekin)
-#   lg = logistic (mortality model)
-#   gz = Gompertz (mortality model)
 
+# -- Year one: --
+# lg for logistic
 # regression coefficents
-# const, adjage, male, mrs1, mrs2, mrs3, mrs4, mrs5
 lg_coeffs = np.array([
     -4.235428,    # constant
     0.0663151,    # adjage (adjusted age)
@@ -72,7 +72,6 @@ lg_coeffs = np.array([
 # Coef. | Std. | Err. | z | P>z | [95% Conf. Interval]
 # The values in the list used here are from the Coef. column.
 
-
 # mrs1, mrs2, mrs3, mrs4, mrs5
 lg_mean_ages = np.array([
     67.09161,     # mrs0
@@ -83,9 +82,9 @@ lg_mean_ages = np.array([
     80.91837      # mrs5
     ])
 
-# const, adjage, adjage2, male,
-# mrs1*adjage, mrs2*adjage, mrs3*adjage, mrs4*adjage, mrs5*adjage,
-# mrs1, mrs2, mrs3, mrs4, mrs5
+
+# -- Year >1 --
+# gz for Gompertz
 gz_coeffs = np.array([
     -9.066997,     # constant
     0.0072893,     # adjage (adjusted age)
@@ -115,8 +114,10 @@ gz_gamma = 0.0002183
 gz_mean_age = 73.7324
 
 
+# ----- Resource use -----
+# From the R script
+# (test.harnes.R, received 17/NOV/2022 from Peter McMeekin)
 # A&E
-# A&E coefficients:
 A_E_coeffs = np.array([
     -0.0691459,     # constant
     -0.0049821,     # age

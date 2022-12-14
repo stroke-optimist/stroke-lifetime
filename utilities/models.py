@@ -6,102 +6,153 @@ These were adapted from the following R script:
 # Imports:
 import numpy as np
 
-from utilities.fixed_params import \
-    lg_coeffs, lg_mean_ages, \
-    gz_coeffs, gz_mean_age, gz_gamma, \
-    A_E_coeffs, A_E_mRS, \
-    NEL_coeffs, NEL_mRS, \
-    EL_coeffs, EL_mRS
+# Import constants:
+import utilities.fixed_params
 
+
+# #####################################################################
+# ############################ Mortality ##############################
+# #####################################################################
 
 def find_lpDeath_yr1(age, sex, mrs):
-    """The linear predictor for logit year 1"""
+    """
+    The linear predictor for logit year 1.
 
+    Returns a float, the value of the linear predictor.
+    """
+    # The irrelevant mRS constants from lg_coeffs will be multiplied
+    # by zero, but the one we want will be multiplied by one.
     mrss = [0, 0, 0, 0, 0, 0]
     mrss[mrs] = 1
+
     ivs = np.array([
         1,
-        age - lg_mean_ages[mrs],
+        age - utilities.fixed_params.lg_mean_ages[mrs],
         sex,
         *mrss
         ])
 
-    lp = np.sum(lg_coeffs * ivs)
-
+    lp = np.sum(utilities.fixed_params.lg_coeffs * ivs)
     return lp
 
 
 def find_pDeath_yr1(age, sex, mrs):
-    """Gets probability in year 1"""
+    """
+    Gets probability in year 1
 
+    Returns a float, probability of death in year one.
+    """
+    # Find linear predictor:
     lp = find_lpDeath_yr1(age, sex, mrs)
+    # Logistic formula for probability:
     p = 1.0 / (1.0 + np.exp(-lp))
-
     return p
 
 
 def find_lpDeath_yrn(age, sex, mrs):
-    """linear predictor for Gompertz"""
+    """
+    linear predictor for Gompertz
 
+    Returns a float, the value of the linear predictor.
+    """
+    # The irrelevant mRS constants from gz_coeffs will be multiplied
+    # by zero, but the one we want will be multiplied by one.
     mrss = np.array([0, 0, 0, 0, 0, 0])
     mrss[mrs] = 1
+
     ivs = np.array([
         1,
-        age - gz_mean_age,
-        (age**2.0) - gz_mean_age**2.0,
+        age - utilities.fixed_params.gz_mean_age,
+        (age**2.0) - utilities.fixed_params.gz_mean_age**2.0,
         sex,
-        *mrss * (age - gz_mean_age),
+        *mrss * (age - utilities.fixed_params.gz_mean_age),
         *mrss
         ])
 
-    lp = np.sum(gz_coeffs * ivs)
+    lp = np.sum(utilities.fixed_params.gz_coeffs * ivs)
 
     return lp
 
 
 def find_FDeath_yrn(age, sex, mrs, yr, p1=None):
-    """Cumm hazard Gompertz"""
+    """
+    Cumm hazard Gompertz
 
-    lp = find_lpDeath_yrn(age, sex, mrs)
-    days = (yr - 1.0)*365.0
-    # ^ AL changed this definition of days to match the Excel
-    # Calculations sheet.
-    # Cumulative hazard at time t:
-    hazard = np.exp(lp)*(np.exp(days*gz_gamma)-1.0) / gz_gamma
+    Inputs:
+    yr       - float or int. The chosen year.
+    p1       - float. Probability of death in year one.
 
-    # Also calculate the adjustment for year 1.
+    Returns:
+    hazard   - float. The cumulative hazard in the chosen year.
+    cum_prob - float. The cumulative probability of death by the
+               chosen year.
+    """
     if p1 is None:
         # Calculate the prob in year 1 if it's not given:
         p1 = find_pDeath_yr1(age, sex, mrs)
 
+    # Find the linear predictor:
+    lp = find_lpDeath_yrn(age, sex, mrs)
+    # Convert input years to days:
+    days = (yr - 1.0)*365.0
+    # ^ AL changed this definition of days to match the Excel
+    # Calculations sheet.
+
+    # Cumulative hazard at time t:
+    hazard = (
+        np.exp(lp) *
+        (np.exp(days*utilities.fixed_params.gz_gamma)-1.0) /
+        utilities.fixed_params.gz_gamma
+        )
+
+    # Also calculate the adjustment for year 1.
     # Cumulative probability of death by time t:
     cum_prob = 1.0 - ((1.0 - hazard)*(1.0 - p1))
     return hazard, cum_prob
 
 
 def find_iDeath(age, sex, mrs, yr):
-    """prob of death in year n"""
+    """
+    prob of death in year n
+
+    If year>1, use cumulative probability of death in this year
+    minus the cumulative probability of death in the previous year.
+
+    Input:
+    yr     - float or int, the year in question.
+
+    Returns:
+    iDeath - float. The probability of death in the chosen year.
+    """
     # rVal = 0.0
     if yr == 1:
         # AL changed the above from original "if(yr==0)".
-        rVal = find_pDeath_yr1(age, sex, mrs)
+        iDeath = find_pDeath_yr1(age, sex, mrs)
     elif yr == 2:
         # AL changed the above from original
         # "else if (rVal == 1)"
-        p0_orig, p0 = find_FDeath_yrn(age, sex, mrs, yr)
+        hazard0, p0 = find_FDeath_yrn(age, sex, mrs, yr)
         p1 = find_pDeath_yr1(age, sex, mrs)
-        rVal = 1.0 - np.exp(p1 - p0)
+        iDeath = 1.0 - np.exp(p1 - p0)
     else:
-        p0_orig, p0 = find_FDeath_yrn(age, sex, mrs, yr)
-        p1_orig, p1 = find_FDeath_yrn(age, sex, mrs, yr-1.0)
-        rVal = 1.0 - np.exp(p1 - p0)
-    return rVal
+        hazard0, p0 = find_FDeath_yrn(age, sex, mrs, yr)
+        hazard1, p1 = find_FDeath_yrn(age, sex, mrs, yr-1.0)
+        iDeath = 1.0 - np.exp(p1 - p0)
+    return iDeath
 
 
-def find_t_zero_survival(age, sex, mrs, prob):
+def find_t_zero_survival(age, sex, mrs, prob=1.0):
     """
     Find the time where survival is zero.
     Based on find_tDeath.
+
+    Inputs:
+    prob           - float. Chosen probability of death.
+                     Survival is zero when this prob is 1.0.
+
+    Returns:
+    years_to_death - float. Years from discharge until the input
+                     probability of death is reached.
     """
     # Probability of death in year one:
     pd1 = find_pDeath_yr1(age, sex, mrs)
@@ -114,13 +165,25 @@ def find_t_zero_survival(age, sex, mrs, prob):
         # Linear predictor for death in year n:
         glp = find_lpDeath_yrn(age, sex, mrs)
         # Invert the pDeath_yrn formula to get time:
-        days = np.log((gz_gamma * prob_prime * np.exp(-glp)) + 1.0) / gz_gamma
+        days = (
+            np.log(
+                (
+                    utilities.fixed_params.gz_gamma *
+                    prob_prime *
+                    np.exp(-glp)
+                ) + 1.0
+            ) /
+            utilities.fixed_params.gz_gamma
+            )
         # Convert days to years:
         years_to_death = (days/365) + 1
     else:
         # AL - is the following correct?
-        years_to_death = np.log(prob) / -(-(np.log(1.0 - pd1))/365.0) / 365.0
-
+        years_to_death = (
+            np.log(prob) /
+            (np.log(1.0 - pd1)/365.0)
+            / 365.0
+        )
     return years_to_death
 
 
@@ -130,6 +193,13 @@ def find_tDeath(age, sex, mrs, prob):
     Think it is fixed
 
     "years_to_death" was called "rVal" in the R function.
+
+    Inputs:
+    prob           - float. Chosen probability of death.
+
+    Returns:
+    years_to_death - float. Years from discharge until the input
+                     probability of death is reached.
     """
     # Probability of death in year one:
     pd1 = find_pDeath_yr1(age, sex, mrs)
@@ -138,21 +208,54 @@ def find_tDeath(age, sex, mrs, prob):
         # Linear predictor for death in year n:
         glp = find_lpDeath_yrn(age, sex, mrs)
         # Invert the pDeath_yrn formula to get time:
-        days = np.log((gz_gamma * prob_prime * np.exp(-glp)) + 1.0) / gz_gamma
+        days = (
+            np.log(
+                (
+                    utilities.fixed_params.gz_gamma *
+                    prob_prime *
+                    np.exp(-glp)
+                ) + 1.0
+            ) /
+            utilities.fixed_params.gz_gamma
+            )
         # Convert days to years:
         years_to_death = (days/365) + 1
     else:
         # AL - is the following correct?
-        years_to_death = np.log(prob) / -(-(np.log(1.0 - pd1))/365.0) / 365.0
-
+        years_to_death = (
+            np.log(prob) /
+            (np.log(1.0 - pd1)/365.0)
+            / 365.0
+        )
     return years_to_death
 
 
 def find_survival_time_for_pDeath(pDeath, pDeath_yr1, lpDeath_yrn):
     """
-    From Calculations sheet.
+    Calculate the time when the probability of death is equal to
+    the input probability, pDeath.
+
+    From Calculations sheet in Excel v7.
+
+    Inputs:
+    pDeath        - float. Chosen probability of death. e.g. for
+                      median, use pDeath=0.5. For lower IQR value,
+                      use pDeath=0.25.
+    pDeath_yr1    - float. Probability of death in year 1.
+    lpDeath_yr1   - float. Linear predictor for death in year 1.
+
+    Returns:
+    survival_time - float. The survival time in years.
+    survival_yrs  - float. Case 1 survival time.
+    time_log      - float. Case 2 survival time.
+    eqperc        - float. Adjusted input probability to account for
+                      the chance of death during year one. a.k.a. P`.
     """
+    # ----- Case 1: -----
+    # Use this if input probability is greater than the probability
+    # of death in year one.
     # Cells named "eq 50%", "eq 25%", "eq 75%":
+    # This is called P`, prob prime, in the paper:
     eqperc = ((1.0 + pDeath)/(1.0 + pDeath_yr1)) - 1.0
 
     # Cells named "med yrs":
@@ -161,42 +264,52 @@ def find_survival_time_for_pDeath(pDeath, pDeath_yr1, lpDeath_yrn):
     else:
         survival_yrs = (
             np.log(
-                (eqperc * gz_gamma / np.exp(lpDeath_yrn)) + 1.0
+                (
+                    eqperc * utilities.fixed_params.gz_gamma /
+                    np.exp(lpDeath_yrn)
+                ) + 1.0
             )
-            / (gz_gamma*365.0)
+            / (utilities.fixed_params.gz_gamma*365.0)
         )
         # Note: one year added to median survival years as they
         # survive the first year.
         survival_yrs += 1.0
 
+    # ----- Case 2: -----
+    # Use this if input probability is less than or equal to the
+    # probability of death in year one.
     # Cells named "time log":
-    # AL - This derivation doesn't look correct.
-    # Is the initial "1-" in there by accident? It disappears.
-    #
-    # Note when first year survuval is less than pDeath %, the median
-    # survival is calculate from the logit function from the formula:
-    #      1 - (1 - pDeath_yr1)^x = (1 - pdeath)
-    # -->  log(1 - pdeath) = log[(1 - pDeath_yr1)^x]
-    # -->  log(1 - pdeath) = x log(1 - pDeath_yr1)
-    # -->  x = log(1 - pdeath) / log(1 - pDeath_yr1)
-    #
     # AL - this needs an extra comment to explain why two 365s.
     # The result does match the Excel output.
-    time_log = (
+    time_log_days = (
         np.log(1.0 - pDeath) /
-        -(
-            -np.log(1 - pDeath_yr1)/365.0
-        )/365.0
+        (np.log(1 - pDeath_yr1)/365.0)
     )
+    time_log = time_log_days / 365.0
 
-    # Choose which to use:
+    # Choose which case to use:
     survival_time = survival_yrs if survival_yrs > 1.0 else time_log
 
+    # Return all of the options anyway:
     return survival_time, survival_yrs, time_log, eqperc
 
 
+# #####################################################################
+# ############################## QALYs ################################
+# #####################################################################
+
 def calculate_qaly(util, med_survival_years, dfq=0.035):
-    # DFQ = discount factor QALYs, e.g. 3.5%.
+    """
+    Calculate the number of QALYs.
+
+    Inputs:
+    util               - float. Utility for this person's mRS score.
+    med_survival_years - float. median survival years for this person.
+    dfq                - float. Discount Factor QALYs, e.g. 3.5%.
+
+    Returns:
+    qaly               - float. Calculated number of QALYs.
+    """
     qaly = (
         util +
         util *
@@ -207,93 +320,155 @@ def calculate_qaly(util, med_survival_years, dfq=0.035):
     return qaly
 
 
+# #####################################################################
+# ############################ Resources ##############################
+# #####################################################################
+
 def find_A_E_Count(age, sex, mrs, yrs):
     """
     This section predicts the cumulative A_E admissions count for
     a given individual and a given number of years
+
+    Inputs:
+    yrs   - float. Number of years since discharge.
+
+    Returns:
+    Count - float. Number of admissions to A&E over input years.
     """
-    # calculates the normalized age
-    age_norm = age - lg_mean_ages[mrs]
-    # calculates the linear predictor for A_E
-    A_E_lp = (
-        A_E_coeffs[0] +
-        (A_E_coeffs[1]*age_norm) +
-        (A_E_coeffs[2]*sex) +
-        A_E_mRS[mrs]
-    )
+    # Find linear predictor:
+    A_E_lp = find_lp_AE_Count(age, mrs, sex)
     # creates the lambda function for the equation
     # AL - for python, changed this to a variable:
-    lambda_factor = np.exp(A_E_coeffs[3] * A_E_lp)
+    lambda_factor = np.exp(utilities.fixed_params.A_E_coeffs[3] * A_E_lp)
     # equation that estimates the A_E admissions count
-    Count = (
-        -np.log(
-            np.exp(
-                (-lambda_factor) * (yrs**A_E_coeffs[3])
-            )
-        )
-    )
+    # Define this to help fit everything on one line:
+    c = (-lambda_factor) * (yrs**utilities.fixed_params.A_E_coeffs[3])
+    # Final count:
+    Count = -np.log(np.exp(c))
     return Count
+
+
+def find_lp_AE_Count(age, sex, mrs):
+    """
+    Linear predictor for A&E admissions count.
+
+    Returns:
+    A_E_lp - float.
+    """
+    # calculates the normalized age
+    age_norm = age - utilities.fixed_params.lg_mean_ages[mrs]
+    # calculates the linear predictor for A_E
+    A_E_lp = (
+        utilities.fixed_params.A_E_coeffs[0] +
+        (utilities.fixed_params.A_E_coeffs[1]*age_norm) +
+        (utilities.fixed_params.A_E_coeffs[2]*sex) +
+        utilities.fixed_params.A_E_mRS[mrs]
+    )
+    return A_E_lp
 
 
 def find_NEL_Count(age, sex, mrs, yrs):
     """
     This section predicts the cumulative NEL bed days count for
     a given individual and a given number of years
+
+    Inputs:
+    yrs   - float. Number of years since discharge.
+
+    Returns:
+    Count - float. Number of non-elective bed days over input years.
     """
-    # calculates the normalized age
-    age_norm = age - lg_mean_ages[mrs]
-    # calculates the linear predictor for NEL bed days
-    NEL_lp = (
-        NEL_coeffs[0] +
-        (NEL_coeffs[1]*age_norm) +
-        (NEL_coeffs[2]*sex) +
-        NEL_mRS[mrs]
-    )
+    # Find linear predictor:
+    NEL_lp = find_lp_NEL_Count(age, sex, mrs)
     # creates the lambda function for the equation
     # AL - for python, changed this to a variable:
     lambda_factor = np.exp(-NEL_lp)
     # equation that estimates the NEL bed days count
-    Count = (
-        -np.log(
-            (
-                1.0 + (yrs*lambda_factor)**(1.0/NEL_coeffs[3])
-            )**(-1.0)
-        )
-    )
+
+    # Define this to help fit everything on one line:
+    c = (yrs*lambda_factor)**(1.0/utilities.fixed_params.NEL_coeffs[3])
+    # Final count:
+    Count = -np.log((1.0 + c)**(-1.0))
     return Count
+
+
+def find_lp_NEL_Count(age, sex, mrs):
+    """
+    Linear predictor for NEL bed days count.
+
+    Returns:
+    NEL_lp - float.
+    """
+    # calculates the normalized age
+    age_norm = age - utilities.fixed_params.lg_mean_ages[mrs]
+    # calculates the linear predictor for NEL bed days
+    NEL_lp = (
+        utilities.fixed_params.NEL_coeffs[0] +
+        (utilities.fixed_params.NEL_coeffs[1]*age_norm) +
+        (utilities.fixed_params.NEL_coeffs[2]*sex) +
+        utilities.fixed_params.NEL_mRS[mrs]
+    )
+    return NEL_lp
 
 
 def find_EL_Count(age, sex, mrs, yrs):
     """
     This section predicts the cumulative EL bed days count for
     a given individual and a given number of years
+
+    Inputs:
+    yrs   - float. Number of years since discharge.
+
+    Returns:
+    Count - float. Number of elective bed days over the input years.
     """
-    # calculates the normalized age
-    age_norm = age - lg_mean_ages[mrs]
-    # calculates the linear predictor for EL bed days
-    EL_lp = (
-        EL_coeffs[0] +
-        (EL_coeffs[1]*age_norm) +
-        (EL_coeffs[2]*sex) +
-        EL_mRS[mrs]
-    )
+    # Find linear predictor:
+    EL_lp = find_lp_EL_Count(age, sex, mrs)
     # creates the lambda function for the equation
     # AL - for python, changed this to a variable:
     lambda_factor = np.exp(-EL_lp)
     # equation that estimates the EL bed days count
-    Count = (
-        -np.log(
-            (
-                1.0 + (yrs*lambda_factor)**(1.0/EL_coeffs[3])
-            )**(-1.0)
-        )
-    )
+    # Define this to help fit everything on one line:
+    c = (yrs*lambda_factor)**(1.0/utilities.fixed_params.EL_coeffs[3])
+    # Final count:
+    Count = -np.log((1.0 + c)**(-1.0))
     return Count
 
 
-def find_residential_care_average_time(mRS, average_care_year_per_mRS, yrs):
+def find_lp_EL_Count(age, sex, mrs):
     """
+    Linear predictor for EL bed days count.
+
+    Returns:
+    EL_lp - float.
+    """
+    # calculates the normalized age
+    age_norm = age - utilities.fixed_params.lg_mean_ages[mrs]
+    # calculates the linear predictor for EL bed days
+    EL_lp = (
+        utilities.fixed_params.EL_coeffs[0] +
+        (utilities.fixed_params.EL_coeffs[1]*age_norm) +
+        (utilities.fixed_params.EL_coeffs[2]*sex) +
+        utilities.fixed_params.EL_mRS[mrs]
+    )
+    return EL_lp
+
+
+def find_residential_care_average_time(average_care_year, yrs):
+    """
+    Find the average number of years spent in residential care
+    over a time period of "yrs" since discharge.
+
     Keep this as a function for more easily calculating lots of years.
+
+    Inputs:
+    average_care_year - float. Average amount of time spent in care per
+                        year for someone of this mRS score.
+    yrs               - float. Number of years since discharge.
+
+    Returns:
+    years_in_care - float. Number of years spent in residential care
+                    over the input number of years.
     """
-    years_in_care = average_care_year_per_mRS[mRS] * yrs
+    years_in_care = average_care_year * yrs
     return years_in_care
