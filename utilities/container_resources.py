@@ -475,6 +475,82 @@ def write_details_time_in_care(vd):
 
 
 def write_details_discounted_resource_use(vd):
+    # ----- Formula for one year -----
+    st.markdown(''.join([
+        'The formulae used previously to find the number of ',
+        'A&E admissions [Equation 14], non-elective bed days ',
+        '[Equation 16], elective bed days [Equation 18], ',
+        'and years in care [Equation 20] all count the ',
+        'cumulative number of entries over several years. '
+    ]))
+    st.markdown(''.join([
+        'To find $\mathrm{Count}_i$, ',
+        'the number of entries in a given year $i$, ',
+        'we use the same formulae to find the difference between ',
+        'the entries up to and including year $i$ ',
+        'and the entries up to and including year $i-1$:'
+    ]))
+    latex_count_yeari_generic = utilities.latex_equations.\
+        count_yeari_generic()
+    st.latex(latex_count_yeari_generic)
+    st.markdown(''.join([
+        'For a resource that totals $\mathrm{Count}_i$ entries ',
+        'in year $i$, the discounted resource $D_i$ is given as:'
+    ]))
+    latex_discounted_resource_generic = utilities.latex_equations.\
+        discounted_resource_generic(vd)
+    st.latex(latex_discounted_resource_generic)
+
+    # ----- Sum over all years -----
+    st.markdown(''.join([
+        'Then the discounted resource cost $D$ over all years '
+        'is the sum of ',
+        'these values up to the median survival year, $m$, ',
+        'multiplied by a cost factor $c$: '
+    ]))
+    latex_discounted_resource_total_generic = utilities.latex_equations.\
+        discounted_resource_total_generic()
+    st.latex(latex_discounted_resource_total_generic)
+
+    # ----- Convert to costs -----
+    st.markdown(''.join([
+        'The following cost factors are used: '
+    ]))
+    markdown_cost_factors_1 = utilities.latex_equations.\
+        table_cost_factors_1(vd)
+    markdown_cost_factors_2 = utilities.latex_equations.\
+        table_cost_factors_2(vd)
+    cols_cost = st.columns(2)
+    with cols_cost[0]:
+        st.markdown(markdown_cost_factors_1)
+    with cols_cost[1]:
+        st.markdown(markdown_cost_factors_2)
+
+    # ----- State where total costs column comes from -----
+    st.markdown(''.join([
+        'The "Total cost" column gives the sum of the discounted ',
+        'resource costs across the four categories.'
+    ]))
+
+    # ##### EXAMPLE #####
+    # ----- Calculations with user input -----
+    st.markdown('### Example')
+    st.markdown(''.join([
+        'For the current patient details, these are calculated as follows.',
+        ' Values in red change with the patient details ',
+        'and values in ',
+        'pink change with the chosen year.'
+        ]))
+
+    # ----- Show median survival years for this patient -----
+    # vd["survival_meds_IQRs"][vd["mrs"], 0]
+    st.markdown('For the median survival years: ')
+    latex_median_survival_display = utilities.latex_equations.\
+        median_survival_display(vd)
+    st.latex(latex_median_survival_display)
+
+
+        
     tabs = st.tabs([
         'A&E Admissions',
         'Non-elective bed days',
@@ -484,26 +560,79 @@ def write_details_discounted_resource_use(vd):
 
     with tabs[0]:
         # A&E admissions:
-        write_details_discounted_ae(vd)
+        caption_str = ''.join([
+            '$\mathrm{Count}(\mathrm{yrs})$ is from Equation [14] ',
+            'and "Discounted use" is from Equation [22].'
+            ])
+        write_details_discounted_resource(
+            vd, "A_E_counts", "discounted_list_A_E", 
+            "cost_ae_gbp", "A_E_discounted_cost", caption_str)
     with tabs[1]:
-        # A&E admissions:
-        write_details_discounted_nel(vd)
+        # NEL bed days:
+        caption_str = ''.join([
+            '$\mathrm{Count}(\mathrm{yrs})$ is from Equation [16] ',
+            'and "Discounted use" is from Equation [22].'
+            ])
+        write_details_discounted_resource(
+            vd, "NEL_counts", "discounted_list_NEL", 
+            "cost_non_elective_bed_day_gbp", "NEL_discounted_cost", 
+            caption_str)
     with tabs[2]:
-        # A&E admissions:
-        write_details_discounted_el(vd)
+        # EL bed days:
+        caption_str = ''.join([
+            '$\mathrm{Count}(\mathrm{yrs})$ is from Equation [18] ',
+            'and "Discounted use" is from Equation [22].'
+            ])
+        write_details_discounted_resource(
+            vd, "EL_counts", "discounted_list_EL", 
+            "cost_elective_bed_day_gbp", "EL_discounted_cost", 
+            caption_str)
     with tabs[3]:
-        # A&E admissions:
-        write_details_discounted_care(vd)
+        # Time in care:
+        caption_str = ''.join([
+            '$\mathrm{Count}(\mathrm{yrs})$ is from Equation [20] ',
+            'and "Discounted use" is from Equation [22].'
+            ])
+        write_details_discounted_resource(
+            vd, "care_years", "discounted_list_care", 
+            "cost_residential_day_gbp", "care_years_discounted_cost",
+            caption_str, care=1)
 
 
-def write_details_discounted_ae(vd):
-    pass 
+def write_details_discounted_resource(
+        vd, count_str, discount_str, cost_str,
+        discounted_cost_str, caption_str, care=0):
+    # Counts in each year:
+    counts_i = vd[count_str]
+    # Discounted use:
+    discounted_i = vd[discount_str]
+    # Cumulative counts:
+    counts_yrs = np.cumsum(counts_i)
+    # Total discounted use:
+    discounted_sum = np.sum(discounted_i)
 
-def write_details_discounted_nel(vd):
-    pass 
+    # ----- Write table with the values -----
+    table_ae = utilities.latex_equations.build_table_str_resource_count(
+                counts_yrs, counts_i, discounted_i, discounted_sum)
+    st.markdown(table_ae)
+    st.caption(caption_str)
 
-def write_details_discounted_el(vd):
-    pass 
+    # ----- Example calculation of discounted resource -----
+    st.markdown(''.join([
+        'Example of the calculation of the discounted resource ',
+        'for year 2:'
+    ]))
+    for year in [2]:
+        latex_example_di = utilities.latex_equations.\
+            discounted_resource(
+                vd, counts_i[year-1], year, discounted_i[year-1])
+        st.latex(latex_example_di)
 
-def write_details_discounted_care(vd):
-    pass
+    # ----- Calculate discounted cost -----[
+    st.markdown(''.join([
+        'The total discounted cost is then: '
+    ]))
+    latex_discounted_cost = utilities.latex_equations.\
+        discounted_cost(vd, discounted_sum, cost_str, discounted_cost_str,
+                        care)
+    st.latex(latex_discounted_cost)

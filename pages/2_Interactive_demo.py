@@ -94,7 +94,12 @@ A_E_count_list, NEL_count_list, EL_count_list, care_years_list = \
     NEL_discounted_cost,
     EL_discounted_cost,
     care_years_discounted_cost,
-    total_discounted_cost
+    total_discounted_cost,
+    # For details explanation:
+    A_E_counts_per_mRS, 
+    NEL_counts_per_mRS, 
+    EL_counts_per_mRS, 
+    care_years_per_mRS
 ) = \
     utilities.main_calculations.main_discounted_resource_use(
         age_input, sex_input, median_survival_times,
@@ -113,7 +118,15 @@ variables_dict = utilities.main_calculations.build_variables_dict(
     age_input, sex_input, mRS_input, pDeath_list,
     all_survival_lists[mRS_input], survival_times,
     A_E_count_list, NEL_count_list, EL_count_list, care_years_list,
-    qalys, total_discounted_cost
+    qalys, total_discounted_cost,
+    A_E_counts_per_mRS[mRS_input],
+    NEL_counts_per_mRS[mRS_input],
+    EL_counts_per_mRS[mRS_input],
+    care_years_per_mRS[mRS_input],
+    A_E_discounted_cost,
+    NEL_discounted_cost,
+    EL_discounted_cost,
+    care_years_discounted_cost,
     )
 
 

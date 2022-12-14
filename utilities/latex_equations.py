@@ -3,6 +3,9 @@ Store all of the LaTeX formulae that will be printed in the demo.
 Each formula is pretty bulky and throws up lots of python linting
 errors, so they've been banished to this file for easier reading
 of the container scripts.
+
+The order on this page is more or less the order that the functions
+are called during the Interactive Demo.
 """
 
 # #####################################################################
@@ -1142,6 +1145,164 @@ def tic(vd):
         f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' + r'''} \\
         &= \textcolor{red}{''' + 
         f'{vd["care_years_list"][vd["mrs"]]:.4f}' +r'''} \mathrm{\ years}
+        \end{align*}
+        '''
+    )
+    return str
+
+
+def count_yeari_generic():
+    str = (
+        r'''
+        \begin{equation*}\tag{21}
+        \mathrm{Count}_i = 
+        \mathrm{Count}(\mathrm{yrs}=i) - 
+        \mathrm{Count}(\mathrm{yrs}=[i-1])
+        \end{equation*}
+        '''
+    )
+    return str
+
+
+def discounted_resource_generic(vd):
+    str = (
+        r'''
+        \begin{equation*}\tag{22}
+        D_i = \mathrm{Count}_i \times \frac{1}{\left(
+            1 + ''' + 
+            f'{vd["discount_factor_QALYs_perc"]/100.0:.4f}' +
+            r'''\right)^{i - 1}
+        }
+        \end{equation*}
+        '''
+    )
+    return str
+
+
+def discounted_resource_total_generic():
+    str = (
+        r'''
+        \begin{equation*}\tag{23}
+        D = 
+        c \times \displaystyle\sum_{i=1}^{m}
+        D_i 
+        \end{equation*}
+        '''
+    )
+    return str
+
+
+def table_cost_factors_1(vd):
+    str = (
+        r'''
+        | Category | Cost factor $c$ |
+        | --- | --- |
+        | A&E | ''' + f'£{vd["cost_ae_gbp"]:.2f}' + r'''|
+        | Time in care | ''' + \
+            f'£{vd["cost_residential_day_gbp"]:.2f}' + r''' $\times$ 365 |
+        '''
+        )
+    return str
+
+
+def table_cost_factors_2(vd):
+    str = (
+        r'''
+        | Category | Cost factor $c$ |
+        | --- | --- |
+        | Non-elective bed days | ''' + \
+            f'£{vd["cost_non_elective_bed_day_gbp"]:.2f}' + r'''|
+        | Elective bed days | ''' + \
+            f'£{vd["cost_elective_bed_day_gbp"]:.2f}' + r'''|
+        '''
+        )
+    return str
+
+
+def build_table_str_resource_count(
+        counts_yrs, counts_i, discounted_i, discounted_sum
+        ):
+    """
+    For each year, add another row to the table.
+    If the table is long, cut out the middle and replace with "...".
+    """
+    # ----- Function for tables -----
+    # Set up header:
+    table_rows = (
+        r'''
+        | Year | $\mathrm{Count}(\mathrm{yrs})$ | ''' +
+        r'''$\mathrm{Count}_i$ | Discounted use |
+        | --- | --- | --- | --- |
+        '''
+    )
+
+    max_year = len(counts_i)+1
+    # When the max_year is large, end up with a hugely long table.
+    # Instead only show the first four and final four rows,
+    # with a separating row of "..." in the middle.
+    # Set the conditions for the rows to skip:
+    if max_year > 10:
+        # Long table:
+        skip_min = 5
+        skip_max = max_year - 5
+    else:
+        # Table is short enough that we can show the whole thing:
+        # Set to values we'll never reach:
+        skip_min = max_year + 10
+        skip_max = max_year + 10
+
+    for i, year in enumerate(range(1, max_year)):
+        if year < skip_min or year > skip_max:
+            row = r'''| ''' + f'{year}' + r''' | ''' + \
+                f'{counts_yrs[i]:.4f}' +\
+                r''' | ''' + f'{counts_i[i]:.4f}' + r''' | ''' +\
+                f'{discounted_i[i]:.4f}' + r''' |
+        '''
+            # ^ don't move these quote marks!!!
+            # it looks silly but is necessary for the markdown table,
+            # so that each row starts on a new line but is not indented.
+            table_rows += row
+        else:
+            if year == skip_min:
+                table_rows += r'''| ... | ... | ... | ... |
+        '''
+        # ^ don't move these ones either!!
+    table_rows += r'''| | | Sum: | ''' + f'{discounted_sum:.4f}' + r'''|'''
+    return table_rows
+
+
+def discounted_resource(vd, count_i, year, D_i):
+    str = (
+        r'''
+        \begin{align*}
+        D_{\textcolor{Fuchsia}{''' + f'{year}' +
+        r'''}} &= \textcolor{red}{''' +
+        f'{count_i:.4f}' + r'''} \times \frac{1}{\left(
+            1 + ''' + 
+            f'{vd["discount_factor_QALYs_perc"]/100.0:.4f}' +
+            r'''\right)^{\textcolor{Fuchsia}{''' +
+            f'{year}' + r'''} - 1}} \\
+        &= \textcolor{red}{''' + f'{D_i:.4f}' + r'''}
+        \end{align*}
+        '''
+    )
+    return str
+
+
+def discounted_cost(vd, discounted_sum, cost_str, discounted_cost_str,
+                    care=0):
+    if care != 0:
+        extra_str = r''' \times 365'''
+    else:
+        extra_str = ''
+    str = (
+        r'''
+        \begin{align*}
+        D &= ''' + f'£{vd[cost_str]:.2f}' + extra_str +
+        r''' \times \textcolor{red}{''' +
+        f'{discounted_sum:.4f}' + r'''} \\
+        &= \textcolor{red}{''' +
+        f'£{vd[discounted_cost_str][vd["mrs"]]:.2f}' + r'''}
         \end{align*}
         '''
     )

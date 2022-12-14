@@ -295,7 +295,12 @@ def main_discounted_resource_use(
         NEL_discounted_cost,
         EL_discounted_cost,
         care_years_discounted_cost,
-        total_discounted_cost
+        total_discounted_cost,
+        # For details explanation:
+        A_E_counts_per_mRS, 
+        NEL_counts_per_mRS, 
+        EL_counts_per_mRS, 
+        care_years_per_mRS
     )
 
 
@@ -304,15 +309,13 @@ def find_discounted_resource_use(counts_per_mRS):
     total_discount_list = []
     for mRS in range(6):
         discounted_resource_list = \
-            find_discounted_resource_use_for_all_years(
-                counts_per_mRS[mRS], discount_factor_QALYs_perc)
+            find_discounted_resource_use_for_all_years(counts_per_mRS[mRS])
         total_discounted_resource = np.sum(discounted_resource_list)
         total_discount_list.append(total_discounted_resource)
     return np.array(total_discount_list)
 
 
-def find_discounted_resource_use_for_all_years(
-        resource, discount_factor_QALYs_perc):
+def find_discounted_resource_use_for_all_years(resource):
     """
     From Resource_Use sheet.
     """
@@ -366,7 +369,12 @@ def main_cost_effectiveness(qaly_table, cost_table):
 def build_variables_dict(
         age, sex, mrs, pDeath_list, survival_list, survival_times,
         A_E_count_list, NEL_count_list, EL_count_list, care_years_list,
-        qalys, total_discounted_cost
+        qalys, total_discounted_cost,
+        A_E_counts, NEL_counts, EL_counts, care_years,
+        A_E_discounted_cost,
+        NEL_discounted_cost,
+        EL_discounted_cost,
+        care_years_discounted_cost,
         ):
     # Calculate some bits we're missing:
     # P_yr1 = find_pDeath_yr1(age, sex, mrs)
@@ -390,6 +398,15 @@ def build_variables_dict(
         (EL_coeffs[2]*sex) +
         EL_mRS[mrs]
     )
+    discounted_list_A_E = \
+        find_discounted_resource_use_for_all_years(A_E_counts)
+    discounted_list_NEL = \
+        find_discounted_resource_use_for_all_years(NEL_counts)
+    discounted_list_EL = \
+        find_discounted_resource_use_for_all_years(EL_counts)
+    discounted_list_care = \
+        find_discounted_resource_use_for_all_years(care_years)
+
 
     # Fill the dictionary:
     variables_dict = dict(
@@ -436,6 +453,24 @@ def build_variables_dict(
         care_years_list=care_years_list,
         perc_care_home_over70=perc_care_home_over70,
         perc_care_home_not_over70=perc_care_home_not_over70,
+        # For cost conversions:
+        cost_ae_gbp=cost_ae_gbp,
+        cost_non_elective_bed_day_gbp=cost_non_elective_bed_day_gbp,
+        cost_elective_bed_day_gbp=cost_elective_bed_day_gbp,
+        cost_residential_day_gbp=cost_residential_day_gbp,
+        # For details in discounted cost calculations:
+        A_E_counts=A_E_counts,
+        NEL_counts=NEL_counts,
+        EL_counts=EL_counts,
+        care_years=care_years,
+        discounted_list_A_E=discounted_list_A_E,
+        discounted_list_NEL=discounted_list_NEL,
+        discounted_list_EL=discounted_list_EL,
+        discounted_list_care=discounted_list_care,
+        A_E_discounted_cost=A_E_discounted_cost,
+        NEL_discounted_cost=NEL_discounted_cost,
+        EL_discounted_cost=EL_discounted_cost,
+        care_years_discounted_cost=care_years_discounted_cost,
         # ----- For cost-effectiveness -----
         WTP_QALY_gpb=WTP_QALY_gpb
         )
