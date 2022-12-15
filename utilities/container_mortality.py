@@ -319,12 +319,6 @@ def write_table_of_median_survival(survival_times):
 
 def write_details_mortality_in_year_one(vd):
     """
-    Equations will be labelled with numbers with \begin{equation},
-    but that numbering doesn't carry through between tabs
-    i.e. there could be multiple "Equation 1"s.
-    Instead use \tag to manually label equations, e.g.
-    \begin{equation}\tag{5}.
-
     "vd" is short for variables_dict.
     """
     # write_text_from_file(
@@ -408,12 +402,6 @@ def write_details_mortality_in_year_one(vd):
 
 def write_details_mortality_after_year_one(vd):
     """
-    Equations will be labelled with numbers with \begin{equation},
-    but that numbering doesn't carry through between tabs
-    i.e. there could be multiple "Equation 1"s.
-    Instead use \tag to manually label equations, e.g.
-    \begin{equation}\tag{5}.
-
     "vd" is short for variables_dict.
     """
     # write_text_from_file(

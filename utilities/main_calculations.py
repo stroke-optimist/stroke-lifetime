@@ -388,6 +388,32 @@ def find_resource_count_for_all_years(
         age, sex, median_survival_years, count_function, care_home=0,
         average_care_year_per_mRS=[]
         ):
+    """
+    Calculates amount of the input resource used over the remaining
+    lifetime of this patient.
+
+    Inputs:
+    median_survival_years     - list or array. List of six floats, each
+                                of which is the median survival year
+                                for each mRS score.
+    count_function            - function. The name of a function for
+                                calculating resource use in a given year.
+                                Intended options: find_A_E_Count,
+                                find_NEL_Count, find_EL_Count.
+    care_home                 - int. Set to 1 if using the time in care
+                                resource so that the right function
+                                is used.
+    average_care_year_per_mRS - list or array. For each mRS score, the
+                                average time per year spent in
+                                residential care (units of years).
+                                Only needed if counting care years.
+
+    Returns:
+    counts_per_mRS - list. Contains six lists, one for each mRS,
+                     and each of which contains the resource use
+                     for each year from 1 to the median survival
+                     year (rounded up).
+    """
     counts_per_mRS = []
     for mrs in range(6):
 
@@ -429,38 +455,85 @@ def find_resource_count_for_all_years(
 
 
 def find_discounted_resource_use(counts_per_mRS):
+    """
+    Calculates the summed discounted resource use over all years left
+    in this patient's lifetime.
+
+    Wrapper for all mRS for find_discounted_resource_use_for_all_years().
+
+    Inputs:
+    counts_per_mRS      - list or array. List of six lists (one per
+                          mRS) where each mRS list has one value per
+                          remaining survival year. The value (a float)
+                          is the resource use during that year only.
+                          Output from
+                          find_resource_count_for_all_years().
+
+    Returns:
+    total_discount_list - np.array. Contains six floats, one for each mRS.
+    """
     # Find discounted value for all years:
     total_discount_list = []
     for mRS in range(6):
+        # Find list of discounted value in each year:
         discounted_resource_list = \
             find_discounted_resource_use_for_all_years(counts_per_mRS[mRS])
+        # Sum values to get total discounted resouce over all years:
         total_discounted_resource = np.sum(discounted_resource_list)
         total_discount_list.append(total_discounted_resource)
     return np.array(total_discount_list)
 
 
-def find_discounted_resource_use_for_all_years(resource):
+def find_discounted_resource_use_for_all_years(resource_list):
     """
-    From Resource_Use sheet.
+    Convert the input resource list to a discounted resource list.
+
+    From Resource_Use sheet in Excel v7.
+
+    Inputs:
+    resource                 - list or array. List of the resource use
+                               in each year of the remaining lifetime.
+                               (not cumulative).
+
+    Returns:
+    discounted_resource_list - list. Contains the discounted resource
+                               use for each year in the remaining
+                               lifetime (not cumulative).
     """
     discounted_resource_list = []
-    for i in range(len(resource)):
+    for i, val in enumerate(resource_list):
+        # Start from year 1, which is the first (0th) element in
+        # resource_list.
         year = i + 1
         # Define this to fit on one line more easily:
         c = 1.0 + utilities.fixed_params.discount_factor_QALYs_perc/100.0
-        discounted_resource = resource[i] * (1.0 / ((c)**(year - 1.0)))
+        discounted_resource = val * (1.0 / ((c)**(year - 1.0)))
         discounted_resource_list.append(discounted_resource)
     return discounted_resource_list
 
 
 def build_table_discounted_change(total_discounted_cost):
+    """
+    Make a table of the change in QALYs with change in outcome.
+
+    This builds a 2D np.array, 6 rows by 6 columns, that contains
+    data for the "Discounted total costs by change in outcome" table,
+    and invalid cells already contain either '-' or '' depending.
+
+    Inputs:
+    total_discounted_cost - list or array. The list of six discounted
+                            resource use totals, one for each mRS,
+                            summed over all four resources.
+
+    Returns:
+    table - np.array. The table of changes in discounted resource use.
+    """
     # Turn into grid by change of outcome:
     # Keep formatted values in here:
     table = []
     for row in range(6):
         row_vals = []
         for column in range(6):
-            # sign = ''
             if column < row:
                 diff_val = (total_discounted_cost[row] -
                             total_discounted_cost[column])
@@ -479,6 +552,26 @@ def build_table_discounted_change(total_discounted_cost):
 # #####################################################################
 
 def main_cost_effectiveness(qaly_table, cost_table):
+    """
+    Make a table of net benefit by change in outcome, taking into
+    account the willingness-to-pay threshold. The table is used for the
+    "Discounted total Net Benefit by change in outcome" section.
+
+    Each of the input and output tables are 6x6 in shape, where each
+    row and each column is a different mRS score.
+
+    Inputs:
+    qaly_table               - array. Table of QALYs by change in
+                               outcome.
+    cost_table               - array. Table of discounted change in
+                               cost by change in outcome.
+
+    Returns:
+    table_cost_effectiveness - array. Table with the cost effectiveness
+                               values, and invalid data treated the
+                               same as in the input QALY and cost
+                               tables.
+    """
     table_cost_effectiveness = (
         utilities.fixed_params.WTP_QALY_gpb * qaly_table) + cost_table
     return table_cost_effectiveness
@@ -489,15 +582,40 @@ def main_cost_effectiveness(qaly_table, cost_table):
 # #####################################################################
 
 def build_variables_dict(
-        age, sex, mrs, pDeath_list, survival_list, survival_times,
-        A_E_count_list, NEL_count_list, EL_count_list, care_years_list,
-        qalys, total_discounted_cost,
-        A_E_counts, NEL_counts, EL_counts, care_years,
+        age,
+        sex,
+        mrs,
+        pDeath_list,
+        survival_list,
+        survival_times,
+        A_E_count_list,
+        NEL_count_list,
+        EL_count_list,
+        care_years_list,
+        qalys,
+        total_discounted_cost,
+        A_E_counts,
+        NEL_counts,
+        EL_counts,
+        care_years,
         A_E_discounted_cost,
         NEL_discounted_cost,
         EL_discounted_cost,
         care_years_discounted_cost,
         ):
+    """
+    Build a dictionary to gather useful variables in one place.
+
+    This is used when printing values in the example calculations
+    in the "details" sections. This function looks clunky but saves
+    faff in importing the right variables to those examples.
+
+    Inputs:
+    loads of assorted constants, variables, lists...
+
+    Returns:
+    variables_dict - dictionary of useful quantities.
+    """
     # Calculate some bits we're missing:
     # P_yr1 = find_pDeath_yr1(age, sex, mrs)
     LP_yr1 = utilities.models.find_lpDeath_yr1(age, sex, mrs)
