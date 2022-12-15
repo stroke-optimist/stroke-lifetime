@@ -217,12 +217,12 @@ def survival_yr1_generic():
     return str
 
 
-def survival_yr1(S_t, P_t):
+def survival_yr1(vd):
     """
     Survival percentage in year one, with symbols
     replaced with variables from the calculations.
     """
-    if S_t < 0.0:
+    if vd["survival_yr1"] < 0.0:
         # Add an extra line showing an inequality.
         extra_str = r''' \\ S_1 &< \textcolor{red}{0\%} '''
     else:
@@ -233,12 +233,12 @@ def survival_yr1(S_t, P_t):
         S_1
         & = 1 - \textcolor{red}{
         ''' +
-        f'{P_t:.4f}' +
+        f'{vd["P_yr1"]:.4f}' +
         r'''
         } \\
         & = \textcolor{red}{
         ''' +
-        f'{100.0*S_t:.2f}' +
+        f'{100.0*vd["survival_yr1"]:.2f}' +
         r'''
         \%}
         ''' +
@@ -315,12 +315,12 @@ def hazard_yrn_generic():
     return str
 
 
-def hazard_yrn(vd, time_input_yr, H_t):
+def hazard_yrn(vd, time_input_yr):
     """
     Cumulative hazard by year n, with symbols
     replaced with variables from the calculations.
     """
-    if H_t > 1.0:
+    if vd["fhazard_list"][time_input_yr] > 1.0:
         # Add an extra line showing an inequality.
         extra_str = (
             r'''
@@ -354,7 +354,7 @@ def hazard_yrn(vd, time_input_yr, H_t):
         }-1] \times 365} - 1 \right) \\
         &= \textcolor{red}{
         ''' +
-        f'{100.0*H_t:.2f}' +
+        f'{100.0*vd["fhazard_list"][time_input_yr]:.2f}' +
         r'''
         \%}
         ''' +
@@ -466,12 +466,12 @@ def FDeath_yrn_generic():
     return str
 
 
-def FDeath_yrn(H_t, P_yr1, P_t, time_input_yr):
+def FDeath_yrn(vd, time_input_yr):
     """
     Cumulative probability of death by year n, with symbols
     replaced with variables from the calculations.
     """
-    if P_t > 1.0:
+    if vd["hazard_list"][time_input_yr] > 1.0:
         # Add an extra line showing an inequality.
         extra_str = (
             r''' \\
@@ -488,12 +488,12 @@ def FDeath_yrn(H_t, P_yr1, P_t, time_input_yr):
         F_{\textcolor{Fuchsia}{''' +
         f'{time_input_yr}' +
         r'''}} &= 1 - (1-\textcolor{red}{''' +
-        f'{H_t:.4f}' +
+        f'{vd["fhazard_list"][time_input_yr]:.4f}' +
         r'''})\times(1-\textcolor{red}{''' +
-        f'{P_yr1:.4f}' +
+        f'{vd["P_yr1"]:.4f}' +
         r'''}) \\
         &= \textcolor{red}{''' +
-        f'{100.0*P_t:.2f}' +
+        f'{100.0*vd["hazard_list"][time_input_yr]:.2f}' +
         r'''\%}''' +
         extra_str +
         r'''
@@ -515,12 +515,12 @@ def survival_generic():
     return str
 
 
-def survival(S_t, P_t, time_input_yr):
+def survival(vd, time_input_yr):
     """
     Survival by year n, with symbols
     replaced with variables from the calculations.
     """
-    if S_t < 0.0:
+    if vd["survival_list"][time_input_yr] < 0.0:
         # Add an extra line showing an inequality.
         extra_str = (
             r''' \\
@@ -536,10 +536,10 @@ def survival(S_t, P_t, time_input_yr):
         S_{\textcolor{Fuchsia}{''' +
         f'{time_input_yr}' +
         r'''}} & = 1 - \textcolor{red}{''' +
-        f'{P_t:.4f}' +
+        f'{vd["hazard_list"][time_input_yr]:.4f}' +
         r'''} \\
         & = \textcolor{red}{''' +
-        f'{100.0*S_t:.2f}' +
+        f'{100.0*vd["survival_list"][time_input_yr]:.2f}' +
         r'''\%}''' +
         extra_str +
         r'''

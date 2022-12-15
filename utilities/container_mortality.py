@@ -9,7 +9,9 @@ import plotly.express as px
 
 from utilities.fixed_params import colours_excel
 # from utilities.inputs import write_text_from_file
-from utilities.models import find_FDeath_yrn, find_survival_time_for_pDeath
+# Import this function for use with user input probability:
+from utilities.models import find_survival_time_for_pDeath
+# For writing formulae in the "Details" sections:
 import utilities.latex_equations
 
 
@@ -19,6 +21,7 @@ def main(
         pDeath_list, invalid_inds_for_pDeath, survival_times,
         time_of_death, variables_dict
         ):
+    # Ready to delete (15th Dec 2022):
     # These older plots use matplotlib instead of plotly:
     # plot_survival_vs_time(time_list_yr, all_survival_lists[mRS_input])
     # plot_hazard_vs_time(time_list_yr, all_hazard_lists, colours_excel)
@@ -34,7 +37,7 @@ def main(
     # Plot:
     plot_hazard_vs_time_plotly(time_list_yr, all_hazard_lists)
 
-    st.markdown('### Probability of death')    
+    st.markdown('### Probability of death')
     # Details on probability of death table values
     with st.expander('Details: Mortality in a chosen year'):
         write_details_mortality_in_chosen_year(variables_dict)
@@ -52,7 +55,17 @@ def main(
 def plot_survival_vs_time_plotly(
         time_list_yr, survival_list, time_of_zero_survival
         ):
+    """
+    Draw a line graph of survival (y) with time (x).
+
+    Inputs:
+    time_list_yr          - list or array. List of years for x-axis.
+    survival_list         - list or array. List of survival rates in
+                            each year. Values lie between 0 and 1.
+    time_of_zero_survival - float. Year when survival=0.0.
+    """
     # Don't plot values with negative survival rates.
+    # Find v, the index where we want to cut off the plotted values:
     try:
         v = np.where(survival_list <= 0.0)[0][0]
     except IndexError:
@@ -62,12 +75,15 @@ def plot_survival_vs_time_plotly(
     time_list_yr_to_plot = np.append(time_list_yr[:v], time_of_zero_survival)
     survival_list_to_plot = np.append(survival_list[:v], 0.0)
 
+    # Ready to delete (15th Dec 2022):
     # # Put the lists in order:
     # sorted_inds = time_list_yr_to_plot.argsort()
     # time_list_yr_to_plot = time_list_yr_to_plot[sorted_inds]
     # survival_list_to_plot = survival_list_to_plot[sorted_inds]
 
-    # Combine both lists into a table:
+    # Combine both lists into a table.
+    # Also include a column of survival x 100 to have the values in
+    # percentages, as this data will appear on the hover bubble.
     table = np.transpose(np.vstack((
         time_list_yr_to_plot,
         survival_list_to_plot*100,
@@ -82,8 +98,9 @@ def plot_survival_vs_time_plotly(
         x='year', y='survival',
         custom_data=['survival_frac'],
         labels=dict(year='Years since discharge', survival='Survival (%)'),
-        # hover_data={'survival_frac': ':.2f'}
         )
+    # Pass survival_frac to custom_data so it is not directly plotted
+    # but can be used in the hover bubble information.
 
     # Figure title:
     fig.update_layout(title_text='Survival', title_x=0.5)
@@ -102,11 +119,8 @@ def plot_survival_vs_time_plotly(
     # Remove default bulky hover messages:
     fig.update_traces(hovertemplate=None)
     # Show the survival number with two decimal places:
-    # fig.update_traces(yhoverformat='.2%')
     fig.update_traces(
         hovertemplate=(
-            # 'mRS=%{customdata[1]}: %{y:>6.2f}' +
-            # 5 * '\U00002002' +
             '%{customdata[0]:>.2%}' +
             '<extra></extra>'
             )
@@ -126,6 +140,8 @@ def plot_survival_vs_time_plotly(
 
     # Write to streamlit:
     st.plotly_chart(fig, use_container_width=True)
+
+    # Write a sentence to state the 0% survival time.
     year_of_zero_survival = time_of_zero_survival // 1
     months_of_zero_survival = (time_of_zero_survival % 1)*12.0
     st.write(f'Survival falls to 0% at {year_of_zero_survival:.0f} years ',
@@ -133,13 +149,22 @@ def plot_survival_vs_time_plotly(
 
 
 def plot_hazard_vs_time_plotly(time_list_yr, all_hazard_lists):
-    """Plot hazard vs time."""
+    """
+    Plot filled area of cumulative hazard (y) vs time (x).
+
+    Inputs:
+    time_list_yr     - list or array. List of years for x-axis.
+    all_hazard_lists - list of arrays, one for each mRS. Each list has
+                       floats of cumulative hazard for each year in
+                       time_list_yr.
+    """
     # Convert cumulative hazard lists into non-cumulative
     # for easier plotting with plotly.
     sub_hazard_lists = [all_hazard_lists[0]]
     for mRS in np.arange(1, 6):
         # For each mRS, subtract the values that came before it.
         diff_list = np.array(all_hazard_lists[mRS]-all_hazard_lists[mRS-1])
+        # # Ready to delete (15th Dec 2022):
         # # Attempted fix for weird mRS 5 line for age > 83 or so.
         # # If any difference is negative, set it to zero:
         # diff_list[np.where(diff_list < 0)] = 0.0
@@ -151,18 +176,22 @@ def plot_hazard_vs_time_plotly(time_list_yr, all_hazard_lists):
         # The symbol for less than / equal to: ≤
         mRS_list = [  # 'mRS='+f'{i}'
             f'{i}' for year in time_list_yr]
+        # Convert fractions to percentages:
         hazard_list = 100.0*sub_hazard_lists[i]
         cum_hazard_list = 100.0*all_hazard_lists[i]
 
         # Use dtype=object to keep the mixed strings (mRS),
         # integers (years) and floats (hazards).
-        data_here = np.transpose(np.array(
-            [mRS_list, time_list_yr, hazard_list, cum_hazard_list],
-            dtype=object))
+        data_here = np.transpose(
+            np.array([mRS_list, time_list_yr, hazard_list, cum_hazard_list],
+                     dtype=object)
+            )
 
         if i == 0:
+            # Start a new big array that will store all the data:
             data_to_plot = data_here
         else:
+            # Add this data to the existing big array:
             data_to_plot = np.vstack((data_to_plot, data_here))
 
     # Pop this data into a dataframe:
@@ -178,8 +207,8 @@ def plot_hazard_vs_time_plotly(time_list_yr, all_hazard_lists):
         custom_data=['cumhazard', 'mRS'],
         color_discrete_sequence=colours_excel
         )
-    # The custom_data aren't directly plotted in the previous, but are
-    # loaded ready for use with the hover template later.
+    # The custom_data aren't directly plotted in the previous lines,
+    # but are loaded ready for use with the hover template later.
 
     # Set axis labels:
     fig.update_xaxes(title_text='Years since discharge')
@@ -202,6 +231,7 @@ def plot_hazard_vs_time_plotly(time_list_yr, all_hazard_lists):
             '<extra></extra>'
             )
         )
+    # # Ready to delete (15th Dec 2022):
     # # The followings adds 'Year X' to the hover label,
     # # but annoyingly also adds it to every xtick.
     # fig.update_xaxes(tickprefix='Year ')
@@ -217,11 +247,6 @@ def plot_hazard_vs_time_plotly(time_list_yr, all_hazard_lists):
     fig.update_xaxes(tick0=0, dtick=5)
     fig.update_yaxes(tick0=0, dtick=10)
 
-    # # Remove the excess margins at the top and bottom by changing
-    # # figure height:
-    # fig.update_layout(height=450)
-    # # Changing width in the same way doesn't work when we write to
-    # # streamlit later with use_container_width=True.
     # Set aspect ratio:
     fig.update_yaxes(
         scaleanchor='x',
@@ -239,22 +264,29 @@ def write_table_of_pDeath(pDeath_list, invalid_inds_for_pDeath, n_columns=1):
     In Excel, this is "Yr" vs "pDeath" table.
 
     Is there a better way to do this? Probably.
+
+    Inputs:
+    pDeath_list             - array. Stores floats of probs of death
+                              for all years (default up to 50 years).
+    invalid_inds_for_pDeath - array. Stores the indices where survival
+                              is below 0% and so pDeath is invalid.
+    n_columns               - int. How many columns to use in the table.
     """
     # Display these years:
     years_for_prob_table = np.arange(1, 15, 1)
     # Multiply pDeath by 100 for percentage.
     pDeath_list_for_table = 100.0*pDeath_list
-    # Round the values for printing nicely:
-    # pDeath_list_for_table = np.round(pDeath_list_for_table, 2)
-    # Streamlit always writes an index column. To fudge this into a year
+    # Streamlit always writes an index column. To fudge a year
     # column, add a '-' to the pDeath list for the year 0 value.
+    # The unicode characters add some spaces in front of '-' to fake
+    # the right-alignment.
+    invalid_str = 3*'\U00002002' + '\U00002006' + '-'
     pDeath_list_for_table = np.concatenate(
-        ([3*'\U00002002' + '\U00002006' + '-'], pDeath_list_for_table),
+        ([invalid_str], pDeath_list_for_table),
         dtype=object)
     # ^ dtype=object keeps the floats instead of converting all to str.
     # Set invalid data to '-' with a few spaces in front:
-    pDeath_list_for_table[invalid_inds_for_pDeath[0]:] = \
-        3*'\U00002002' + '\U00002006' + '-'
+    pDeath_list_for_table[invalid_inds_for_pDeath[0]:] = invalid_str
     # Cut off the list at the required number of years:
     pDeath_list_for_table = \
         pDeath_list_for_table[:len(years_for_prob_table)+1]
@@ -271,6 +303,7 @@ def write_table_of_pDeath(pDeath_list, invalid_inds_for_pDeath, n_columns=1):
     # the first row means.
     st.write('The probability of death in each year: ')
     if n_columns > 0:
+        # Split the data across the specified number of columns.
         cols = st.columns(n_columns)
 
         n_rows = len(pDeath_list_for_table) // n_columns
@@ -282,14 +315,20 @@ def write_table_of_pDeath(pDeath_list, invalid_inds_for_pDeath, n_columns=1):
                 pDeath_list_for_table[first_row:last_row],
                 name=('Probability of death (%)')
             )
+            # Update the index column on the left
+            # so that it doesn't have to start from 0:
             df_pDeath.index = df_pDeath.index + n_rows*c
+            # I've named the index but it doesn't display in Streamlit.
             df_pDeath.index.name = 'Year'
 
             with col:
                 # Write to streamlit:
                 st.table(df_pDeath)
+            # Update values for the next go round the loop:
             first_row += n_rows
             last_row += n_rows
+            if last_row >= len(pDeath_list_for_table):
+                last_row = -1
     else:
         # One column.
         # Convert to a pandas series so we can give it a title:
@@ -302,6 +341,15 @@ def write_table_of_pDeath(pDeath_list, invalid_inds_for_pDeath, n_columns=1):
 
 
 def write_table_of_median_survival(survival_times):
+    """
+    Table of median, IQR survival times and life expectancy (columns)
+    for each mRS score (rows).
+
+    Inputs:
+    survival_times - np.array. Contains six lists, one for each mRS.
+                     Each list contains [median, lower IQR, upper IQR,
+                     life expectancy].
+    """
     # Convert to a pandas dataframe so we can label the columns:
     df_table = pd.DataFrame(
         survival_times,
@@ -319,13 +367,12 @@ def write_table_of_median_survival(survival_times):
 
 def write_details_mortality_in_year_one(vd):
     """
-    "vd" is short for variables_dict.
+    Write the method and example for calculating mortality in year one.
+
+    Inputs:
+    vd - dict. vd is short for variables_dict from main_calculations.
+         It contains lots of useful constants and variables.
     """
-    # write_text_from_file(
-    #     'pages/text_for_pages/calculations_mortality_1.txt',
-    #     head_lines_to_skip=2
-    #     )
-    # st.markdown('## Mortality during year one')
     # ----- Tables of constants -----
     st.markdown(''.join([
         'The following constants are used to calculate the probability ',
@@ -391,24 +438,20 @@ def write_details_mortality_in_year_one(vd):
     st.latex(latex_prob_yr1)
 
     # ----- Calculation for survival -----
-    S_1 = 1.0 - vd["P_yr1"]
-    st.markdown(''.join([
-        'Survival:'
-    ]))
-    latex_survival_yr1 = utilities.latex_equations.\
-        survival_yr1(S_1, vd["P_yr1"])
+    st.markdown('Survival:')
+    latex_survival_yr1 = utilities.latex_equations.survival_yr1(vd)
     st.latex(latex_survival_yr1)
 
 
 def write_details_mortality_after_year_one(vd):
     """
-    "vd" is short for variables_dict.
+    Write the method and example for calculating mortality after year
+    one.
+
+    Inputs:
+    vd - dict. vd is short for variables_dict from main_calculations.
+         It contains lots of useful constants and variables.
     """
-    # write_text_from_file(
-    #     'pages/text_for_pages/calculations_mortality_1.txt',
-    #     head_lines_to_skip=2
-    #     )
-    # st.markdown('## Mortality after year one')
     # ----- Tables of constants -----
     st.markdown(''.join([
         'The following constants are used to calculate the probability ',
@@ -486,9 +529,6 @@ def write_details_mortality_after_year_one(vd):
     st.markdown('$^{*}$ This value is 0 for female patients and 1 for male.')
 
     # ----- Input number of years -----
-    # Put slider between two empty columns to make it skinnier.
-    # cols = st.columns(3)
-    # with cols[1]:
     time_input_yr = st.slider(
         'Choose a number of years for this example',
         min_value=2,
@@ -500,18 +540,10 @@ def write_details_mortality_after_year_one(vd):
         'the chosen time.'
         ]))
 
-    # Calculate the hazard and probability of death:
-    # (hazard is currently not stored in main_calculations
-    # so have to find it specially here.)
-    H_t, P_t = find_FDeath_yrn(
-        vd["age"], vd["sex"], vd["mrs"], time_input_yr, p1=vd["P_yr1"])
-    # Survival:
-    S_t = 1.0 - P_t
-
     # ----- Calculation for hazard -----
     st.markdown('Cumulative hazard $H_t$ at the chosen time $t$:')
     latex_hazard_yrn = utilities.latex_equations.hazard_yrn(
-        vd, time_input_yr, H_t)
+        vd, time_input_yr)
     st.latex(latex_hazard_yrn)
 
     # ----- Calculation for probability -----
@@ -519,21 +551,26 @@ def write_details_mortality_after_year_one(vd):
         'Cumulative probability of death by time $t$ ',
         '(using the previously-calculated $P_{1}$):',
     ]))
-    latex_FDeath_yrn = utilities.latex_equations.FDeath_yrn(
-        H_t, vd["P_yr1"], P_t, time_input_yr)
+    latex_FDeath_yrn = utilities.latex_equations.FDeath_yrn(vd, time_input_yr)
     st.latex(latex_FDeath_yrn)
 
     # ----- Calculation for survival -----
     st.markdown(''.join([
         'Survival at time $t$:'
     ]))
-    latex_survival = utilities.latex_equations.\
-        survival(S_t, P_t, time_input_yr)
+    latex_survival = utilities.latex_equations.survival(vd, time_input_yr)
     st.latex(latex_survival)
 
 
 def write_details_mortality_in_chosen_year(vd):
-    # st.markdown('## Mortality in a chosen year')
+    """
+    Write the method and example for calculating mortality during any
+    year after year one.
+
+    Inputs:
+    vd - dict. vd is short for variables_dict from main_calculations.
+         It contains lots of useful constants and variables.
+    """
     st.markdown(''.join([
         'The probability of death during a chosen year $t$ after '
         'year one, $P_t$, ',
@@ -591,11 +628,9 @@ def write_details_mortality_in_chosen_year(vd):
     if time_input_yr == 2:
         F0 = vd["P_yr1"]
     else:
-        H0, F0 = find_FDeath_yrn(
-            vd["age"], vd["sex"], vd["mrs"], time_input_yr-1, p1=vd["P_yr1"])
+        F0 = vd["hazard_list"][time_input_yr-1]
     # Later year:
-    H1, F1 = find_FDeath_yrn(
-        vd["age"], vd["sex"], vd["mrs"], time_input_yr, p1=vd["P_yr1"])
+    F1 = vd["hazard_list"][time_input_yr]
 
     # ----- Show survival -----
     st.markdown('Survival in the previous year (from Equation [3] or [7]): ')
@@ -616,8 +651,14 @@ def write_details_mortality_in_chosen_year(vd):
 
 
 def write_details_median_survival(vd):
-    # st.markdown('## Median survival time')
+    """
+    Write the method and example for calculating the survival time
+    for a given probability, e.g. median is P=0.5.
 
+    Inputs:
+    vd - dict. vd is short for variables_dict from main_calculations.
+         It contains lots of useful constants and variables.
+    """
     st.markdown(''.join([
         'The method used to calculate a time of death depends ',
         'on whether the probability $P$ for which a time of death is ',
@@ -684,7 +725,7 @@ def write_details_median_survival(vd):
     # Probability in year one:
     latex_Pyr1_display = utilities.latex_equations.\
         Pyr1_display(vd['P_yr1'])
-    # LP in year n: 
+    # LP in year n:
     latex_LPyrn_display = utilities.latex_equations.\
         LPyrn_display(vd['LP_yrn'])
     # gamma:
@@ -701,6 +742,9 @@ def write_details_median_survival(vd):
         latex_gammaH_display
         )
 
+    # To save repeating code, define a function here for printing
+    # the equations and explanations for any combo of probability
+    # and time of death:
     def print_survival_time_calcs(p, tDeath, vd):
         # ----- Select case -----
         if p < vd['P_yr1']:
@@ -730,10 +774,12 @@ def write_details_median_survival(vd):
             # ----- Calculate time -----
             st.markdown('Then the time of death is: ')
             latex_death_time_case1 = utilities.latex_equations.\
-                death_time_case1(tDeath, prob_prime, 
+                death_time_case1(tDeath, prob_prime,
                                  vd['LP_yrn'], vd['gz_gamma'], p)
             st.latex(latex_death_time_case1)
+    # --- end of function.
 
+    # Use the function with the following values:
     # Median
     p_med = 0.5
     tDeath_med = vd['survival_meds_IQRs'][vd['mrs'], 0]
@@ -749,6 +795,9 @@ def write_details_median_survival(vd):
     with tabs[0]:
         st.markdown('__Median:__')
         print_survival_time_calcs(p_med, tDeath_med, vd)
+
+        # Write an extra bit only for median.
+        # Details about life expectancy:
         st.markdown(''.join([
             'The life expectancy is the current age plus this ',
             'median survival value:'
@@ -765,6 +814,8 @@ def write_details_median_survival(vd):
         st.markdown('__IQR upper value:__')
         print_survival_time_calcs(p_iqr_high, tDeath_iqr_high, vd)
     with tabs[3]:
+        # Take the user input to find the survival time for any
+        # probability they choose.
         st.markdown('__Chosen probability:__')
         prob_input_perc = st.number_input(
             'Probability (%):',
@@ -782,9 +833,8 @@ def write_details_median_survival(vd):
         print_survival_time_calcs(prob_input_frac, survival_time, vd)
 
 
-
-
 # #####################################################################
+# The following is ready to delete (15th Dec 2022):
 # The following plots use matplotlib.pyplot and have been replaced
 # with the plotly versions elsewhere.
 def plot_survival_vs_time(time_list_yr, survival_list):

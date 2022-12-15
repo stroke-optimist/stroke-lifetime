@@ -75,6 +75,9 @@ with st.sidebar:
     #                         #   Each list contains the cumulative
     #                         #   survival for each year in the range
     #                         #   1 to max year.
+    all_fhazard_lists,        # List of arrays, one for each mRS.
+    #                         #   Each list contains the output from
+    #                         #   the Gompertz predictor.
     pDeath_list,              # np.array. Prob of death in each year
     #                         #   from 1 to max year (fixed_params.py).
     invalid_inds_for_pDeath,  # np.array. Contains indices of pDeath
@@ -171,7 +174,9 @@ variables_dict = utilities.main_calculations.build_variables_dict(
     sex_input,
     mRS_input,
     pDeath_list,
+    all_hazard_lists[mRS_input],
     all_survival_lists[mRS_input],
+    all_fhazard_lists[mRS_input],
     survival_times,
     A_E_count_list,
     NEL_count_list,

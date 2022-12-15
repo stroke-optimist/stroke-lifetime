@@ -20,21 +20,21 @@ def main_probabilities(age_input, sex_input, mrs_input):
 
     Returns:
     time_list_yr            - np.array. Years from 0 to max year
-                            -   as defined in fixed_params.py.
+                              as defined in fixed_params.py.
     all_hazard_lists        - List of arrays, one for each mRS.
-                            -   Each list contains the cumulative
-                            -   hazard for each year in the range
-                            -   1 to max year.
+                              Each list contains the cumulative
+                              hazard for each year in the range
+                              1 to max year.
     all_survival_lists      - List of arrays, one for each mRS.
-                            -   Each list contains the cumulative
-                            -   survival for each year in the range
-                            -   1 to max year.
+                              Each list contains the cumulative
+                              survival for each year in the range
+                              1 to max year.
     pDeath_list             - np.array. Prob of death in each year
-                            -   from 1 to max year (fixed_params.py).
+                              from 1 to max year (fixed_params.py).
     invalid_inds_for_pDeath - np.array. Contains indices of pDeath
-                            -   where survival is below 0%.
+                              where survival is below 0%.
     time_of_zero_survival   - float. Years from discharge to when
-                               survival probability is zero.
+                              survival probability is zero.
     """
     # Define the time steps to test survival and risk at.
     # This list contains [0, 1, 2, ..., time_max_post_discharge_yr].
@@ -44,11 +44,13 @@ def main_probabilities(age_input, sex_input, mrs_input):
     # Find hazard and survival for all mRS:
     all_hazard_lists = []
     all_survival_lists = []
+    all_fhazard_lists = []
     for mRS in range(6):
-        hazard_list, survival_list = find_cumhazard_with_time(
-            time_list_yr, age_input, sex_input, mRS)
+        hazard_list, survival_list, fhazard_list = \
+            find_cumhazard_with_time(time_list_yr, age_input, sex_input, mRS)
         all_hazard_lists.append(hazard_list)
         all_survival_lists.append(survival_list)
+        all_fhazard_lists.append(fhazard_list)
 
     # Separate out the hazard for selected mRS:
     hazard_list = all_hazard_lists[mrs_input]
@@ -72,7 +74,8 @@ def main_probabilities(age_input, sex_input, mrs_input):
         age_input, sex_input, mrs_input, 1.0)
 
     return (time_list_yr, all_hazard_lists, all_survival_lists,
-            pDeath_list, invalid_inds_for_pDeath, time_of_zero_survival)
+            all_fhazard_lists, pDeath_list, invalid_inds_for_pDeath,
+            time_of_zero_survival)
 
 
 def find_cumhazard_with_time(time_list_yr, age, sex, mrs):
@@ -83,7 +86,7 @@ def find_cumhazard_with_time(time_list_yr, age, sex, mrs):
     AL - I'm confused about what is hazard and what is pDeath.
     The description in the Word doc doesn't match the Excel sheet.
     For now, I'm collecting hazard (Gompertz, year>1)
-    but not returning or using it elsewhere in the code.
+    but not using it elsewhere in the code.
 
     Inputs:
     time_list_year - list or array. List of integer years.
@@ -94,7 +97,7 @@ def find_cumhazard_with_time(time_list_yr, age, sex, mrs):
     survival_list  - array. List of survival for each year.
     """
     # Store hazards in here. First value will be from year 2.
-    hazard_list = []
+    hazard_list = [0.0, 0.0]
     # Start with prob in year 0, which is zero:
     pDeath_list = [0.0]
     for year in time_list_yr[1:]:
@@ -116,7 +119,7 @@ def find_cumhazard_with_time(time_list_yr, age, sex, mrs):
     pDeath_list = np.array(pDeath_list)
     survival_list = 1.0 - pDeath_list
 
-    return pDeath_list, survival_list
+    return pDeath_list, survival_list, hazard_list
 
 
 def main_survival_times(age, sex):
@@ -586,7 +589,9 @@ def build_variables_dict(
         sex,
         mrs,
         pDeath_list,
+        hazard_list,
         survival_list,
+        fhazard_list,
         survival_times,
         A_E_count_list,
         NEL_count_list,
@@ -649,8 +654,11 @@ def build_variables_dict(
         LP_yr1=LP_yr1,
         LP_yrn=LP_yrn,
         pDeath_list=pDeath_list,
+        hazard_list=hazard_list,
         survival_list=survival_list,
+        fhazard_list=fhazard_list,
         survival_meds_IQRs=survival_times,
+        survival_yr1=1.0-pDeath_list[0],
         # ----- For QALYs: -----
         discount_factor_QALYs_perc=utilities.fixed_params.\
         discount_factor_QALYs_perc,

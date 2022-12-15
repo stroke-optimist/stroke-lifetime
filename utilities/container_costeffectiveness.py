@@ -4,7 +4,10 @@ This contains everything in the Cost Effectiveness section.
 import streamlit as st
 import numpy as np
 import pandas as pd
+
+# For writing formulae in the "Details" sections:
 import utilities.latex_equations
+
 
 def main(table_cost_effectiveness, variables_dict):
     st.markdown('### Discounted total Net Benefit by change in outcome')
@@ -13,6 +16,20 @@ def main(table_cost_effectiveness, variables_dict):
 
 
 def write_table_cost_effectiveness(table_cost_effectiveness):
+    """
+    Write a table of the discounted resource use for each mRS.
+
+    Use the non-removable index column as the mRS column. Don't label
+    the columns so the default 0, 1, ... 5 can be mRS as well.
+    Use the unicode characters to add empty space before a '-'
+    to fake the right-alignment.
+
+    Inputs:
+    table_cost_effectiveness - 2D array. 6 rows by 6 columns.
+                               Each cell contains the net cost benefit
+                               for a change in outcome between
+                               mRS=column value and mRS=row value.
+    """
     # Use this function to colour values in the table:
     def color_negative_red(val):
         colour = None
@@ -64,15 +81,26 @@ def write_table_cost_effectiveness(table_cost_effectiveness):
 
 
 def write_details_cost_effectiveness(vd):
+    """
+    Write example for calculating net benefit for change in outcome.
+
+    Inputs:
+    vd - dict. vd is short for variables_dict from main_calculations.
+         It contains lots of useful constants and variables.
+    """
     st.markdown(''.join([
         'Net Benefit is QALYs valued at Willingness to pay (WTP) ',
         'threshold, which is '
         f'£{vd["WTP_QALY_gpb"]:.2f}, '
         'plus any cost savings.'
         ]))
+
+    # Pick out some values for the example:
     qaly = vd["qalys"][1]-vd["qalys"][2]
     cost = vd["total_discounted_cost"][2]-vd["total_discounted_cost"][1]
     total = vd["WTP_QALY_gpb"]*qaly + cost
+
+    # Write the example:
     st.markdown(''.join([
         'For example (where values in red change with the patient details) ',
         'the change from outcome mRS=1 to mRS=2 ',

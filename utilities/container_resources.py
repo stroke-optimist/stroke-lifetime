@@ -4,6 +4,8 @@ This contains everything in the Resources and Costs section.
 import streamlit as st
 import numpy as np
 import pandas as pd
+
+# For writing formulae in the "Details" sections:
 import utilities.latex_equations
 
 
@@ -17,7 +19,7 @@ def main(
         table_discounted_cost,
         variables_dict
         ):
-    
+
     st.write('### Resource use')
     with st.expander('Details: Resource use'):
         write_details_resource_use(variables_dict)
@@ -25,7 +27,7 @@ def main(
         A_E_count_list, NEL_count_list,
         EL_count_list, care_years_list
         )
-    
+
     st.write('### Discounted Cost of Resource use')
     with st.expander('Details: Discounted resource use'):
         write_details_discounted_resource_use(variables_dict)
@@ -46,6 +48,18 @@ def write_table_resource_use(
         A_E_count_list, NEL_count_list,
         EL_count_list, care_years_list
         ):
+    """
+    Write a table of the resource use for each mRS.
+
+    Use the non-removable index column as the mRS column.
+
+    Inputs:
+    Each of these is a list of six floats, one for each mRS.
+    A_E_count_list  - Number of A&E admissions.
+    NEL_count_list  - Number of non-elective bed days.
+    EL_count_list   - Number of elective bed days.
+    care_years_list - Number of years in residential care.
+    """
     headings = [
         # 'mRS',
         'A&E',
@@ -74,6 +88,20 @@ def write_table_discounted_resource_use(
         care_years_discounted_cost,
         total_discounted_cost
         ):
+    """
+    Write a table of the discounted resource use for each mRS.
+
+    Use the non-removable index column as the mRS column.
+
+    Inputs:
+    Each of these is a np.array of six values, one for each mRS.
+                                  cost x discounted number of...
+    A_E_discounted_cost        -  ... A&E admissions.
+    NEL_discounted_cost        -  ... non-elective bed days.
+    EL_discounted_cost         -  ... elective bed days.
+    care_years_discounted_cost -  ... years in care.
+    total_discounted_cost      -  sum of these four ^ values.
+    """
     headings = [
         # 'mRS',
         'A&E',
@@ -92,16 +120,17 @@ def write_table_discounted_resource_use(
         total_discounted_cost
         )))
 
+    # Ready to delete (15th Dec 2022):
     # # Round pounds up (away from zero if -ve) to match Excel.
     # table_round = np.zeros_like(table)
     # inds_neg = np.where(table < 0.0)
     # inds_pos = np.where(table >= 0.0)
     # table_round[inds_neg] = np.floor(table[inds_neg])
     # table_round[inds_pos] = np.ceil(table[inds_pos])
-    table_round = table
+    # table_round = table
 
     # Change into a dataframe with column headings:
-    df_table = pd.DataFrame(table_round, columns=headings)
+    df_table = pd.DataFrame(table, columns=headings)
 
     # Write to streamlit:
     st.table(df_table.style.format('£{:.0f}'))
@@ -109,6 +138,22 @@ def write_table_discounted_resource_use(
 
 def write_table_discounted_change(
         table_discounted_cost, total_discounted_cost):
+    """
+    Write a table of the discounted resource use for each mRS.
+
+    Use the non-removable index column as the mRS column.
+    Use the unicode characters to add empty space before a '-'
+    to fake the right-alignment.
+
+    Inputs:
+    Each of these is a np.array of six values, one for each mRS.
+                                  cost x discounted number of...
+    A_E_discounted_cost        -  ... A&E admissions.
+    NEL_discounted_cost        -  ... non-elective bed days.
+    EL_discounted_cost         -  ... elective bed days.
+    care_years_discounted_cost -  ... years in care.
+    total_discounted_cost      -  sum of these four ^ values.
+    """
     # Use this function to colour values in the table:
     def color_negative_red(val):
         colour = None
@@ -128,6 +173,7 @@ def write_table_discounted_change(
             if type(diff_val) == np.float64:
                 # Either add a minus sign or a bit of empty space.
                 sign = '-' if diff_val < 0 else '\U00002004'
+                # Ready to delete (15th Dec 2022):
                 # Round pounds up (away from zero if -ve) to match Excel.
                 # diff = sign+f'£{np.ceil(np.abs(diff_val)):.0f}'
                 diff = sign+f'£{np.abs(diff_val):.0f}'
@@ -173,6 +219,17 @@ def write_table_discounted_change(
 
 
 def write_details_resource_use(vd):
+    """
+    Write method and example for calculating resouce use, i.e. A&E
+    admissions, NEL/EL bed days, and time in residential care.
+
+    This is split into multiple functions to make it easier to move the
+    categories around on the Streamlit page.
+
+    Inputs:
+    vd - dict. vd is short for variables_dict from main_calculations.
+         It contains lots of useful constants and variables.
+    """
     tabs = st.tabs([
         'A&E Admissions',
         'Non-elective bed days',
@@ -195,7 +252,13 @@ def write_details_resource_use(vd):
 
 
 def write_details_ae_admissions(vd):
+    """
+    Write method and example for calculating number of A&E admissions.
 
+    Inputs:
+    vd - dict. vd is short for variables_dict from main_calculations.
+         It contains lots of useful constants and variables.
+    """
     # ----- Tables of constants -----
     st.markdown(''.join([
         'The following constants are used to calculate the number of ',
@@ -220,12 +283,6 @@ def write_details_ae_admissions(vd):
     latex_ae_count_generic = utilities.latex_equations.\
         ae_count_generic()
     st.latex(latex_ae_count_generic)
-
-    # # ----- Lambda function -----
-    # st.markdown('with Lambda function $\Lambda_\mathrm{AE}$: ')
-    # latex_ae_lambda_generic = utilities.latex_equations.\
-    #     ae_lambda_generic()
-    # st.latex(latex_ae_lambda_generic)
 
     # ----- linear predictor -----
     st.markdown('and with linear predictor: ')
@@ -253,11 +310,6 @@ def write_details_ae_admissions(vd):
     st.latex(latex_ae_lp)
     st.write('$^{*}$ This value is 0 for female patients and 1 for male.')
 
-    # # ----- Calculation for Lambda -----
-    # st.markdown('The Lambda function:')
-    # latex_ae_lambda = utilities.latex_equations.ae_lambda(vd)
-    # st.latex(latex_ae_lambda)
-
     # ----- Show median survival years for this patient -----
     st.markdown('For the median survival years: ')
     latex_median_survival_display = utilities.latex_equations.\
@@ -271,7 +323,13 @@ def write_details_ae_admissions(vd):
 
 
 def write_details_nel_admissions(vd):
+    """
+    Write method and example for calculating number of NEL bed-days.
 
+    Inputs:
+    vd - dict. vd is short for variables_dict from main_calculations.
+         It contains lots of useful constants and variables.
+    """
     # ----- Tables of constants -----
     st.markdown(''.join([
         'The following constants are used to calculate the number of ',
@@ -296,12 +354,6 @@ def write_details_nel_admissions(vd):
     latex_nel_bed_days_generic = utilities.latex_equations.\
         nel_bed_days_generic()
     st.latex(latex_nel_bed_days_generic)
-
-    # # ----- Lambda function -----
-    # st.markdown('with Lambda function $\Lambda_\mathrm{AE}$: ')
-    # latex_ae_lambda_generic = utilities.latex_equations.\
-    #     ae_lambda_generic()
-    # st.latex(latex_ae_lambda_generic)
 
     # ----- linear predictor -----
     st.markdown('and with linear predictor: ')
@@ -329,11 +381,6 @@ def write_details_nel_admissions(vd):
     st.latex(latex_nel_lp)
     st.write('$^{*}$ This value is 0 for female patients and 1 for male.')
 
-    # # ----- Calculation for Lambda -----
-    # st.markdown('The Lambda function:')
-    # latex_ae_lambda = utilities.latex_equations.ae_lambda(vd)
-    # st.latex(latex_ae_lambda)
-
     # ----- Show median survival years for this patient -----
     st.markdown('For the median survival years: ')
     latex_median_survival_display = utilities.latex_equations.\
@@ -347,7 +394,13 @@ def write_details_nel_admissions(vd):
 
 
 def write_details_el_admissions(vd):
+    """
+    Write method and example for calculating number of EL bed-days.
 
+    Inputs:
+    vd - dict. vd is short for variables_dict from main_calculations.
+         It contains lots of useful constants and variables.
+    """
     # ----- Tables of constants -----
     st.markdown(''.join([
         'The following constants are used to calculate the number of ',
@@ -372,12 +425,6 @@ def write_details_el_admissions(vd):
     latex_el_bed_days_generic = utilities.latex_equations.\
         el_bed_days_generic()
     st.latex(latex_el_bed_days_generic)
-
-    # # ----- Lambda function -----
-    # st.markdown('with Lambda function $\Lambda_\mathrm{AE}$: ')
-    # latex_ae_lambda_generic = utilities.latex_equations.\
-    #     ae_lambda_generic()
-    # st.latex(latex_ae_lambda_generic)
 
     # ----- linear predictor -----
     st.markdown('and with linear predictor: ')
@@ -405,11 +452,6 @@ def write_details_el_admissions(vd):
     st.latex(latex_el_lp)
     st.write('$^{*}$ This value is 0 for female patients and 1 for male.')
 
-    # # ----- Calculation for Lambda -----
-    # st.markdown('The Lambda function:')
-    # latex_ae_lambda = utilities.latex_equations.ae_lambda(vd)
-    # st.latex(latex_ae_lambda)
-
     # ----- Show median survival years for this patient -----
     st.markdown('For the median survival years: ')
     latex_median_survival_display = utilities.latex_equations.\
@@ -423,7 +465,13 @@ def write_details_el_admissions(vd):
 
 
 def write_details_time_in_care(vd):
+    """
+    Write method and example for calculating time spent in care.
 
+    Inputs:
+    vd - dict. vd is short for variables_dict from main_calculations.
+         It contains lots of useful constants and variables.
+    """
     # ----- Tables of constants -----
     st.markdown(''.join([
         'The following constants are used to calculate the number of ',
@@ -477,6 +525,17 @@ def write_details_time_in_care(vd):
 
 
 def write_details_discounted_resource_use(vd):
+    """
+    Write method and example for calculating the discounted resource
+    use and cost.
+
+    The method is the same for all resources so the example code is
+    in a function and used by all four resources.
+
+    Inputs:
+    vd - dict. vd is short for variables_dict from main_calculations.
+         It contains lots of useful constants and variables.
+    """
     # ----- Formula for one year -----
     st.markdown(''.join([
         'The formulae used previously to find the number of ',
@@ -566,7 +625,7 @@ def write_details_discounted_resource_use(vd):
             'and "Discounted use" is from Equation [22].'
             ])
         write_details_discounted_resource(
-            vd, "A_E_counts", "discounted_list_A_E", 
+            vd, "A_E_counts", "discounted_list_A_E",
             "cost_ae_gbp", "A_E_discounted_cost", caption_str)
     with tabs[1]:
         # NEL bed days:
@@ -575,7 +634,7 @@ def write_details_discounted_resource_use(vd):
             'and "Discounted use" is from Equation [22].'
             ])
         write_details_discounted_resource(
-            vd, "NEL_counts", "discounted_list_NEL", 
+            vd, "NEL_counts", "discounted_list_NEL",
             "cost_non_elective_bed_day_gbp", "NEL_discounted_cost",
             caption_str)
     with tabs[2]:
@@ -602,7 +661,32 @@ def write_details_discounted_resource_use(vd):
 
 def write_details_discounted_resource(
         vd, count_str, discount_str, cost_str,
-        discounted_cost_str, caption_str, care=0):
+        discounted_cost_str, caption_str='', care=0):
+    """
+    Write example for calculating discounted resource use and cost for
+    any of the four resources.
+
+    The input variables pull out the relevant values from the dict.
+
+    Inputs:
+    vd                  - dict. vd is short for variables_dict from
+                          main_calculations. It contains lots of
+                          useful constants and variables.
+    count_str           - str. Name of list of resource use in each
+                          year.
+    discount_str        - str. Name of list of discounted resouce use
+                          in each year.
+    cost_str            - str. Name of the cost conversion string
+                          (fixed parameter).
+    discounted_cost_str - str. Name of the calculated discounted cost
+                          value.
+    caption_str         - str. Optional caption to be written under
+                          the big table with all the counts.
+    care                - int. 1 if this is the residential care case,
+                          else 0. If care=1, then include x365 in
+                          formula to convert cost per day to cost per
+                          year.
+    """
     # Counts in each year:
     counts_i = vd[count_str]
     # Discounted use:
@@ -625,9 +709,6 @@ def write_details_discounted_resource(
     ]))
 
     # ----- Input number of years -----
-    # Put slider between two empty columns to make it skinnier.
-    # cols = st.columns(3)
-    # with cols[1]:
     # Give this slider a key or streamlit throws warnings
     # about multiple identical sliders.
     time_input_yr = st.slider(

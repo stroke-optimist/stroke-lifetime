@@ -23,7 +23,7 @@ def main_user_inputs():
         ['Male', 'Female'],
         horizontal=True
         )
-    # Change 'Male'/'Female' to 1 or 0: 
+    # Change 'Male'/'Female' to 1 or 0:
     sex_input = 1 if sex_input_str == 'Male' else 0
 
     # mRS:

@@ -4,9 +4,11 @@ This contains everything in the QALYs section.
 import streamlit as st
 import numpy as np
 import pandas as pd
-import utilities.latex_equations
 
-from utilities.fixed_params import utility_list
+# For writing formulae in the "Details" sections:
+import utilities.latex_equations
+# Import constants from file:
+import utilities.fixed_params
 
 
 def main(survival_times, qalys, qalys_table, variables_dict):
@@ -21,12 +23,22 @@ def main(survival_times, qalys, qalys_table, variables_dict):
 
 def write_table_discounted_qalys(survival_times, qalys):
     """
+    Write a table of the discounted QALY values for each mRS. It also
+    includes the median and IQR survival times.
+
     Use the non-removable index column as the mRS column.
+
+    Inputs:
+    survival_times - array or list. Array of six lists, one for each
+                     mRS, where each contains [median, IQR lower, IQR
+                     upper, life expectancy].
+    qalys          - array or list. Contains six floats, one for each
+                     mRS, that are the QALY values.
     """
     qaly_table = []
     for i, mRS in enumerate(range(6)):
         qaly_table.append([
-            utility_list[i],
+            utilities.fixed_params.utility_list[i],
             # mRS,
             survival_times[i][0],
             survival_times[i][1],
@@ -60,7 +72,21 @@ def write_table_discounted_qalys(survival_times, qalys):
 
 
 def write_table_discounted_qalys_outcome(qaly_table, qalys):
+    """
+    Write a table of the change in discounted QALY values for each
+    change in mRS outcome.
 
+    Use the non-removable index column as the mRS column. Don't label
+    the columns so the default 0, 1, ... 5 can be mRS as well.
+
+    Inputs:
+    qaly_table - 2D array. 6 rows by 6 columns. Each cell contains the
+                 difference in QALYs between mRS=column value and mRS=
+                 row value.
+    qalys      - array or list. Contains six floats, one for each
+                 mRS, that are the QALY values. This is just used for
+                 printing the example val1 - val2 = diff in table.
+    """
     # Change the table values to formatted strings:
     table = []
     for row in range(6):
@@ -72,6 +98,8 @@ def write_table_discounted_qalys_outcome(qaly_table, qalys):
                 row_vals.append(f'{val:4.2f}')
             elif column == row:
                 # Show only a dash on the right-hand-side of the cell.
+                # Use unicode character to add extra spaces and so
+                # fake the right-alignment.
                 row_vals.append(3*'\U00002002' + '-')
             else:
                 row_vals.append('')
@@ -97,10 +125,17 @@ def write_table_discounted_qalys_outcome(qaly_table, qalys):
         'weighted 85%-95% shortfall valued @ 120%, ',
         '95% shortfall valued @ 170%')
     st.write('**** NICE health technology evaluations: the manual (Jan 2022)')
-    return
 
 
 def write_details_discounted_qalys(vd):
+    """
+    Write method and example for calculating QALYs from utility, years,
+    and the discount factor.
+
+    Inputs:
+    vd - dict. vd is short for variables_dict from main_calculations.
+         It contains lots of useful constants and variables.
+    """
     st.markdown(''.join([
         'The discounted QALYs, $Q$, are calculated as: '
     ]))
@@ -125,16 +160,7 @@ def write_details_discounted_qalys(vd):
         'on the patient details.'
         ]))
 
-    # ----- Show median survival years for this patient -----
-    st.markdown('For the median survival years: ')
-    # latex_median_survival_display = utilities.latex_equations.\
-    #     median_survival_display(vd)
-    # st.latex(latex_median_survival_display)
-    # ^ don't bother showing it - it's in the table right there.
-
     # ----- Calculate QALYs -----
-    # st.markdown('For the median survival years: ')
-    latex_discounted_qalys = utilities.latex_equations.\
-        discounted_qalys(vd)
+    st.markdown('For the median survival years: ')
+    latex_discounted_qalys = utilities.latex_equations.discounted_qalys(vd)
     st.latex(latex_discounted_qalys)
-
