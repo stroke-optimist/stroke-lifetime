@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 # For writing formulae in the "Details" sections:
-import utilities.latex_equations
+import utilities_lifetime.latex_equations
 
 
 def main(
@@ -266,11 +266,11 @@ def write_details_ae_admissions(vd):
         ]))
     ae_coeff_cols = st.columns(2)
     with ae_coeff_cols[0]:
-        markdown_ae_coeffs = utilities.latex_equations.table_ae_coeffs(vd)
+        markdown_ae_coeffs = utilities_lifetime.latex_equations.table_ae_coeffs(vd)
         st.markdown(markdown_ae_coeffs)
 
     with ae_coeff_cols[1]:
-        markdown_ae_mrs_coeffs = utilities.latex_equations.\
+        markdown_ae_mrs_coeffs = utilities_lifetime.latex_equations.\
             table_ae_mrs_coeffs(vd)
         st.markdown(markdown_ae_mrs_coeffs)
 
@@ -280,13 +280,13 @@ def write_details_ae_admissions(vd):
         'The number of admissions over $\mathrm{yrs}$, ',
         'a number of years, is given by: '
         ]))
-    latex_ae_count_generic = utilities.latex_equations.\
+    latex_ae_count_generic = utilities_lifetime.latex_equations.\
         ae_count_generic()
     st.latex(latex_ae_count_generic)
 
     # ----- linear predictor -----
     st.markdown('and with linear predictor: ')
-    latex_ae_lp_generic = utilities.latex_equations.\
+    latex_ae_lp_generic = utilities_lifetime.latex_equations.\
         ae_lp_generic()
     st.latex(latex_ae_lp_generic)
     st.markdown(''.join([
@@ -306,19 +306,19 @@ def write_details_ae_admissions(vd):
 
     # ----- Calculation for linear predictor -----
     st.markdown('The linear predictor:')
-    latex_ae_lp = utilities.latex_equations.ae_lp(vd)
+    latex_ae_lp = utilities_lifetime.latex_equations.ae_lp(vd)
     st.latex(latex_ae_lp)
     st.write('$^{*}$ This value is 0 for female patients and 1 for male.')
 
     # ----- Show median survival years for this patient -----
     st.markdown('For the median survival years: ')
-    latex_median_survival_display = utilities.latex_equations.\
+    latex_median_survival_display = utilities_lifetime.latex_equations.\
         median_survival_display(vd)
     st.latex(latex_median_survival_display)
 
     # ----- Calculation for count -----
     st.markdown('The final count:')
-    latex_ae_count = utilities.latex_equations.ae_count(vd)
+    latex_ae_count = utilities_lifetime.latex_equations.ae_count(vd)
     st.latex(latex_ae_count)
 
 
@@ -337,11 +337,11 @@ def write_details_nel_admissions(vd):
         ]))
     nel_coeff_cols = st.columns(2)
     with nel_coeff_cols[0]:
-        markdown_nel_coeffs = utilities.latex_equations.table_nel_coeffs(vd)
+        markdown_nel_coeffs = utilities_lifetime.latex_equations.table_nel_coeffs(vd)
         st.markdown(markdown_nel_coeffs)
 
     with nel_coeff_cols[1]:
-        markdown_nel_mrs_coeffs = utilities.latex_equations.\
+        markdown_nel_mrs_coeffs = utilities_lifetime.latex_equations.\
             table_nel_mrs_coeffs(vd)
         st.markdown(markdown_nel_mrs_coeffs)
 
@@ -351,13 +351,13 @@ def write_details_nel_admissions(vd):
         'The number of bed days over $\mathrm{yrs}$, ',
         'a number of years, is given by: '
         ]))
-    latex_nel_bed_days_generic = utilities.latex_equations.\
+    latex_nel_bed_days_generic = utilities_lifetime.latex_equations.\
         nel_bed_days_generic()
     st.latex(latex_nel_bed_days_generic)
 
     # ----- linear predictor -----
     st.markdown('and with linear predictor: ')
-    latex_nel_lp_generic = utilities.latex_equations.\
+    latex_nel_lp_generic = utilities_lifetime.latex_equations.\
         nel_lp_generic()
     st.latex(latex_nel_lp_generic)
     st.markdown(''.join([
@@ -377,19 +377,19 @@ def write_details_nel_admissions(vd):
 
     # ----- Calculation for linear predictor -----
     st.markdown('The linear predictor:')
-    latex_nel_lp = utilities.latex_equations.nel_lp(vd)
+    latex_nel_lp = utilities_lifetime.latex_equations.nel_lp(vd)
     st.latex(latex_nel_lp)
     st.write('$^{*}$ This value is 0 for female patients and 1 for male.')
 
     # ----- Show median survival years for this patient -----
     st.markdown('For the median survival years: ')
-    latex_median_survival_display = utilities.latex_equations.\
+    latex_median_survival_display = utilities_lifetime.latex_equations.\
         median_survival_display(vd)
     st.latex(latex_median_survival_display)
 
     # ----- Calculation for count -----
     st.markdown('The final count:')
-    latex_nel_bed_days = utilities.latex_equations.nel_bed_days(vd)
+    latex_nel_bed_days = utilities_lifetime.latex_equations.nel_bed_days(vd)
     st.latex(latex_nel_bed_days)
 
 
@@ -408,11 +408,11 @@ def write_details_el_admissions(vd):
         ]))
     el_coeff_cols = st.columns(2)
     with el_coeff_cols[0]:
-        markdown_el_coeffs = utilities.latex_equations.table_el_coeffs(vd)
+        markdown_el_coeffs = utilities_lifetime.latex_equations.table_el_coeffs(vd)
         st.markdown(markdown_el_coeffs)
 
     with el_coeff_cols[1]:
-        markdown_el_mrs_coeffs = utilities.latex_equations.\
+        markdown_el_mrs_coeffs = utilities_lifetime.latex_equations.\
             table_el_mrs_coeffs(vd)
         st.markdown(markdown_el_mrs_coeffs)
 
@@ -422,13 +422,13 @@ def write_details_el_admissions(vd):
         'The number of bed days over $\mathrm{yrs}$, ',
         'a number of years, is given by: '
         ]))
-    latex_el_bed_days_generic = utilities.latex_equations.\
+    latex_el_bed_days_generic = utilities_lifetime.latex_equations.\
         el_bed_days_generic()
     st.latex(latex_el_bed_days_generic)
 
     # ----- linear predictor -----
     st.markdown('and with linear predictor: ')
-    latex_el_lp_generic = utilities.latex_equations.\
+    latex_el_lp_generic = utilities_lifetime.latex_equations.\
         el_lp_generic()
     st.latex(latex_el_lp_generic)
     st.markdown(''.join([
@@ -448,19 +448,19 @@ def write_details_el_admissions(vd):
 
     # ----- Calculation for linear predictor -----
     st.markdown('The linear predictor:')
-    latex_el_lp = utilities.latex_equations.el_lp(vd)
+    latex_el_lp = utilities_lifetime.latex_equations.el_lp(vd)
     st.latex(latex_el_lp)
     st.write('$^{*}$ This value is 0 for female patients and 1 for male.')
 
     # ----- Show median survival years for this patient -----
     st.markdown('For the median survival years: ')
-    latex_median_survival_display = utilities.latex_equations.\
+    latex_median_survival_display = utilities_lifetime.latex_equations.\
         median_survival_display(vd)
     st.latex(latex_median_survival_display)
 
     # ----- Calculation for count -----
     st.markdown('The final count:')
-    latex_el_bed_days = utilities.latex_equations.el_bed_days(vd)
+    latex_el_bed_days = utilities_lifetime.latex_equations.el_bed_days(vd)
     st.latex(latex_el_bed_days)
 
 
@@ -481,7 +481,7 @@ def write_details_time_in_care(vd):
         'and different proportions are considered for patients over ',
         'the age of 70.'
         ]))
-    markdown_tic_coeffs = utilities.latex_equations.\
+    markdown_tic_coeffs = utilities_lifetime.latex_equations.\
         table_time_in_care_coeffs(vd)
     st.markdown(markdown_tic_coeffs)
 
@@ -495,7 +495,7 @@ def write_details_time_in_care(vd):
     ]))
     # ----- Formula -----
     st.markdown('The number of years spent in residential care is: ')
-    latex_tic_generic = utilities.latex_equations.\
+    latex_tic_generic = utilities_lifetime.latex_equations.\
         tic_generic()
     st.latex(latex_tic_generic)
     st.markdown(''.join([
@@ -514,13 +514,13 @@ def write_details_time_in_care(vd):
 
     # ----- Show median survival years for this patient -----
     st.markdown('For the median survival years: ')
-    latex_median_survival_display = utilities.latex_equations.\
+    latex_median_survival_display = utilities_lifetime.latex_equations.\
         median_survival_display(vd)
     st.latex(latex_median_survival_display)
 
     # ----- Calculation for linear predictor -----
     st.markdown('The number of years spent in residential care is:')
-    latex_tic = utilities.latex_equations.tic(vd)
+    latex_tic = utilities_lifetime.latex_equations.tic(vd)
     st.latex(latex_tic)
 
 
@@ -551,14 +551,14 @@ def write_details_discounted_resource_use(vd):
         'the entries up to and including year $i$ ',
         'and the entries up to and including year $i-1$:'
     ]))
-    latex_count_yeari_generic = utilities.latex_equations.\
+    latex_count_yeari_generic = utilities_lifetime.latex_equations.\
         count_yeari_generic()
     st.latex(latex_count_yeari_generic)
     st.markdown(''.join([
         'For a resource that totals $\mathrm{Count}_i$ entries ',
         'in year $i$, the discounted resource $D_i$ is given as:'
     ]))
-    latex_discounted_resource_generic = utilities.latex_equations.\
+    latex_discounted_resource_generic = utilities_lifetime.latex_equations.\
         discounted_resource_generic(vd)
     st.latex(latex_discounted_resource_generic)
 
@@ -569,7 +569,7 @@ def write_details_discounted_resource_use(vd):
         'these values up to the median survival year, $m$, ',
         'multiplied by a cost factor $c$: '
     ]))
-    latex_discounted_resource_total_generic = utilities.latex_equations.\
+    latex_discounted_resource_total_generic = utilities_lifetime.latex_equations.\
         discounted_resource_total_generic()
     st.latex(latex_discounted_resource_total_generic)
 
@@ -577,9 +577,9 @@ def write_details_discounted_resource_use(vd):
     st.markdown(''.join([
         'The following cost factors are used: '
     ]))
-    markdown_cost_factors_1 = utilities.latex_equations.\
+    markdown_cost_factors_1 = utilities_lifetime.latex_equations.\
         table_cost_factors_1(vd)
-    markdown_cost_factors_2 = utilities.latex_equations.\
+    markdown_cost_factors_2 = utilities_lifetime.latex_equations.\
         table_cost_factors_2(vd)
     cols_cost = st.columns(2)
     with cols_cost[0]:
@@ -606,7 +606,7 @@ def write_details_discounted_resource_use(vd):
     # ----- Show median survival years for this patient -----
     # vd["survival_meds_IQRs"][vd["mrs"], 0]
     st.markdown('For the median survival years: ')
-    latex_median_survival_display = utilities.latex_equations.\
+    latex_median_survival_display = utilities_lifetime.latex_equations.\
         median_survival_display(vd)
     st.latex(latex_median_survival_display)
 
@@ -697,7 +697,7 @@ def write_details_discounted_resource(
     discounted_sum = np.sum(discounted_i)
 
     # ----- Write table with the values -----
-    table_ae = utilities.latex_equations.build_table_str_resource_count(
+    table_ae = utilities_lifetime.latex_equations.build_table_str_resource_count(
                 counts_yrs, counts_i, discounted_i, discounted_sum)
     st.markdown(table_ae)
     st.caption(caption_str)
@@ -719,7 +719,7 @@ def write_details_discounted_resource(
         key='TimeForDiscountTable' + cost_str
         )
     for year in [time_input_yr]:
-        latex_example_di = utilities.latex_equations.\
+        latex_example_di = utilities_lifetime.latex_equations.\
             discounted_resource(
                 vd, counts_i[year-1], year, discounted_i[year-1])
         st.latex(latex_example_di)
@@ -728,7 +728,7 @@ def write_details_discounted_resource(
     st.markdown(''.join([
         'The total discounted cost is then: '
     ]))
-    latex_discounted_cost = utilities.latex_equations.\
+    latex_discounted_cost = utilities_lifetime.latex_equations.\
         discounted_cost(vd, discounted_sum, cost_str, discounted_cost_str,
                         care)
     st.latex(latex_discounted_cost)

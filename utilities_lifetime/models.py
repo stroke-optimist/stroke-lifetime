@@ -7,7 +7,7 @@ These were adapted from the following R script:
 import numpy as np
 
 # Import constants:
-import utilities.fixed_params
+import utilities_lifetime.fixed_params
 
 
 # #####################################################################
@@ -27,12 +27,12 @@ def find_lpDeath_yr1(age, sex, mrs):
 
     ivs = np.array([
         1,
-        age - utilities.fixed_params.lg_mean_ages[mrs],
+        age - utilities_lifetime.fixed_params.lg_mean_ages[mrs],
         sex,
         *mrss
         ])
 
-    lp = np.sum(utilities.fixed_params.lg_coeffs * ivs)
+    lp = np.sum(utilities_lifetime.fixed_params.lg_coeffs * ivs)
     return lp
 
 
@@ -62,14 +62,14 @@ def find_lpDeath_yrn(age, sex, mrs):
 
     ivs = np.array([
         1,
-        age - utilities.fixed_params.gz_mean_age,
-        (age**2.0) - utilities.fixed_params.gz_mean_age**2.0,
+        age - utilities_lifetime.fixed_params.gz_mean_age,
+        (age**2.0) - utilities_lifetime.fixed_params.gz_mean_age**2.0,
         sex,
-        *mrss * (age - utilities.fixed_params.gz_mean_age),
+        *mrss * (age - utilities_lifetime.fixed_params.gz_mean_age),
         *mrss
         ])
 
-    lp = np.sum(utilities.fixed_params.gz_coeffs * ivs)
+    lp = np.sum(utilities_lifetime.fixed_params.gz_coeffs * ivs)
 
     return lp
 
@@ -101,8 +101,8 @@ def find_FDeath_yrn(age, sex, mrs, yr, p1=None):
     # Cumulative hazard at time t:
     hazard = (
         np.exp(lp) *
-        (np.exp(days*utilities.fixed_params.gz_gamma)-1.0) /
-        utilities.fixed_params.gz_gamma
+        (np.exp(days*utilities_lifetime.fixed_params.gz_gamma)-1.0) /
+        utilities_lifetime.fixed_params.gz_gamma
         )
 
     # Also calculate the adjustment for year 1.
@@ -168,12 +168,12 @@ def find_t_zero_survival(age, sex, mrs, prob=1.0):
         days = (
             np.log(
                 (
-                    utilities.fixed_params.gz_gamma *
+                    utilities_lifetime.fixed_params.gz_gamma *
                     prob_prime *
                     np.exp(-glp)
                 ) + 1.0
             ) /
-            utilities.fixed_params.gz_gamma
+            utilities_lifetime.fixed_params.gz_gamma
             )
         # Convert days to years:
         years_to_death = (days/365) + 1
@@ -211,12 +211,12 @@ def find_tDeath(age, sex, mrs, prob):
         days = (
             np.log(
                 (
-                    utilities.fixed_params.gz_gamma *
+                    utilities_lifetime.fixed_params.gz_gamma *
                     prob_prime *
                     np.exp(-glp)
                 ) + 1.0
             ) /
-            utilities.fixed_params.gz_gamma
+            utilities_lifetime.fixed_params.gz_gamma
             )
         # Convert days to years:
         years_to_death = (days/365) + 1
@@ -265,11 +265,11 @@ def find_survival_time_for_pDeath(pDeath, pDeath_yr1, lpDeath_yrn):
         survival_yrs = (
             np.log(
                 (
-                    eqperc * utilities.fixed_params.gz_gamma /
+                    eqperc * utilities_lifetime.fixed_params.gz_gamma /
                     np.exp(lpDeath_yrn)
                 ) + 1.0
             )
-            / (utilities.fixed_params.gz_gamma*365.0)
+            / (utilities_lifetime.fixed_params.gz_gamma*365.0)
         )
         # Note: one year added to median survival years as they
         # survive the first year.
@@ -339,10 +339,10 @@ def find_A_E_Count(age, sex, mrs, yrs):
     A_E_lp = find_lp_AE_Count(age, mrs, sex)
     # creates the lambda function for the equation
     # AL - for python, changed this to a variable:
-    lambda_factor = np.exp(utilities.fixed_params.A_E_coeffs[3] * A_E_lp)
+    lambda_factor = np.exp(utilities_lifetime.fixed_params.A_E_coeffs[3] * A_E_lp)
     # equation that estimates the A_E admissions count
     # Define this to help fit everything on one line:
-    c = (-lambda_factor) * (yrs**utilities.fixed_params.A_E_coeffs[3])
+    c = (-lambda_factor) * (yrs**utilities_lifetime.fixed_params.A_E_coeffs[3])
     # Final count:
     Count = -np.log(np.exp(c))
     return Count
@@ -356,13 +356,13 @@ def find_lp_AE_Count(age, sex, mrs):
     A_E_lp - float.
     """
     # calculates the normalized age
-    age_norm = age - utilities.fixed_params.lg_mean_ages[mrs]
+    age_norm = age - utilities_lifetime.fixed_params.lg_mean_ages[mrs]
     # calculates the linear predictor for A_E
     A_E_lp = (
-        utilities.fixed_params.A_E_coeffs[0] +
-        (utilities.fixed_params.A_E_coeffs[1]*age_norm) +
-        (utilities.fixed_params.A_E_coeffs[2]*sex) +
-        utilities.fixed_params.A_E_mRS[mrs]
+        utilities_lifetime.fixed_params.A_E_coeffs[0] +
+        (utilities_lifetime.fixed_params.A_E_coeffs[1]*age_norm) +
+        (utilities_lifetime.fixed_params.A_E_coeffs[2]*sex) +
+        utilities_lifetime.fixed_params.A_E_mRS[mrs]
     )
     return A_E_lp
 
@@ -386,7 +386,7 @@ def find_NEL_Count(age, sex, mrs, yrs):
     # equation that estimates the NEL bed days count
 
     # Define this to help fit everything on one line:
-    c = (yrs*lambda_factor)**(1.0/utilities.fixed_params.NEL_coeffs[3])
+    c = (yrs*lambda_factor)**(1.0/utilities_lifetime.fixed_params.NEL_coeffs[3])
     # Final count:
     Count = -np.log((1.0 + c)**(-1.0))
     return Count
@@ -400,13 +400,13 @@ def find_lp_NEL_Count(age, sex, mrs):
     NEL_lp - float.
     """
     # calculates the normalized age
-    age_norm = age - utilities.fixed_params.lg_mean_ages[mrs]
+    age_norm = age - utilities_lifetime.fixed_params.lg_mean_ages[mrs]
     # calculates the linear predictor for NEL bed days
     NEL_lp = (
-        utilities.fixed_params.NEL_coeffs[0] +
-        (utilities.fixed_params.NEL_coeffs[1]*age_norm) +
-        (utilities.fixed_params.NEL_coeffs[2]*sex) +
-        utilities.fixed_params.NEL_mRS[mrs]
+        utilities_lifetime.fixed_params.NEL_coeffs[0] +
+        (utilities_lifetime.fixed_params.NEL_coeffs[1]*age_norm) +
+        (utilities_lifetime.fixed_params.NEL_coeffs[2]*sex) +
+        utilities_lifetime.fixed_params.NEL_mRS[mrs]
     )
     return NEL_lp
 
@@ -429,7 +429,7 @@ def find_EL_Count(age, sex, mrs, yrs):
     lambda_factor = np.exp(-EL_lp)
     # equation that estimates the EL bed days count
     # Define this to help fit everything on one line:
-    c = (yrs*lambda_factor)**(1.0/utilities.fixed_params.EL_coeffs[3])
+    c = (yrs*lambda_factor)**(1.0/utilities_lifetime.fixed_params.EL_coeffs[3])
     # Final count:
     Count = -np.log((1.0 + c)**(-1.0))
     return Count
@@ -443,13 +443,13 @@ def find_lp_EL_Count(age, sex, mrs):
     EL_lp - float.
     """
     # calculates the normalized age
-    age_norm = age - utilities.fixed_params.lg_mean_ages[mrs]
+    age_norm = age - utilities_lifetime.fixed_params.lg_mean_ages[mrs]
     # calculates the linear predictor for EL bed days
     EL_lp = (
-        utilities.fixed_params.EL_coeffs[0] +
-        (utilities.fixed_params.EL_coeffs[1]*age_norm) +
-        (utilities.fixed_params.EL_coeffs[2]*sex) +
-        utilities.fixed_params.EL_mRS[mrs]
+        utilities_lifetime.fixed_params.EL_coeffs[0] +
+        (utilities_lifetime.fixed_params.EL_coeffs[1]*age_norm) +
+        (utilities_lifetime.fixed_params.EL_coeffs[2]*sex) +
+        utilities_lifetime.fixed_params.EL_mRS[mrs]
     )
     return EL_lp
 

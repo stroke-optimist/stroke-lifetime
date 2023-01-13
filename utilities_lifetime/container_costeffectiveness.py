@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 # For writing formulae in the "Details" sections:
-import utilities.latex_equations
+import utilities_lifetime.latex_equations
 
 
 def main(table_cost_effectiveness, variables_dict):
@@ -110,6 +110,6 @@ def write_details_cost_effectiveness(vd):
         f'£{cost:.0f}, ',
         'giving a net benefit of: '
     ]))
-    latex_cost_effectiveness = utilities.latex_equations.\
+    latex_cost_effectiveness = utilities_lifetime.latex_equations.\
         cost_effectiveness(vd, qaly, cost, total)
     st.latex(latex_cost_effectiveness)

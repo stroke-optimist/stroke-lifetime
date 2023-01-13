@@ -6,9 +6,9 @@ import numpy as np
 import pandas as pd
 
 # For writing formulae in the "Details" sections:
-import utilities.latex_equations
+import utilities_lifetime.latex_equations
 # Import constants from file:
-import utilities.fixed_params
+import utilities_lifetime.fixed_params
 
 
 def main(survival_times, qalys, qalys_table, variables_dict):
@@ -38,7 +38,7 @@ def write_table_discounted_qalys(survival_times, qalys):
     qaly_table = []
     for i, mRS in enumerate(range(6)):
         qaly_table.append([
-            utilities.fixed_params.utility_list[i],
+            utilities_lifetime.fixed_params.utility_list[i],
             # mRS,
             survival_times[i][0],
             survival_times[i][1],
@@ -140,7 +140,7 @@ def write_details_discounted_qalys(vd):
         'The discounted QALYs, $Q$, are calculated as: '
     ]))
     # ----- Formula ----
-    latex_discounted_qalys_generic = utilities.latex_equations.\
+    latex_discounted_qalys_generic = utilities_lifetime.latex_equations.\
         discounted_qalys_generic()
     st.latex(latex_discounted_qalys_generic)
     st.markdown(''.join([
@@ -162,5 +162,5 @@ def write_details_discounted_qalys(vd):
 
     # ----- Calculate QALYs -----
     st.markdown('For the median survival years: ')
-    latex_discounted_qalys = utilities.latex_equations.discounted_qalys(vd)
+    latex_discounted_qalys = utilities_lifetime.latex_equations.discounted_qalys(vd)
     st.latex(latex_discounted_qalys)

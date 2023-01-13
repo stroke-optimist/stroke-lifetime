@@ -7,12 +7,12 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 
-from utilities.fixed_params import colours_excel
-# from utilities.inputs import write_text_from_file
+from utilities_lifetime.fixed_params import colours_excel
+# from utilities_lifetime.inputs import write_text_from_file
 # Import this function for use with user input probability:
-from utilities.models import find_survival_time_for_pDeath
+from utilities_lifetime.models import find_survival_time_for_pDeath
 # For writing formulae in the "Details" sections:
-import utilities.latex_equations
+import utilities_lifetime.latex_equations
 
 
 def main(
@@ -380,11 +380,11 @@ def write_details_mortality_in_year_one(vd):
         ]))
     table_cols = st.columns(2)
     with table_cols[0]:
-        markdown_lg_coeffs = utilities.latex_equations.table_lg_coeffs(vd)
+        markdown_lg_coeffs = utilities_lifetime.latex_equations.table_lg_coeffs(vd)
         st.markdown(markdown_lg_coeffs)
 
     with table_cols[1]:
-        markdown_lg_mrs_coeffs = utilities.latex_equations.\
+        markdown_lg_mrs_coeffs = utilities_lifetime.latex_equations.\
             table_lg_mrs_coeffs(vd)
         st.markdown(markdown_lg_mrs_coeffs)
 
@@ -393,12 +393,12 @@ def write_details_mortality_in_year_one(vd):
         'The probability of death during year one, ',
         '$P_{1}$, is calculated as:'
         ]))
-    latex_pDeath_yr1_generic = utilities.latex_equations.pDeath_yr1_generic()
+    latex_pDeath_yr1_generic = utilities_lifetime.latex_equations.pDeath_yr1_generic()
     st.latex(latex_pDeath_yr1_generic)
 
     # ----- Equation for linear predictor -----
     st.markdown('with linear predictor $LP_{1}$ where:')
-    latex_lp_yr1_generic = utilities.latex_equations.lp_yr1_generic()
+    latex_lp_yr1_generic = utilities_lifetime.latex_equations.lp_yr1_generic()
     st.latex(latex_lp_yr1_generic)
     st.markdown(''.join([
         r'''where $\alpha$ and $\beta$ are constants and ''',
@@ -409,7 +409,7 @@ def write_details_mortality_in_year_one(vd):
     st.markdown(''.join([
         'The opposite of this value is survival in year one, $S_1$:'
         ]))
-    latex_survival_yr1_generic = utilities.latex_equations.\
+    latex_survival_yr1_generic = utilities_lifetime.latex_equations.\
         survival_yr1_generic()
     st.latex(latex_survival_yr1_generic)
     st.markdown(''.join([
@@ -428,18 +428,18 @@ def write_details_mortality_in_year_one(vd):
 
     # ----- Calculation for linear predictor -----
     st.markdown('The linear predictor:')
-    latex_lp_yr1 = utilities.latex_equations.lp_yr1(vd)
+    latex_lp_yr1 = utilities_lifetime.latex_equations.lp_yr1(vd)
     st.latex(latex_lp_yr1)
     st.write('$^{*}$ This value is 0 for female patients and 1 for male.')
 
     # ----- Calculation for probability -----
     st.markdown('Probability:')
-    latex_prob_yr1 = utilities.latex_equations.prob_yr1(vd)
+    latex_prob_yr1 = utilities_lifetime.latex_equations.prob_yr1(vd)
     st.latex(latex_prob_yr1)
 
     # ----- Calculation for survival -----
     st.markdown('Survival:')
-    latex_survival_yr1 = utilities.latex_equations.survival_yr1(vd)
+    latex_survival_yr1 = utilities_lifetime.latex_equations.survival_yr1(vd)
     st.latex(latex_survival_yr1)
 
 
@@ -459,12 +459,12 @@ def write_details_mortality_after_year_one(vd):
         ]))
     table_cols = st.columns(2)
     with table_cols[0]:
-        markdown_table_gz_coeffs = utilities.latex_equations\
+        markdown_table_gz_coeffs = utilities_lifetime.latex_equations\
             .table_gz_coeffs(vd)
         st.markdown(markdown_table_gz_coeffs)
 
     with table_cols[1]:
-        markdown_table_gz_mRS_coeffs = utilities.latex_equations\
+        markdown_table_gz_mRS_coeffs = utilities_lifetime.latex_equations\
             .table_gz_mRS_coeffs(vd)
         st.markdown(markdown_table_gz_mRS_coeffs)
 
@@ -475,13 +475,13 @@ def write_details_mortality_after_year_one(vd):
         'after year one), ',
         '$H_t$, is calculated as:'
         ]))
-    latex_hazard_yrn_generic = utilities.latex_equations\
+    latex_hazard_yrn_generic = utilities_lifetime.latex_equations\
         .hazard_yrn_generic()
     st.latex(latex_hazard_yrn_generic)
 
     # ----- Equation for linear predictor -----
     st.markdown('with linear predictor $LP_{\mathrm{H}}$ where:')
-    latex_lp_yrn_generic = utilities.latex_equations.lp_yrn_generic()
+    latex_lp_yrn_generic = utilities_lifetime.latex_equations.lp_yrn_generic()
     st.latex(latex_lp_yrn_generic)
 
     st.markdown(''.join([
@@ -495,7 +495,7 @@ def write_details_mortality_after_year_one(vd):
         'death in year one, $P_{1}$ (Equation [1]), to give the '
         'cumulative probability of death by time $t$, $F_t$:'
         ]))
-    latex_FDeath_yrn_generic = utilities.latex_equations.FDeath_yrn_generic()
+    latex_FDeath_yrn_generic = utilities_lifetime.latex_equations.FDeath_yrn_generic()
     st.latex(latex_FDeath_yrn_generic)
     st.markdown(''.join([
         'This quantity $F_t$ is plotted in the cumulative hazard ',
@@ -506,7 +506,7 @@ def write_details_mortality_after_year_one(vd):
     st.markdown(''.join([
         'The opposite of this value is survival, $S_t$:'
         ]))
-    latex_survival_generic = utilities.latex_equations.survival_generic()
+    latex_survival_generic = utilities_lifetime.latex_equations.survival_generic()
     st.latex(latex_survival_generic)
     st.markdown(''.join([
         'This is the quantity plotted in the survival vs. time chart.'
@@ -524,7 +524,7 @@ def write_details_mortality_after_year_one(vd):
 
     # ----- Calculation for linear predictor -----
     st.markdown('The linear predictor:')
-    latex_lp_yrn = utilities.latex_equations.lp_yrn(vd)
+    latex_lp_yrn = utilities_lifetime.latex_equations.lp_yrn(vd)
     st.latex(latex_lp_yrn)
     st.markdown('$^{*}$ This value is 0 for female patients and 1 for male.')
 
@@ -542,7 +542,7 @@ def write_details_mortality_after_year_one(vd):
 
     # ----- Calculation for hazard -----
     st.markdown('Cumulative hazard $H_t$ at the chosen time $t$:')
-    latex_hazard_yrn = utilities.latex_equations.hazard_yrn(
+    latex_hazard_yrn = utilities_lifetime.latex_equations.hazard_yrn(
         vd, time_input_yr)
     st.latex(latex_hazard_yrn)
 
@@ -551,14 +551,14 @@ def write_details_mortality_after_year_one(vd):
         'Cumulative probability of death by time $t$ ',
         '(using the previously-calculated $P_{1}$):',
     ]))
-    latex_FDeath_yrn = utilities.latex_equations.FDeath_yrn(vd, time_input_yr)
+    latex_FDeath_yrn = utilities_lifetime.latex_equations.FDeath_yrn(vd, time_input_yr)
     st.latex(latex_FDeath_yrn)
 
     # ----- Calculation for survival -----
     st.markdown(''.join([
         'Survival at time $t$:'
     ]))
-    latex_survival = utilities.latex_equations.survival(vd, time_input_yr)
+    latex_survival = utilities_lifetime.latex_equations.survival(vd, time_input_yr)
     st.latex(latex_survival)
 
 
@@ -580,12 +580,12 @@ def write_details_mortality_in_chosen_year(vd):
 
     # ----- Equation for probability of death in year two -----
     st.markdown('In year 2,')
-    latex_pDeath_yr2_generic = utilities.latex_equations.pDeath_yr2_generic()
+    latex_pDeath_yr2_generic = utilities_lifetime.latex_equations.pDeath_yr2_generic()
     st.latex(latex_pDeath_yr2_generic)
 
     # ----- Equation for probability of death after year two -----
     st.markdown('In years where $t>2$,')
-    latex_pDeath_yrn_generic = utilities.latex_equations.pDeath_yrn_generic()
+    latex_pDeath_yrn_generic = utilities_lifetime.latex_equations.pDeath_yrn_generic()
     st.latex(latex_pDeath_yrn_generic)
     st.markdown(''.join([
         'where $F_t$ is from Equation [6] ',
@@ -634,13 +634,13 @@ def write_details_mortality_in_chosen_year(vd):
 
     # ----- Show survival -----
     st.markdown('Survival in the previous year (from Equation [3] or [7]): ')
-    latex_survival_display = utilities.latex_equations.\
+    latex_survival_display = utilities_lifetime.latex_equations.\
         survival_display(time_input_yr-1, S0)
     st.latex(latex_survival_display)
 
     # ----- Calculate probability -----
     st.markdown('Probability:')
-    latex_pDeath_yrn = utilities.latex_equations.\
+    latex_pDeath_yrn = utilities_lifetime.latex_equations.\
         pDeath_yrn(P1, F0, F1, time_input_yr, S0)
     st.latex(latex_pDeath_yrn)
     if S0 <= 0.0:
@@ -686,7 +686,7 @@ def write_details_median_survival(vd):
         'Instead of $P$, we consider $P^{\prime}$ where:'
         ]))
     # ----- Prob prime -----
-    latex_prob_prime_generic = utilities.latex_equations.prob_prime_generic()
+    latex_prob_prime_generic = utilities_lifetime.latex_equations.prob_prime_generic()
     st.latex(latex_prob_prime_generic)
 
     # ----- Time to death (case 1) -----
@@ -694,7 +694,7 @@ def write_details_median_survival(vd):
         'The time of death is derived from Equation [4] ',
         'and has the form:'
         ]))
-    latex_death_time_case1_generic = utilities.latex_equations.\
+    latex_death_time_case1_generic = utilities_lifetime.latex_equations.\
         death_time_case1_generic()
     st.latex(latex_death_time_case1_generic)
 
@@ -705,7 +705,7 @@ def write_details_median_survival(vd):
         'of death in year one (Equation 1). '
         ]))
     # ----- Time to death (case 2) -----
-    latex_death_time_case2_generic = utilities.latex_equations.\
+    latex_death_time_case2_generic = utilities_lifetime.latex_equations.\
         death_time_case2_generic()
     st.latex(latex_death_time_case2_generic)
     st.markdown(''.join([
@@ -723,13 +723,13 @@ def write_details_median_survival(vd):
         ]))
     # ----- Show constants -----
     # Probability in year one:
-    latex_Pyr1_display = utilities.latex_equations.\
+    latex_Pyr1_display = utilities_lifetime.latex_equations.\
         Pyr1_display(vd['P_yr1'])
     # LP in year n:
-    latex_LPyrn_display = utilities.latex_equations.\
+    latex_LPyrn_display = utilities_lifetime.latex_equations.\
         LPyrn_display(vd['LP_yrn'])
     # gamma:
-    latex_gammaH_display = utilities.latex_equations.\
+    latex_gammaH_display = utilities_lifetime.latex_equations.\
         gammaH_display(vd['gz_gamma'])
 
     st.markdown(''.join([
@@ -755,7 +755,7 @@ def write_details_median_survival(vd):
                 'The time of death is:'
                 ]))
             # ----- Calculate time -----
-            latex_death_time_case2 = utilities.latex_equations.\
+            latex_death_time_case2 = utilities_lifetime.latex_equations.\
                 death_time_case2(tDeath, p, vd['P_yr1'])
             st.latex(latex_death_time_case2)
 
@@ -768,12 +768,12 @@ def write_details_median_survival(vd):
                 ]))
             # ----- Calculate P` -----
             prob_prime = ((1.0 + p)/(1.0 + vd['P_yr1'])) - 1.0
-            latex_prob_prime = utilities.latex_equations.\
+            latex_prob_prime = utilities_lifetime.latex_equations.\
                 prob_prime(p, prob_prime, vd['P_yr1'])
             st.latex(latex_prob_prime)
             # ----- Calculate time -----
             st.markdown('Then the time of death is: ')
-            latex_death_time_case1 = utilities.latex_equations.\
+            latex_death_time_case1 = utilities_lifetime.latex_equations.\
                 death_time_case1(tDeath, prob_prime,
                                  vd['LP_yrn'], vd['gz_gamma'], p)
             st.latex(latex_death_time_case1)
@@ -803,7 +803,7 @@ def write_details_median_survival(vd):
             'median survival value:'
         ]))
         life_expectancy = vd['age'] + tDeath_med
-        latex_life_expectancy = utilities.latex_equations.\
+        latex_life_expectancy = utilities_lifetime.latex_equations.\
             life_expectancy(life_expectancy, tDeath_med, vd['age'])
         st.latex(latex_life_expectancy)
 
