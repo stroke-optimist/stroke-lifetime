@@ -165,71 +165,28 @@ def plot_hazard_vs_time_plotly(time_list_yr, all_hazard_lists):
     for mRS in np.arange(1, 6):
         # For each mRS, subtract the values that came before it.
         diff_list = np.array(all_hazard_lists[mRS]-all_hazard_lists[mRS-1])
-        # # Ready to delete (15th Dec 2022):
-        # # Attempted fix for weird mRS 5 line for age > 83 or so.
-        # # If any difference is negative, set it to zero:
-        # diff_list[np.where(diff_list < 0)] = 0.0
         sub_hazard_lists.append(diff_list)
 
-    # Build this data into a big dataframe for plotly.
-    # It wants each row in the table to have [mRS, year, hazard].
-    for i in range(6):
-        # The symbol for less than / equal to: ≤
-        mRS_list = [  # 'mRS='+f'{i}'
-            f'{i}' for year in time_list_yr]
-        # Convert fractions to percentages:
-        hazard_list = 100.0*sub_hazard_lists[i]
-        cum_hazard_list = 100.0*all_hazard_lists[i]
-
-        # Use dtype=object to keep the mixed strings (mRS),
-        # integers (years) and floats (hazards).
-        data_here = np.transpose(
-            np.array([mRS_list, time_list_yr, hazard_list, cum_hazard_list],
-                     dtype=object)
-            )
-
-        if i == 0:
-            # Start a new big array that will store all the data:
-            data_to_plot = data_here
-        else:
-            # Add this data to the existing big array:
-            data_to_plot = np.vstack((data_to_plot, data_here))
-
-    # Pop this data into a dataframe:
-    df_to_plot = pd.DataFrame(
-        data_to_plot,
-        columns=['mRS', 'year', 'hazard', 'cumhazard']
-        )
-
     # # Plot the data:
-    # fig = px.area(
-    #     df_to_plot,
-    #     x='year', y='hazard', color='mRS',
-    #     custom_data=['cumhazard', 'mRS'],
-    #     color_discrete_sequence=colours_excel
-    #     )
     fig = go.Figure()
     for i in range(6):
+        # Extra bits for setting the hover label data:
         customdata = np.stack((
-            100.0*all_hazard_lists[i],
-            [i]*len(all_hazard_lists[i]),
-            # times_str_hrs,
-            # times_str_mins
+            100.0*all_hazard_lists[i],     # Cumulative probs mRS<=i
+            [i]*len(all_hazard_lists[i]),  # mRS values
             ), axis=-1)
         # Line and fill:
         fig.add_trace(go.Scatter(
-            x=time_list_yr, #times_hours_d3_str,
-            y=100.0*sub_hazard_lists[i],
+            x=time_list_yr,
+            y=100.0*sub_hazard_lists[i],   # probabilities mRS=i
             mode='lines',
             line=dict(color=colours_excel[i]),
-            stackgroup='one',
-            name=f'{i}',
+            stackgroup='one',              # Makes the bands stack
+            name=f'{i}',                   # Label for legend
             customdata=customdata,
         ))
-    # The custom_data aren't directly plotted in the previous lines,
-    # but are loaded ready for use with the hover template later.
-
-
+        # The custom_data aren't directly plotted in the previous line,
+        # but are loaded ready for use with the hover template later.
 
     # Set axis labels:
     fig.update_xaxes(title_text='Years since discharge')
@@ -244,8 +201,6 @@ def plot_hazard_vs_time_plotly(time_list_yr, all_hazard_lists):
     # Otherwise get "0 mRS=0 ...".
     fig.update_traces(
         hovertemplate=(
-            # 'mRS=%{customdata[1]}: %{y:>6.2f}' +
-            # 5 * '\U00002002' +
             'mRS≤%{customdata[1]}: %{customdata[0]:6.2f}%' +
             '<extra></extra>'
             )
