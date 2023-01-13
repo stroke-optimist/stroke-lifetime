@@ -3,8 +3,8 @@ Streamlit app for the stroke outcome model.
 """
 import streamlit as st
 
-from utilities.fixed_params import page_setup
-from utilities.inputs import write_text_from_file
+from utilities_lifetime.fixed_params import page_setup
+from utilities_lifetime.inputs import write_text_from_file
 
 # Set up the tab title and emoji:
 page_setup()
