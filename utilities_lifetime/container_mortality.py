@@ -22,16 +22,18 @@ def main(
         pDeath_list, invalid_inds_for_pDeath, survival_times,
         time_of_death, variables_dict
         ):
-    # Ready to delete (15th Dec 2022):
-    # These older plots use matplotlib instead of plotly:
-    # plot_survival_vs_time(time_list_yr, all_survival_lists[mRS_input])
-    # plot_hazard_vs_time(time_list_yr, all_hazard_lists, colours_excel)
-
     # Details on probability with time
+    # Year one:
     with st.expander('Details: Mortality during year one'):
         write_details_mortality_in_year_one(variables_dict)
+    with st.expander('Example: Mortality during year one'):
+        write_example_mortality_in_year_one(variables_dict)
+
+    # After year one:
     with st.expander('Details: Mortality after year one'):
         write_details_mortality_after_year_one(variables_dict)
+    with st.expander('Example: Mortality after year one'):
+        write_example_mortality_after_year_one(variables_dict)
     # Plot:
     plot_survival_vs_time_plotly(
         time_list_yr, all_survival_lists[mRS_input], time_of_death)
@@ -50,7 +52,11 @@ def main(
     with st.expander('Details: Median survival'):
         write_details_median_survival(variables_dict)
     # Table:
-    write_table_of_median_survival(survival_times)
+    # Check which model we're using and draw a bespoke table:
+    if st.session_state['lifetime_model_type'] == 'mRS':
+        write_table_of_median_survival(survival_times)
+    else:
+        write_table_of_median_survival_dicho(survival_times)
 
 
 def plot_survival_vs_time_plotly(
@@ -339,9 +345,54 @@ def write_table_of_median_survival(survival_times):
     st.table(df_table.style.format("{:.2f}"))
 
 
+def write_table_of_median_survival_dicho(survival_times):
+    """
+    Table of median, IQR survival times and life expectancy (columns)
+    for each mRS score (rows).
+
+    Inputs:
+    survival_times - np.array. Contains six lists, one for each mRS.
+                     Each list contains [median, lower IQR, upper IQR,
+                     life expectancy].
+    """
+    # Only keep the first and last rows:
+    survival_times = np.array(survival_times[[0, -1], :], dtype=object)
+    # Add a column at the start with the outcome type labels:
+    survival_times = np.hstack((
+        np.array(['Independent', 'Dependent'], dtype=object).reshape(2, 1), 
+        survival_times
+        ))
+
+
+    columns = [
+            ' ',  # Outcome name row
+            'Median survival (years)',
+            'Lower IQR (years)',
+            'Upper IQR (years)',
+            'Life expectancy (age)'
+    ]
+
+    # Convert to a pandas dataframe so we can label the columns:
+    df_table = pd.DataFrame(
+        survival_times,
+        columns=columns
+    )
+
+    # Set up format dictionary for printing precision:
+    format_dict = {
+        columns[1]: '{:.2f}',
+        columns[2]: '{:.2f}',
+        columns[3]: '{:.2f}',
+        columns[4]: '{:.2f}',
+    }
+    # Write to streamlit with 2 decimal places:
+    st.write('The survival estimates for each outcome: ')
+    st.table(df_table.style.format(format_dict))
+
+
 def write_details_mortality_in_year_one(vd):
     """
-    Write the method and example for calculating mortality in year one.
+    Write the method for calculating mortality in year one.
 
     Inputs:
     vd - dict. vd is short for variables_dict from main_calculations.
@@ -358,8 +409,15 @@ def write_details_mortality_in_year_one(vd):
         st.markdown(markdown_lg_coeffs)
 
     with table_cols[1]:
-        markdown_lg_mrs_coeffs = utilities_lifetime.latex_equations.\
-            table_lg_mrs_coeffs(vd)
+        # Check the model type to decide which table to draw.
+        if st.session_state['lifetime_model_type'] == 'mRS':
+            # Individual mRS table:
+            markdown_lg_mrs_coeffs = utilities_lifetime.latex_equations.\
+                table_lg_mrs_coeffs(vd)
+        else:
+            # Dichotomous table:
+            markdown_lg_mrs_coeffs = utilities_lifetime.latex_equations.\
+                table_lg_mrs_coeffs_dicho(vd)
         st.markdown(markdown_lg_mrs_coeffs)
 
     # ----- Equation for probability -----
@@ -390,9 +448,18 @@ def write_details_mortality_in_year_one(vd):
         'This is the quantity plotted in the survival vs. time chart.'
     ]))
 
+
+def write_example_mortality_in_year_one(vd):
+    """
+    Write the example for calculating mortality in year one.
+
+    Inputs:
+    vd - dict. vd is short for variables_dict from main_calculations.
+         It contains lots of useful constants and variables.
+    """
     # ##### EXAMPLE #####
     # ----- Calculations with user input -----
-    st.markdown('### Example')
+    # st.markdown('### Example')
     st.markdown(''.join([
         'For the current patient details, these are calculated as follows.',
         ' Values in red change with the patient details, and values in ',
@@ -419,8 +486,7 @@ def write_details_mortality_in_year_one(vd):
 
 def write_details_mortality_after_year_one(vd):
     """
-    Write the method and example for calculating mortality after year
-    one.
+    Write the method for calculating mortality after year one.
 
     Inputs:
     vd - dict. vd is short for variables_dict from main_calculations.
@@ -438,8 +504,13 @@ def write_details_mortality_after_year_one(vd):
         st.markdown(markdown_table_gz_coeffs)
 
     with table_cols[1]:
-        markdown_table_gz_mRS_coeffs = utilities_lifetime.latex_equations\
-            .table_gz_mRS_coeffs(vd)
+        # Check the model type to decide which table to draw.
+        if st.session_state['lifetime_model_type'] == 'mRS':
+            markdown_table_gz_mRS_coeffs = utilities_lifetime.latex_equations\
+                .table_gz_mRS_coeffs(vd)
+        else:
+            markdown_table_gz_mRS_coeffs = utilities_lifetime.latex_equations\
+                .table_gz_mRS_coeffs_dicho(vd)
         st.markdown(markdown_table_gz_mRS_coeffs)
 
     # ----- Equation for hazard -----
@@ -486,9 +557,18 @@ def write_details_mortality_after_year_one(vd):
         'This is the quantity plotted in the survival vs. time chart.'
     ]))
 
+
+def write_example_mortality_after_year_one(vd):
+    """
+    Write the example for calculating mortality after year one.
+
+    Inputs:
+    vd - dict. vd is short for variables_dict from main_calculations.
+         It contains lots of useful constants and variables.
+    """
     # ##### EXAMPLE #####
     # ----- Calculations with user input -----
-    st.markdown('### Example')
+    # st.markdown('### Example')
     st.markdown(''.join([
         'For the current patient details, these are calculated as follows.',
         ' Values in red change with the patient details, and values in ',

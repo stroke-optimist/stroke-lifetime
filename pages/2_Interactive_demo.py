@@ -269,7 +269,9 @@ def main():
     with tabs[3]:
         st.header('Cost-effectiveness')
         utilities_lifetime.container_costeffectiveness.main(
-            table_cost_effectiveness, variables_dict)
+            table_cost_effectiveness,
+            variables_dict
+            )
 
     # ----- The end! -----
 

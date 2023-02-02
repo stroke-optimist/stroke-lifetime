@@ -72,6 +72,27 @@ def table_lg_mrs_coeffs(vd):
     return str
 
 
+
+def table_lg_mrs_coeffs_dicho(vd):
+    """
+    Table of logistic regression mRS coefficients.
+
+    This uses the first and final row of the individual mRS table
+    with the rows and column headings re-labelled.
+    """
+    str = (
+        r'''
+        | Outcome | Outcome coefficient | Mean age coefficient |
+        | --- | --- | --- |
+        | Independent | ''' + f'{vd["lg_coeffs"][3+0]}' + r'''| ''' + \
+            f'{vd["lg_mean_ages"][0]}' + r'''|
+        | Dependent | ''' + f'{vd["lg_coeffs"][3+5]}' + r'''| ''' + \
+            f'{vd["lg_mean_ages"][5]}' + r'''|
+        '''
+        )
+    return str
+
+
 def pDeath_yr1_generic():
     """Probability of death in year one."""
     str = (
@@ -285,6 +306,26 @@ def table_gz_mRS_coeffs(vd):
         | 4 | ''' + f'{vd["gz_coeffs"][10+4]}' + r'''| ''' + \
             f'{vd["gz_coeffs"][4+4]}' + r'''|
         | 5 | ''' + f'{vd["gz_coeffs"][10+5]}' + r'''| ''' + \
+            f'{vd["gz_coeffs"][4+5]}' + r'''|
+        '''
+        )
+    return str
+
+
+def table_gz_mRS_coeffs_dicho(vd):
+    """
+    Table of mRS coefficients for Gompertz predictor.
+
+    This uses the first and bottom row of the individual mRS table
+    with the rows and column headings re-labelled.
+    """
+    str = (
+        r'''
+        | Outcome | Outcome coefficient | (Outcome $\times$ adjusted age) coefficient|
+        | --- | --- | --- |
+        | Independent | ''' + f'{vd["gz_coeffs"][10+0]}' + r'''| ''' + \
+            f'{vd["gz_coeffs"][4+0]}' + r'''|
+        | Dependent | ''' + f'{vd["gz_coeffs"][10+5]}' + r'''| ''' + \
             f'{vd["gz_coeffs"][4+5]}' + r'''|
         '''
         )
@@ -830,14 +871,27 @@ def life_expectancy(life_expectancy, tDeath_med, age):
 # ############################## QALYs ################################
 # #####################################################################
 
+def discounted_raw_qalys_generic():
+    """QALYs from utility, discount factor, and years."""
+    str = (
+        r'''
+        \begin{align*}\tag{13}
+        Q_{y, \mathrm{raw}} =& u + \\
+        & ([a + y] - \beta_{\mathrm{av\ age}})\times \beta_{\mathrm{age}} - \\
+        & ([a + y]^2 - \beta_{\mathrm{av\ age}}^2)\times \beta_{\mathrm{age\ sq}} + \\
+        & s \times \beta_{\mathrm{sex}}
+        \end{align*}
+        '''
+    )
+    return str
+
+
 def discounted_qalys_generic():
     """QALYs from utility, discount factor, and years."""
     str = (
         r'''
-        \begin{equation*}\tag{13}
-        Q = u +
-        \frac{u}{1+d} \times
-        \frac{1 - (1+d)^{-[\mathrm{yrs}-1]}}{1 - (1+d)^{-1}}
+        \begin{equation*}\tag{14}
+        Q_{y} = Q_{y,\mathrm{raw}} + \frac{1}{(1 + d)^{y}}
         \end{equation*}
         '''
     )
@@ -965,6 +1019,26 @@ def table_ae_mrs_coeffs(vd):
         | 4 | ''' + f'{vd["A_E_mRS"][4]}' + r'''| ''' + \
             f'{vd["lg_mean_ages"][4]}' + r'''|
         | 5 | ''' + f'{vd["A_E_mRS"][5]}'  + r'''| ''' + \
+            f'{vd["lg_mean_ages"][5]}' + r'''|
+        '''
+        )
+    return str
+
+
+def table_ae_mrs_coeffs_dicho(vd):
+    """
+    Table of outcome coefficients for A&E admissions model.
+
+    This uses the first and final rows of the table for the
+    individual mRS model, with some re-labelling.
+    """
+    str = (
+        r'''
+        | Outcome | Outcome coefficient | Mean age coefficient |
+        | --- | --- | --- |
+        | Independent | ''' + f'{vd["A_E_mRS"][0]}' + r'''| ''' + \
+            f'{vd["lg_mean_ages"][0]}' + r'''|
+        | Dependent | ''' + f'{vd["A_E_mRS"][5]}'  + r'''| ''' + \
             f'{vd["lg_mean_ages"][5]}' + r'''|
         '''
         )
@@ -1119,6 +1193,26 @@ def table_nel_mrs_coeffs(vd):
     return str
 
 
+def table_nel_mrs_coeffs_dicho(vd):
+    """
+    Table of mRS coefficients for the NEL count model.
+
+    This uses the first and final rows of the table for the
+    individual mRS model, with some re-labelling.
+    """
+    str = (
+        r'''
+        | Outcome | Outcome coefficient | Mean age coefficient |
+        | --- | --- | --- |
+        | Independent | ''' + f'{vd["NEL_mRS"][0]}' + r'''| ''' + \
+            f'{vd["lg_mean_ages"][0]}' + r'''|
+        | Dependent | ''' + f'{vd["NEL_mRS"][5]}'  + r'''| ''' + \
+            f'{vd["lg_mean_ages"][5]}' + r'''|
+        '''
+        )
+    return str
+
+
 def nel_bed_days_generic():
     """NEL count model."""
     str = (
@@ -1258,6 +1352,26 @@ def table_el_mrs_coeffs(vd):
         | 4 | ''' + f'{vd["EL_mRS"][4]}' + r'''| ''' + \
             f'{vd["lg_mean_ages"][4]}' + r'''|
         | 5 | ''' + f'{vd["EL_mRS"][5]}'  + r'''| ''' + \
+            f'{vd["lg_mean_ages"][5]}' + r'''|
+        '''
+        )
+    return str
+
+
+def table_el_mrs_coeffs_dicho(vd):
+    """
+    Table of mRS coefficients for the EL bed days model.
+
+    This uses the first and final rows of the table for the
+    individual mRS model, with some re-labelling.
+    """
+    str = (
+        r'''
+        | Outcome | Outcome coefficient | Mean age coefficient |
+        | --- | --- | --- |
+        | Independent | ''' + f'{vd["EL_mRS"][0]}' + r'''| ''' + \
+            f'{vd["lg_mean_ages"][0]}' + r'''|
+        | Dependent | ''' + f'{vd["EL_mRS"][5]}'  + r'''| ''' + \
             f'{vd["lg_mean_ages"][5]}' + r'''|
         '''
         )
@@ -1404,8 +1518,38 @@ def table_time_in_care_coeffs(vd):
         | 4 | ''' +
             f'{100.0*vd["perc_care_home_over70"][4]:.4f}' + \
             r'''\% | ''' + \
-            f'{100.0*vd["perc_care_home_not_over70"][4]:.4f}' + r'''\%
+            f'{100.0*vd["perc_care_home_not_over70"][4]:.4f}'
+            + r'''\%
         | 5 | ''' +
+            f'{100.0*vd["perc_care_home_over70"][5]:.4f}' + \
+            r'''\% | ''' + \
+            f'{100.0*vd["perc_care_home_not_over70"][5]:.4f}' + r'''\%
+        '''
+        )
+    return str
+
+
+def table_time_in_care_coeffs_dicho(vd):
+    """
+    Table of coefficients for the time in residential care model.
+
+    This uses the first and final rows of the table for the
+    individual mRS model, with some re-labelling.
+
+    The unicode characters \U00002002 are used to fudge right-alignment
+    of the values by providing an extra space in front of coefficients
+    with fewer digits before the decimal point.
+    """
+    str = (
+        r'''
+        | Outcome | Age over 70 | Age not over 70 |
+        | --- | --- | --- |
+        | Independent | ''' +
+            f'\U00002002{100.0*vd["perc_care_home_over70"][0]:.4f}' + \
+            r'''\% | ''' + \
+            f'\U00002002{100.0*vd["perc_care_home_not_over70"][0]:.4f}'
+            + r'''\%
+        | Dependent | ''' +
             f'{100.0*vd["perc_care_home_over70"][5]:.4f}' + \
             r'''\% | ''' + \
             f'{100.0*vd["perc_care_home_not_over70"][5]:.4f}' + r'''\%

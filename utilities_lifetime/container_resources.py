@@ -23,25 +23,64 @@ def main(
     st.write('### Resource use')
     with st.expander('Details: Resource use'):
         write_details_resource_use(variables_dict)
-    write_table_resource_use(
-        A_E_count_list, NEL_count_list,
-        EL_count_list, care_years_list
-        )
+
+    # Check which model we're using and draw a bespoke table:
+    if st.session_state['lifetime_model_type'] == 'mRS':
+        write_table_resource_use(
+            A_E_count_list, NEL_count_list,
+            EL_count_list, care_years_list
+            )
+    else:
+        write_table_resource_use_dicho(
+            A_E_count_list, NEL_count_list,
+            EL_count_list, care_years_list
+            )
 
     st.write('### Discounted Cost of Resource use')
     with st.expander('Details: Discounted resource use'):
         write_details_discounted_resource_use(variables_dict)
-    write_table_discounted_resource_use(
-        A_E_discounted_cost,
-        NEL_discounted_cost,
-        EL_discounted_cost,
-        care_years_discounted_cost,
-        total_discounted_cost
-        )
+
+    # Check which model we're using and draw a bespoke table:
+    if st.session_state['lifetime_model_type'] == 'mRS':
+        write_table_discounted_resource_use(
+            A_E_discounted_cost,
+            NEL_discounted_cost,
+            EL_discounted_cost,
+            care_years_discounted_cost,
+            total_discounted_cost
+            )
+    else:
+        write_table_discounted_resource_use_dicho(
+            A_E_discounted_cost,
+            NEL_discounted_cost,
+            EL_discounted_cost,
+            care_years_discounted_cost,
+            total_discounted_cost
+            )
 
     st.write('### Discounted total costs by change in outcome')
-    write_table_discounted_change(
-        table_discounted_cost, total_discounted_cost)
+
+    st.markdown(''.join([
+        'The change in total costs between two mRS scores ',
+        'is simply the difference between their total cost values ',
+        'in the table above.'
+    ]))
+    # Check which model we're using and draw a bespoke table:
+    if st.session_state['lifetime_model_type'] == 'mRS':
+        st.markdown(''.join([
+            'For example, the change from ',
+            'an outcome of mRS=1 to mRS=2 gives a difference of: ',
+        ]))
+        st.latex(''.join([
+            r'''\begin{equation*}''',
+            f'£{total_discounted_cost[1]:.2f}-',
+            f'£{total_discounted_cost[2]:.2f}=',
+            f'£{total_discounted_cost[2]-total_discounted_cost[1]:.2f}',
+            r'''\end{equation*}'''
+        ]))
+        write_table_discounted_change(table_discounted_cost)
+    else:
+        write_table_discounted_change_dicho(total_discounted_cost)
 
 
 def write_table_resource_use(
@@ -79,6 +118,58 @@ def write_table_resource_use(
 
     # Write to streamlit:
     st.table(df_table.style.format("{:4.2f}"))
+
+
+def write_table_resource_use_dicho(
+        A_E_count_list, NEL_count_list,
+        EL_count_list, care_years_list
+        ):
+    """
+    Write a table of the resource use for each outcome.
+
+    This uses the first and final rows of the individual mRS table
+    with re-labelled rows and column headings.
+
+    Inputs:
+    Each of these is a list of six floats, one for each mRS.
+    A_E_count_list  - Number of A&E admissions.
+    NEL_count_list  - Number of non-elective bed days.
+    EL_count_list   - Number of elective bed days.
+    care_years_list - Number of years in residential care.
+    """
+    headings = [
+        '',  # Heading for outcome column
+        'A&E',
+        'NEL Days',
+        'EL Days',
+        'Average time in residential care (years)'
+    ]
+    # Combine lists into a grid
+    table = np.transpose(np.vstack((
+        A_E_count_list,
+        NEL_count_list,
+        EL_count_list,
+        care_years_list
+        )))
+    # Only keep the first and last rows:
+    table = table[[0, -1], :]
+    # Add a new column for the outcome labels:
+    table = np.hstack((
+        np.array(['Independent', 'Dependent'], dtype=object).reshape(2, 1),
+        table
+    ))
+    # Change into a dataframe with column headings:
+    df_table = pd.DataFrame(table, columns=headings)
+
+    # Make a format dictionary for precision printing:
+    format_dict = {
+        headings[1]: '{:4.2f}',
+        headings[2]: '{:4.2f}',
+        headings[3]: '{:4.2f}',
+        headings[4]: '{:4.2f}',
+    }
+    # Write to streamlit:
+    st.table(df_table.style.format(format_dict))
 
 
 def write_table_discounted_resource_use(
@@ -136,8 +227,70 @@ def write_table_discounted_resource_use(
     st.table(df_table.style.format('£{:.0f}'))
 
 
-def write_table_discounted_change(
-        table_discounted_cost, total_discounted_cost):
+def write_table_discounted_resource_use_dicho(
+        A_E_discounted_cost,
+        NEL_discounted_cost,
+        EL_discounted_cost,
+        care_years_discounted_cost,
+        total_discounted_cost
+        ):
+    """
+    Write a table of the discounted resource use for each outcome.
+
+    This uses the first and final rows of the individual mRS table
+    with re-labelled rows and column headings.
+
+    Inputs:
+    Each of these is a np.array of six values, one for each mRS.
+                                  cost x discounted number of...
+    A_E_discounted_cost        -  ... A&E admissions.
+    NEL_discounted_cost        -  ... non-elective bed days.
+    EL_discounted_cost         -  ... elective bed days.
+    care_years_discounted_cost -  ... years in care.
+    total_discounted_cost      -  sum of these four ^ values.
+    """
+    headings = [
+        '',  # Heading for outcome label column
+        'A&E',
+        'NEL Days',
+        'EL Days',
+        'Cost of residental care',
+        'Total cost'
+    ]
+
+    # Combine lists into a grid
+    table = np.transpose(np.vstack((
+        A_E_discounted_cost,
+        NEL_discounted_cost,
+        EL_discounted_cost,
+        care_years_discounted_cost,
+        total_discounted_cost
+        )))
+
+    # Only keep the first and final rows:
+    table = table[[0, -1], :]
+    # Add a first column with the outcome labels:
+    table = np.hstack((
+        np.array(['Independent', 'Dependent'], dtype=object).reshape(2, 1),
+        table
+    ))
+
+    # Change into a dataframe with column headings:
+    df_table = pd.DataFrame(table, columns=headings)
+
+    # Make a format dictionary for precision printing:
+    format_dict = {
+        headings[1]: '£{:.0f}',
+        headings[2]: '£{:.0f}',
+        headings[3]: '£{:.0f}',
+        headings[4]: '£{:.0f}',
+        headings[5]: '£{:.0f}',
+    }
+    # Write to streamlit:
+    st.table(df_table.style.format(format_dict))
+
+
+def write_table_discounted_change(table_discounted_cost):
     """
     Write a table of the discounted resource use for each mRS.
 
@@ -197,19 +350,68 @@ def write_table_discounted_change(
     df_table = pd.DataFrame(table)
 
     # Write to streamlit:
-    st.markdown(''.join([
-        'The change in total costs between two mRS scores ',
-        'is simply the difference between their total cost values ',
-        'in the table above. For example, the change from ',
-        'an outcome of mRS=1 to mRS=2 gives a difference of: ',
-    ]))
-    st.latex(''.join([
-        r'''\begin{equation*}''',
-        f'£{total_discounted_cost[1]:.2f}-',
-        f'£{total_discounted_cost[2]:.2f}=',
-        f'£{total_discounted_cost[2]-total_discounted_cost[1]:.2f}',
-        r'''\end{equation*}'''
-    ]))
+    st.table(df_table.style.applymap(color_negative_red))
+    st.caption(''.join([
+        'Changes in outcome from column value to row value. ',
+        'Numbers in red are increased costs to the NHS, ',
+        'numbers in black represent savings to the NHS'
+        ]))
+
+
+
+def write_table_discounted_change_dicho(total_discounted_cost):
+    """
+    Write a table of the discounted resource use for each outcome.
+
+    This uses the first and final rows of the individual mRS table
+    with re-labelled rows and column headings.
+    Use the unicode characters to add empty space before a '-'
+    to fake the right-alignment.
+
+    Inputs:
+    Each of these is a np.array of six values, one for each mRS.
+                                  cost x discounted number of...
+    A_E_discounted_cost        -  ... A&E admissions.
+    NEL_discounted_cost        -  ... non-elective bed days.
+    EL_discounted_cost         -  ... elective bed days.
+    care_years_discounted_cost -  ... years in care.
+    total_discounted_cost      -  sum of these four ^ values.
+    """
+    # Use this function to colour values in the table:
+    def color_negative_red(val):
+        colour = None
+        if len(val) > 0:
+            if val[0] == '-' and val[-1] != '-':
+                # Also check final character to check it's not a
+                # string of one character, '-'.
+                colour = 'red'
+        return f'color: {colour}'
+
+    diff_val = total_discounted_cost[-1]-total_discounted_cost[0]
+    # Either add a minus sign or a bit of empty space.
+    sign = '-' if diff_val < 0 else '\U00002004'
+    # Ready to delete (15th Dec 2022):
+    # Round pounds up (away from zero if -ve) to match Excel.
+    # diff = sign+f'£{np.ceil(np.abs(diff_val)):.0f}'
+    diff = sign+f'£{np.abs(diff_val):.0f}'
+    # Add extra spaces at the start for right-alignment
+    # cheat:
+    extra_spaces = 10 - len(diff)
+    diff = (
+        diff.split('£')[0] + '£' +
+        extra_spaces * '\U00002002' +
+        diff.split('£')[1]
+    )
+
+    table = [
+        ['Independent', 9*'\U00002002' + '-', ''],
+        ['Dependent', diff, 9*'\U00002002' + '-']
+    ]
+    table = np.array(table)
+
+    df_table = pd.DataFrame(table, columns=['', 'Independent', 'Dependent'])
+
+    # Write to streamlit:
     st.table(df_table.style.applymap(color_negative_red))
     st.caption(''.join([
         'Changes in outcome from column value to row value. ',
@@ -270,8 +472,13 @@ def write_details_ae_admissions(vd):
         st.markdown(markdown_ae_coeffs)
 
     with ae_coeff_cols[1]:
-        markdown_ae_mrs_coeffs = utilities_lifetime.latex_equations.\
-            table_ae_mrs_coeffs(vd)
+        # Check which model we're using and draw a bespoke table:
+        if st.session_state['lifetime_model_type'] == 'mRS':
+            markdown_ae_mrs_coeffs = utilities_lifetime.latex_equations.\
+                table_ae_mrs_coeffs(vd)
+        else:
+            markdown_ae_mrs_coeffs = utilities_lifetime.latex_equations.\
+                table_ae_mrs_coeffs_dicho(vd)
         st.markdown(markdown_ae_mrs_coeffs)
 
     # ----- Formula -----
@@ -341,8 +548,13 @@ def write_details_nel_admissions(vd):
         st.markdown(markdown_nel_coeffs)
 
     with nel_coeff_cols[1]:
-        markdown_nel_mrs_coeffs = utilities_lifetime.latex_equations.\
-            table_nel_mrs_coeffs(vd)
+        # Check which model we're using and draw a bespoke table:
+        if st.session_state['lifetime_model_type'] == 'mRS':
+            markdown_nel_mrs_coeffs = utilities_lifetime.latex_equations.\
+                table_nel_mrs_coeffs(vd)
+        else:
+            markdown_nel_mrs_coeffs = utilities_lifetime.latex_equations.\
+                table_nel_mrs_coeffs_dicho(vd)
         st.markdown(markdown_nel_mrs_coeffs)
 
     # ----- Formula -----
@@ -412,8 +624,13 @@ def write_details_el_admissions(vd):
         st.markdown(markdown_el_coeffs)
 
     with el_coeff_cols[1]:
-        markdown_el_mrs_coeffs = utilities_lifetime.latex_equations.\
-            table_el_mrs_coeffs(vd)
+        # Check which model we're using and draw a bespoke table:
+        if st.session_state['lifetime_model_type'] == 'mRS':
+            markdown_el_mrs_coeffs = utilities_lifetime.latex_equations.\
+                table_el_mrs_coeffs(vd)
+        else:
+            markdown_el_mrs_coeffs = utilities_lifetime.latex_equations.\
+                table_el_mrs_coeffs_dicho(vd)
         st.markdown(markdown_el_mrs_coeffs)
 
     # ----- Formula -----
@@ -481,8 +698,14 @@ def write_details_time_in_care(vd):
         'and different proportions are considered for patients over ',
         'the age of 70.'
         ]))
-    markdown_tic_coeffs = utilities_lifetime.latex_equations.\
-        table_time_in_care_coeffs(vd)
+
+    # Check which model we're using and draw a bespoke table:
+    if st.session_state['lifetime_model_type'] == 'mRS':
+        markdown_tic_coeffs = utilities_lifetime.latex_equations.\
+            table_time_in_care_coeffs(vd)
+    else:
+        markdown_tic_coeffs = utilities_lifetime.latex_equations.\
+            table_time_in_care_coeffs_dicho(vd)
     st.markdown(markdown_tic_coeffs)
 
     st.markdown(''.join([
