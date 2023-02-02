@@ -6,7 +6,7 @@ import streamlit as st
 import importlib
 import utilities_lifetime.fixed_params
 
-def patient_detail_inputs():
+def patient_detail_inputs(model_input_str):
     # Age:
     age_input = st.number_input(
         'Age (years):',
@@ -26,14 +26,24 @@ def patient_detail_inputs():
     # Change 'Male'/'Female' to 1 or 0:
     sex_input = 1 if sex_input_str == 'Male' else 0
 
-    # mRS:
-    mRS_input = st.slider(
-        'mRS at discharge:',
-        min_value=0,
-        max_value=5,
-        value=0,      # Default value
-        step=1
+    if model_input_str == 'mRS':
+        # mRS:
+        mRS_input = st.slider(
+            'mRS at discharge:',
+            min_value=0,
+            max_value=5,
+            value=0,      # Default value
+            step=1
+            )
+    else:
+        dicho_input = st.radio(
+            'Outcome at discharge:',
+            ['Independent', 'Dependent'],
+            horizontal=True
         )
+        # The model is expecting an mRS input so select one
+        # now based on the dichotomised input:
+        mRS_input = 0 if dicho_input == 'Independent' else 5
 
     return age_input, sex_input_str, sex_input, mRS_input
 
