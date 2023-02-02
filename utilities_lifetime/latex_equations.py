@@ -874,6 +874,58 @@ def discounted_qalys(vd):
     return str
 
 
+def discounted_qalys_generic_v7():
+    """
+    QALYs from utility, discount factor, and years.
+    
+    This was used for an older version of the Excel sheet, NHCT v7.0.
+    It now goes unused in Streamlit.
+    """
+    str = (
+        r'''
+        \begin{equation*}\tag{13}
+        Q = u +
+        \frac{u}{1+d} \times
+        \frac{1 - (1+d)^{-[\mathrm{yrs}-1]}}{1 - (1+d)^{-1}}
+        \end{equation*}
+        '''
+    )
+    return str
+
+
+def discounted_qalys_v7(vd):
+    """
+    QALYs from utility, discount factor, and years,
+    with symbols replaced with variables from the calculations.
+
+    This was used for an older version of the Excel sheet, NHCT v7.0.
+    It now goes unused in Streamlit.
+    """
+    str = (
+        r'''
+        \begin{align*}
+        Q &= \textcolor{Fuchsia}{''' +
+        f'{vd["utility_list"][vd["mrs"]]}' +
+        r'''} + \frac{\textcolor{Fuchsia}{''' +
+        f'{vd["utility_list"][vd["mrs"]]}' +
+        r'''}}{1+''' +
+        f'{vd["discount_factor_QALYs_perc"]/100.0:.4f}' +
+        r'''} \times \frac{1 - (1+''' +
+        f'{vd["discount_factor_QALYs_perc"]/100.0:.4f}' +
+        r''')^{-[\textcolor{red}{''' +
+        f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
+        r'''}-1]}}{1 - (1+''' +
+        f'{vd["discount_factor_QALYs_perc"]/100.0:.4f}' +
+        r''')^{-1}} \\
+        &= \textcolor{red}{''' +
+        f'{vd["qalys"][vd["mrs"]]:.4f}' +
+        r'''}
+        \end{align*}
+        '''
+    )
+    return str
+
+
 # #####################################################################
 # ########################### Resource use ############################
 # #####################################################################

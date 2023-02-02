@@ -7,9 +7,8 @@ import pandas as pd
 
 # For writing formulae in the "Details" sections:
 import utilities_lifetime.latex_equations
-# Import constants from file:
-import utilities_lifetime.fixed_params
 
+import utilities_lifetime.fixed_params
 
 def main(survival_times, qalys, qalys_table, variables_dict):
     st.markdown('### Discounted QALYs')
@@ -130,7 +129,52 @@ def write_table_discounted_qalys_outcome(qaly_table, qalys):
 def write_details_discounted_qalys(vd):
     """
     Write method and example for calculating QALYs from utility, years,
+    patient details, and fixed coefficients.
+
+    Inputs:
+    vd - dict. vd is short for variables_dict from main_calculations.
+         It contains lots of useful constants and variables.
+    """
+    st.markdown(':warning: TO DO')
+    # st.markdown(''.join([
+    #     'The discounted QALYs, $Q$, are calculated for each year until ',
+    #     'the end of the median survival years.'
+    # ]))
+    # # ----- Formula ----
+    # latex_discounted_qalys_generic = utilities_lifetime.latex_equations.\
+    #     discounted_qalys_generic()
+    # st.latex(latex_discounted_qalys_generic)
+    # st.markdown(''.join([
+    #     'where $u$ is the utility score for this mRS, ',
+    #     '$d$ is the discount factor of ',
+    #     f'{vd["discount_factor_QALYs_perc"]:.2f}' + '%, ',
+    #     'and $\mathrm{yrs}$ is the median survival years for this patient.'
+    # ]))
+
+    # ##### EXAMPLE #####
+    # ----- Calculations with user input -----
+    st.markdown('### Example')
+    st.markdown(':warning: TO DO')
+    # st.markdown(''.join([
+    #     'For the current patient details, these are calculated as follows.',
+    #     ' Values in red change with the patient details, and values in ',
+    #     'pink use a different constant from the table below depending ',
+    #     'on the patient details.'
+    #     ]))
+
+    # # ----- Calculate QALYs -----
+    # st.markdown('For the median survival years: ')
+    # latex_discounted_qalys = utilities_lifetime.latex_equations.discounted_qalys(vd)
+    # st.latex(latex_discounted_qalys)
+
+
+def write_details_discounted_qalys_v7(vd):
+    """
+    Write method and example for calculating QALYs from utility, years,
     and the discount factor.
+
+    This was used for an older version of the Excel spreadsheet,
+    NHCT v7.0. It currently goes unused in the Streamlit app.
 
     Inputs:
     vd - dict. vd is short for variables_dict from main_calculations.

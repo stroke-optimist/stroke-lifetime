@@ -25,11 +25,12 @@ except ModuleNotFoundError:
     # streamlit_lifetime_stroke.
     import sys
     sys.path.append('./streamlit_lifetime_stroke/')
+    # The following should work now:
+    from utilities_lifetime.fixed_params import page_setup
 
-# Constants and custom functions:
-from utilities_lifetime.fixed_params import \
-    page_setup, perc_care_home_over70, perc_care_home_not_over70
 # from utilities_lifetime.inputs import write_text_from_file
+# Models for calculating various quantities:
+from utilities_lifetime.models import find_average_care_year_per_mRS
 # Container scripts (which will be called after the calculations):
 import utilities_lifetime.container_inputs
 import utilities_lifetime.container_mortality
@@ -45,10 +46,10 @@ def main():
     # ##### START OF SCRIPT #####
     # ###########################
     # Set up the tab title and emoji:
-    page_setup()
+    # page_setup()
 
     # Page title:
-    st.markdown('# Interactive demo')
+    st.markdown('# Lifetime mortality')
     # Draw a blue information box:
     st.info(
         ':information_source: ' +  # emoji
@@ -65,11 +66,25 @@ def main():
 
     # Place the user inputs in the sidebar:
     with st.sidebar:
+        st.markdown('## Select the patient details.')
+
         age_input, sex_input_str, sex_input, mRS_input = \
-            utilities_lifetime.container_inputs.main_user_inputs()
-    # sex_input_str is a string, either "Female" or "Male".
-    # sex_input is an integer,  0 for female and 1 for male.
-    # age_input and mRS_input are both integers.
+            utilities_lifetime.container_inputs.patient_detail_inputs()
+        # sex_input_str is a string, either "Female" or "Male".
+        # sex_input is an integer,  0 for female and 1 for male.
+        # age_input and mRS_input are both integers.
+
+        st.markdown('## Model type')
+        st.markdown(''.join([
+            'Choose between showing results for each mRS band individually ',
+            '(mRS), or aggregating results into two categories (Dichotomous). '
+        ]))
+
+        model_input_str = utilities_lifetime.container_inputs.model_type_input()
+        # model_input_str is a string, either "mRS" or "Dichotomous".
+
+        # Add an empty header for breathing room in the sidebar:
+        st.markdown('# ')
 
 
     # ##################################
@@ -112,7 +127,8 @@ def main():
 
 
     # ##### QALYs #####
-    qalys = utilities_lifetime.main_calculations.main_qalys(median_survival_times)
+    qalys = utilities_lifetime.main_calculations.main_qalys(
+        median_survival_times, age_input, sex_input)
     # qalys is a list of six floats, i.e. one QALY value for each mRS.
     qalys_table = utilities_lifetime.main_calculations.\
         make_table_qaly_by_change_in_outcome(qalys)
@@ -124,12 +140,8 @@ def main():
     # ##### Resource use #####
     # Choose which list of care home percentage rates to use
     # based on the age input.
-    if age_input > 70:
-        perc_care_home = perc_care_home_over70
-    else:
-        perc_care_home = perc_care_home_not_over70
-    # Define the "Average care (Years)" from Resource_Use sheet.
-    average_care_year_per_mRS = 0.95 * perc_care_home
+    average_care_year_per_mRS = \
+        find_average_care_year_per_mRS(age_input)
 
     # Resource use lists:
     (   # Each of these is a list of six values, one for each mRS.

@@ -3,10 +3,10 @@ All of the content for the Inputs section.
 """
 # Imports
 import streamlit as st
+import importlib
+import utilities_lifetime.fixed_params
 
-
-def main_user_inputs():
-    st.subheader('Select the patient details.')
+def patient_detail_inputs():
     # Age:
     age_input = st.number_input(
         'Age (years):',
@@ -36,3 +36,24 @@ def main_user_inputs():
         )
 
     return age_input, sex_input_str, sex_input, mRS_input
+
+
+def model_type_input():
+    # Model type:
+    model_input_str = st.radio(
+        'Model type:',
+        ['mRS', 'Dichotomous'],
+        horizontal=True
+        )
+    try:
+        model_input_str_before = st.session_state['lifetime_model_type']
+    except KeyError:
+        model_input_str_before = 'dummy'
+    # Add the model type to the streamlit session state so
+    # that it can be accessed in the models.py preamble.
+    # (AL - this is a bit hacky but saves lots of rewrites and if/else
+    # depending on the model type)
+    st.session_state['lifetime_model_type'] = model_input_str
+    if model_input_str != model_input_str_before:
+        importlib.reload(utilities_lifetime.fixed_params)
+    return model_input_str

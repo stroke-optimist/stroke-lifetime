@@ -6,8 +6,21 @@ These were adapted from the following R script:
 # Imports:
 import numpy as np
 
+import streamlit as st 
+
+# # Get the model type out of the streamlit session state:
+# model_input_str = st.session_state['lifetime_model_type']
+
+# st.write('yo', st.session_state['lifetime_model_type'])
+    
+# if model_input_str == 'mRS':
+#     # Import constants:
+#     # import utilities_lifetime.fixed_params_mRS as fixed_params
+#     pass
+# else:
+
 # Import constants:
-import utilities_lifetime.fixed_params
+import utilities_lifetime.fixed_params as fixed_params
 
 
 # #####################################################################
@@ -27,12 +40,12 @@ def find_lpDeath_yr1(age, sex, mrs):
 
     ivs = np.array([
         1,
-        age - utilities_lifetime.fixed_params.lg_mean_ages[mrs],
+        age - fixed_params.lg_mean_ages[mrs],
         sex,
         *mrss
         ])
 
-    lp = np.sum(utilities_lifetime.fixed_params.lg_coeffs * ivs)
+    lp = np.sum(fixed_params.lg_coeffs * ivs)
     return lp
 
 
@@ -62,14 +75,14 @@ def find_lpDeath_yrn(age, sex, mrs):
 
     ivs = np.array([
         1,
-        age - utilities_lifetime.fixed_params.gz_mean_age,
-        (age**2.0) - utilities_lifetime.fixed_params.gz_mean_age**2.0,
+        age - fixed_params.gz_mean_age,
+        (age**2.0) - fixed_params.gz_mean_age**2.0,
         sex,
-        *mrss * (age - utilities_lifetime.fixed_params.gz_mean_age),
+        *mrss * (age - fixed_params.gz_mean_age),
         *mrss
         ])
 
-    lp = np.sum(utilities_lifetime.fixed_params.gz_coeffs * ivs)
+    lp = np.sum(fixed_params.gz_coeffs * ivs)
 
     return lp
 
@@ -101,8 +114,8 @@ def find_FDeath_yrn(age, sex, mrs, yr, p1=None):
     # Cumulative hazard at time t:
     hazard = (
         np.exp(lp) *
-        (np.exp(days*utilities_lifetime.fixed_params.gz_gamma)-1.0) /
-        utilities_lifetime.fixed_params.gz_gamma
+        (np.exp(days*fixed_params.gz_gamma)-1.0) /
+        fixed_params.gz_gamma
         )
 
     # Also calculate the adjustment for year 1.
@@ -168,12 +181,12 @@ def find_t_zero_survival(age, sex, mrs, prob=1.0):
         days = (
             np.log(
                 (
-                    utilities_lifetime.fixed_params.gz_gamma *
+                    fixed_params.gz_gamma *
                     prob_prime *
                     np.exp(-glp)
                 ) + 1.0
             ) /
-            utilities_lifetime.fixed_params.gz_gamma
+            fixed_params.gz_gamma
             )
         # Convert days to years:
         years_to_death = (days/365) + 1
@@ -211,12 +224,12 @@ def find_tDeath(age, sex, mrs, prob):
         days = (
             np.log(
                 (
-                    utilities_lifetime.fixed_params.gz_gamma *
+                    fixed_params.gz_gamma *
                     prob_prime *
                     np.exp(-glp)
                 ) + 1.0
             ) /
-            utilities_lifetime.fixed_params.gz_gamma
+            fixed_params.gz_gamma
             )
         # Convert days to years:
         years_to_death = (days/365) + 1
@@ -265,11 +278,11 @@ def find_survival_time_for_pDeath(pDeath, pDeath_yr1, lpDeath_yrn):
         survival_yrs = (
             np.log(
                 (
-                    eqperc * utilities_lifetime.fixed_params.gz_gamma /
+                    eqperc * fixed_params.gz_gamma /
                     np.exp(lpDeath_yrn)
                 ) + 1.0
             )
-            / (utilities_lifetime.fixed_params.gz_gamma*365.0)
+            / (fixed_params.gz_gamma*365.0)
         )
         # Note: one year added to median survival years as they
         # survive the first year.
@@ -298,9 +311,65 @@ def find_survival_time_for_pDeath(pDeath, pDeath_yr1, lpDeath_yrn):
 # ############################## QALYs ################################
 # #####################################################################
 
-def calculate_qaly(util, med_survival_years, dfq=0.035):
+def calculate_qaly(util, med_survival_years, age, sex, average_age, dfq=0.035):
     """
     Calculate the number of QALYs.
+
+    Inputs:
+    util               - float. Utility for this person's mRS score.
+    med_survival_years - float. median survival years for this person.
+    dfq                - float. Discount Factor QALYs, e.g. 3.5%.
+
+    Returns:
+    qaly               - float. Calculated number of QALYs.
+    """
+    qaly_list = []
+    for year in np.arange(0, med_survival_years):
+        # Calculate raw QALY
+        raw_qaly = (
+            util -
+            ((age+year) - average_age) * fixed_params.qaly_age_coeff -
+            ((age+year)**2.0 - average_age**2.0) * fixed_params.qaly_age2_coeff +
+            sex * fixed_params.qaly_sex_coeff
+        )
+        if raw_qaly > 1:
+            raw_qaly = 1
+
+        # Calculate discounted QALY:
+        qaly = raw_qaly * (1.0 + dfq)**(-year)
+
+        # If this is the final year:
+        if (year + age + 1) < (med_survival_years + age):
+            scale_factor = 1
+        elif (year + age + 1) < (med_survival_years + age + 1):
+            # Find just the digits after the decimal place:
+            if year == 0:
+                # Modulus of zero raises an error.
+                # When this condition is reached, med_survival_years
+                # is less than one anyway so just use that value:
+                scale_factor = med_survival_years
+            else:
+                scale_factor = med_survival_years % int(med_survival_years)
+        else:
+            # This shouldn't happen.
+            scale_factor = 0
+        qaly *= scale_factor
+
+        # Add this discounted QALY to the list:
+        qaly_list.append(qaly)
+
+    # Sum up all of the values in the list:
+    qaly = np.sum(qaly_list)
+    return qaly
+
+
+def calculate_qaly_v7(util, med_survival_years, dfq=0.035):
+    """
+    Calculate the number of QALYs.
+
+    This calculation was used in an older version of the Excel
+    spreadsheet, NHCT v7.0. It currently goes unused in the
+    Streamlit app.
 
     Inputs:
     util               - float. Utility for this person's mRS score.
@@ -320,6 +389,7 @@ def calculate_qaly(util, med_survival_years, dfq=0.035):
     return qaly
 
 
+
 # #####################################################################
 # ############################ Resources ##############################
 # #####################################################################
@@ -336,13 +406,13 @@ def find_A_E_Count(age, sex, mrs, yrs):
     Count - float. Number of admissions to A&E over input years.
     """
     # Find linear predictor:
-    A_E_lp = find_lp_AE_Count(age, mrs, sex)
+    A_E_lp = find_lp_AE_Count(age, sex, mrs)
     # creates the lambda function for the equation
     # AL - for python, changed this to a variable:
-    lambda_factor = np.exp(utilities_lifetime.fixed_params.A_E_coeffs[3] * A_E_lp)
+    lambda_factor = np.exp(fixed_params.A_E_coeffs[3] * A_E_lp)
     # equation that estimates the A_E admissions count
     # Define this to help fit everything on one line:
-    c = (-lambda_factor) * (yrs**utilities_lifetime.fixed_params.A_E_coeffs[3])
+    c = (-lambda_factor) * (yrs**fixed_params.A_E_coeffs[3])
     # Final count:
     Count = -np.log(np.exp(c))
     return Count
@@ -356,13 +426,13 @@ def find_lp_AE_Count(age, sex, mrs):
     A_E_lp - float.
     """
     # calculates the normalized age
-    age_norm = age - utilities_lifetime.fixed_params.lg_mean_ages[mrs]
+    age_norm = age - fixed_params.lg_mean_ages[mrs]
     # calculates the linear predictor for A_E
     A_E_lp = (
-        utilities_lifetime.fixed_params.A_E_coeffs[0] +
-        (utilities_lifetime.fixed_params.A_E_coeffs[1]*age_norm) +
-        (utilities_lifetime.fixed_params.A_E_coeffs[2]*sex) +
-        utilities_lifetime.fixed_params.A_E_mRS[mrs]
+        fixed_params.A_E_coeffs[0] +
+        (fixed_params.A_E_coeffs[1]*age_norm) +
+        (fixed_params.A_E_coeffs[2]*sex) +
+        fixed_params.A_E_mRS[mrs]
     )
     return A_E_lp
 
@@ -386,7 +456,7 @@ def find_NEL_Count(age, sex, mrs, yrs):
     # equation that estimates the NEL bed days count
 
     # Define this to help fit everything on one line:
-    c = (yrs*lambda_factor)**(1.0/utilities_lifetime.fixed_params.NEL_coeffs[3])
+    c = (yrs*lambda_factor)**(1.0/fixed_params.NEL_coeffs[3])
     # Final count:
     Count = -np.log((1.0 + c)**(-1.0))
     return Count
@@ -400,13 +470,13 @@ def find_lp_NEL_Count(age, sex, mrs):
     NEL_lp - float.
     """
     # calculates the normalized age
-    age_norm = age - utilities_lifetime.fixed_params.lg_mean_ages[mrs]
+    age_norm = age - fixed_params.lg_mean_ages[mrs]
     # calculates the linear predictor for NEL bed days
     NEL_lp = (
-        utilities_lifetime.fixed_params.NEL_coeffs[0] +
-        (utilities_lifetime.fixed_params.NEL_coeffs[1]*age_norm) +
-        (utilities_lifetime.fixed_params.NEL_coeffs[2]*sex) +
-        utilities_lifetime.fixed_params.NEL_mRS[mrs]
+        fixed_params.NEL_coeffs[0] +
+        (fixed_params.NEL_coeffs[1]*age_norm) +
+        (fixed_params.NEL_coeffs[2]*sex) +
+        fixed_params.NEL_mRS[mrs]
     )
     return NEL_lp
 
@@ -429,7 +499,7 @@ def find_EL_Count(age, sex, mrs, yrs):
     lambda_factor = np.exp(-EL_lp)
     # equation that estimates the EL bed days count
     # Define this to help fit everything on one line:
-    c = (yrs*lambda_factor)**(1.0/utilities_lifetime.fixed_params.EL_coeffs[3])
+    c = (yrs*lambda_factor)**(1.0/fixed_params.EL_coeffs[3])
     # Final count:
     Count = -np.log((1.0 + c)**(-1.0))
     return Count
@@ -443,13 +513,13 @@ def find_lp_EL_Count(age, sex, mrs):
     EL_lp - float.
     """
     # calculates the normalized age
-    age_norm = age - utilities_lifetime.fixed_params.lg_mean_ages[mrs]
+    age_norm = age - fixed_params.lg_mean_ages[mrs]
     # calculates the linear predictor for EL bed days
     EL_lp = (
-        utilities_lifetime.fixed_params.EL_coeffs[0] +
-        (utilities_lifetime.fixed_params.EL_coeffs[1]*age_norm) +
-        (utilities_lifetime.fixed_params.EL_coeffs[2]*sex) +
-        utilities_lifetime.fixed_params.EL_mRS[mrs]
+        fixed_params.EL_coeffs[0] +
+        (fixed_params.EL_coeffs[1]*age_norm) +
+        (fixed_params.EL_coeffs[2]*sex) +
+        fixed_params.EL_mRS[mrs]
     )
     return EL_lp
 
@@ -472,3 +542,28 @@ def find_residential_care_average_time(average_care_year, yrs):
     """
     years_in_care = average_care_year * yrs
     return years_in_care
+
+
+def find_average_care_year_per_mRS(age):
+    """
+    Find the average care year per mRS for a patient of the input age.
+
+    This is moved into a function in models.py because the
+    calculation of percentage in a care home depends on whether
+    we're using the individual mRS or dichotomous model.
+
+    Inputs:
+    age - float. Age of this patient.
+
+    Returns:
+    average_care_year_per_mRS - np.array. Average number of years
+                                spent in residential care. One value
+                                for each mRS.
+    """
+    if age > 70:
+        perc_care_home = fixed_params.perc_care_home_over70
+    else:
+        perc_care_home = fixed_params.perc_care_home_not_over70
+    # Define the "Average care (Years)" from Resource_Use sheet.
+    average_care_year_per_mRS = 0.95 * perc_care_home
+    return average_care_year_per_mRS

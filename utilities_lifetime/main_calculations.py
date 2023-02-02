@@ -3,9 +3,21 @@ Set up the main calculations in this script.
 """
 # Imports:
 import numpy as np
+import streamlit as st
+
+# # Get the model type out of the streamlit session state:
+# model_input_str = st.session_state['lifetime_model_type']
+
+# if model_input_str == 'mRS':
+#     # Import constants:
+#     import utilities_lifetime.fixed_params_mRS as fixed_params
+# else:
+#     # Import constants:
+#     import utilities_lifetime.fixed_params_dicho as fixed_params
 
 # Import constants:
-import utilities_lifetime.fixed_params
+import utilities_lifetime.fixed_params #as fixed_params
+
 # Import functions for calculating various quantities:
 import utilities_lifetime.models
 
@@ -182,7 +194,7 @@ def calculate_survival_iqr(age, sex, mRS):
 # ############################## QALYs ################################
 # #####################################################################
 
-def main_qalys(median_survival_times):
+def main_qalys(median_survival_times, age_input, sex_input):
     """
     For each time in the input list, calculate the associated QALYs.
 
@@ -198,9 +210,21 @@ def main_qalys(median_survival_times):
     """
     qalys = []
     for i, time in enumerate(median_survival_times):
+        average_age = utilities_lifetime.fixed_params.lg_mean_ages[i]
         qaly = utilities_lifetime.models.calculate_qaly(
-            utilities_lifetime.fixed_params.utility_list[i], time,
-            dfq=utilities_lifetime.fixed_params.discount_factor_QALYs_perc/100.0)
+            utilities_lifetime.fixed_params.utility_list[i],
+            time,
+            age_input,
+            sex_input,
+            average_age,
+            dfq=utilities_lifetime.fixed_params.discount_factor_QALYs_perc/100.0
+            )
+        # # Excel v7.0 version:
+        # qaly = utilities_lifetime.models.calculate_qaly_v7(
+        #     utilities_lifetime.fixed_params.utility_list[i], 
+        #     time,
+        #     dfq=utilities_lifetime.fixed_params.discount_factor_QALYs_perc/100.0
+        #     )
         qalys.append(qaly)
     return qalys
 
