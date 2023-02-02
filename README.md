@@ -60,3 +60,5 @@ The `utilities` directory contains the bulk of the useful code.
 | `models.py` | Contains functions for calculating the simpler quantities, i.e. those that can be described by a short formula rather than lots of python jiggery-pokery.  |
 
 `utilities/` also contains an empty `__init__.py` file that allows the container scripts to import functions directly from the latex equations script. 
+
+#
