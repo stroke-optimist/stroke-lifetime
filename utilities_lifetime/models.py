@@ -6,19 +6,6 @@ These were adapted from the following R script:
 # Imports:
 import numpy as np
 
-import streamlit as st 
-
-# # Get the model type out of the streamlit session state:
-# model_input_str = st.session_state['lifetime_model_type']
-
-# st.write('yo', st.session_state['lifetime_model_type'])
-    
-# if model_input_str == 'mRS':
-#     # Import constants:
-#     # import utilities_lifetime.fixed_params_mRS as fixed_params
-#     pass
-# else:
-
 # Import constants:
 import utilities_lifetime.fixed_params as fixed_params
 
@@ -200,47 +187,51 @@ def find_t_zero_survival(age, sex, mrs, prob=1.0):
     return years_to_death
 
 
-def find_tDeath(age, sex, mrs, prob):
-    """
-    Time of death based on probability, need to check year zero
-    Think it is fixed
+# def find_tDeath(age, sex, mrs, prob):
+#     """
+#     AL - this is currently unused in the Streamlit app as of
+#          Feb 3rd 2023, and I think the "else" condition at least
+#          contains errors. Commented this out for now so it's not
+#          used by mistake.
+#     Time of death based on probability, need to check year zero
+#     Think it is fixed
 
-    "years_to_death" was called "rVal" in the R function.
+#     "years_to_death" was called "rVal" in the R function.
 
-    Inputs:
-    prob           - float. Chosen probability of death.
+#     Inputs:
+#     prob           - float. Chosen probability of death.
 
-    Returns:
-    years_to_death - float. Years from discharge until the input
-                     probability of death is reached.
-    """
-    # Probability of death in year one:
-    pd1 = find_pDeath_yr1(age, sex, mrs)
-    if pd1 < prob:
-        prob_prime = ((1.0 + prob)/(1.0 + pd1)) - 1.0
-        # Linear predictor for death in year n:
-        glp = find_lpDeath_yrn(age, sex, mrs)
-        # Invert the pDeath_yrn formula to get time:
-        days = (
-            np.log(
-                (
-                    fixed_params.gz_gamma *
-                    prob_prime *
-                    np.exp(-glp)
-                ) + 1.0
-            ) /
-            fixed_params.gz_gamma
-            )
-        # Convert days to years:
-        years_to_death = (days/365) + 1
-    else:
-        # AL - is the following correct?
-        years_to_death = (
-            np.log(prob) /
-            (np.log(1.0 - pd1)/365.0)
-            / 365.0
-        )
-    return years_to_death
+#     Returns:
+#     years_to_death - float. Years from discharge until the input
+#                      probability of death is reached.
+#     """
+#     # Probability of death in year one:
+#     pd1 = find_pDeath_yr1(age, sex, mrs)
+#     if pd1 < prob:
+#         prob_prime = ((1.0 + prob)/(1.0 + pd1)) - 1.0
+#         # Linear predictor for death in year n:
+#         glp = find_lpDeath_yrn(age, sex, mrs)
+#         # Invert the pDeath_yrn formula to get time:
+#         days = (
+#             np.log(
+#                 (
+#                     fixed_params.gz_gamma *
+#                     prob_prime *
+#                     np.exp(-glp)
+#                 ) + 1.0
+#             ) /
+#             fixed_params.gz_gamma
+#             )
+#         # Convert days to years:
+#         years_to_death = (days/365) + 1
+#     else:
+#         # AL - is the following correct?
+#         years_to_death = (
+#             np.log(prob) /
+#             (np.log(1.0 - pd1)/365.0)
+#             / 365.0
+#         )
+#     return years_to_death
 
 
 def find_survival_time_for_pDeath(pDeath, pDeath_yr1, lpDeath_yrn):
@@ -278,7 +269,8 @@ def find_survival_time_for_pDeath(pDeath, pDeath_yr1, lpDeath_yrn):
         survival_yrs = (
             np.log(
                 (
-                    eqperc * fixed_params.gz_gamma /
+                    eqperc *
+                    fixed_params.gz_gamma /
                     np.exp(lpDeath_yrn)
                 ) + 1.0
             )
@@ -329,7 +321,8 @@ def calculate_qaly(util, med_survival_years, age, sex, average_age, dfq=0.035):
         raw_qaly = (
             util -
             ((age+year) - average_age) * fixed_params.qaly_age_coeff -
-            ((age+year)**2.0 - average_age**2.0) * fixed_params.qaly_age2_coeff +
+            ((age+year)**2.0 - average_age**2.0) *
+            fixed_params.qaly_age2_coeff +
             sex * fixed_params.qaly_sex_coeff
         )
         if raw_qaly > 1:
@@ -387,7 +380,6 @@ def calculate_qaly_v7(util, med_survival_years, dfq=0.035):
         (1.0 - (1 + dfq)**(-1.0))
         )
     return qaly
-
 
 
 # #####################################################################

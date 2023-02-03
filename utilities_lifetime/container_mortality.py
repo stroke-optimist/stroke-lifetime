@@ -804,7 +804,7 @@ def write_details_median_survival(vd):
         if p < vd['P_yr1']:
             # Case 2
             st.markdown(''.join([
-                '$P = '+f'{100.0*p:.0f}'+'$%, so'
+                '$P = '+f'{100.0*p:.0f}'+'$%, so '
                 '$P \leq P_1$ and we use Case 2. ',
                 'The time of death is:'
                 ]))

@@ -46,7 +46,7 @@ def main():
     # ##### START OF SCRIPT #####
     # ###########################
     # Set up the tab title and emoji:
-    # page_setup()
+    page_setup()
 
     # Page title:
     st.markdown('# Lifetime mortality')

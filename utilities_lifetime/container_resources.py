@@ -73,8 +73,8 @@ def main(
         ]))
         st.latex(''.join([
             r'''\begin{equation*}''',
-            f'£{total_discounted_cost[1]:.2f}-',
-            f'£{total_discounted_cost[2]:.2f}=',
+            f'£{total_discounted_cost[2]:.2f}-',
+            f'£{total_discounted_cost[1]:.2f}=',
             f'£{total_discounted_cost[2]-total_discounted_cost[1]:.2f}',
             r'''\end{equation*}'''
         ]))

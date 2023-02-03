@@ -500,7 +500,7 @@ def FDeath_yrn_generic():
     str = (
         r'''
         \begin{equation}\tag{6}
-        F_{t} = 1 - (1-H_t)\times(1-P_{1})
+        F_{t} = 1 - (1-P_{1})\times(1-H_t)
         \end{equation}
         '''
         )
@@ -529,9 +529,9 @@ def FDeath_yrn(vd, time_input_yr):
         F_{\textcolor{Fuchsia}{''' +
         f'{time_input_yr}' +
         r'''}} &= 1 - (1-\textcolor{red}{''' +
-        f'{vd["fhazard_list"][time_input_yr]:.4f}' +
-        r'''})\times(1-\textcolor{red}{''' +
         f'{vd["P_yr1"]:.4f}' +
+        r'''})\times(1-\textcolor{red}{''' +
+        f'{vd["fhazard_list"][time_input_yr]:.4f}' +
         r'''}) \\
         &= \textcolor{red}{''' +
         f'{100.0*vd["hazard_list"][time_input_yr]:.2f}' +
@@ -758,9 +758,9 @@ def death_time_case1_generic():
         \begin{equation*}\tag{11}
         t_{\mathrm{death}}(P) = 1 +
         \frac{1}{\gamma \times 365} \cdot
-        \log\left(
+        \ln\left(
             \frac{P^{\prime} \times \gamma}{
-                \exp{(LP_\mathrm{H})}} + 1.0
+                \exp{(LP_\mathrm{H})}} + 1
             \right)
         \end{equation*}
         '''
@@ -776,8 +776,8 @@ def death_time_case2_generic():
         r'''
         \begin{equation*}\tag{12}
         t_{\mathrm{death}}(P) =
-        \frac{\log{(1 - P)}}
-        {\log{(1 - P_1)}}\times\frac{1}{365}
+        \frac{\ln{(1 - P)}}
+        {\ln{(1 - P_1)}}\times\frac{1}{365}
         \end{equation*}
         '''
     )
@@ -795,10 +795,10 @@ def death_time_case2(tDeath, p, P_yr1):
         t_{\mathrm{death}}(\textcolor{Fuchsia}{''' +
         f'{100.0*p:.0f}' +
         r'''\%}) &=
-        \frac{\log{(1 - \textcolor{Fuchsia}{''' +
+        \frac{\ln{(1 - \textcolor{Fuchsia}{''' +
         f'{p:.4f}' +
         r'''})}}
-        {\log{(1 - \textcolor{red}{''' +
+        {\ln{(1 - \textcolor{red}{''' +
         f'{P_yr1:.4f}' +
         r'''})}}\times \frac{1}{365} \\
         &= \textcolor{red}{''' +
@@ -822,7 +822,7 @@ def death_time_case1(tDeath, prob_prime, LP_yrn, gamma, P):
         f'{100.0*P:.0f}' +
         r'''\%}) &= 1 + \frac{1}{''' +
         f'{gamma}' +
-        r''' \times 365} \cdot \log\left(\frac{\textcolor{red}{''' +
+        r''' \times 365} \cdot \ln\left(\frac{\textcolor{red}{''' +
         f'{prob_prime:.4f}' +
         r'''}\times ''' +
         f'{gamma}' +
@@ -1131,17 +1131,17 @@ def ae_count(vd):
         \begin{align*}
         \mathrm{Count} &=
         \exp{
-            \left( \textcolor{red}{''' +
+            \left( ''' +
             f'{vd["A_E_coeffs"][3]}' +
-            r'''} \times \textcolor{red}{''' +
+            r''' \times \textcolor{red}{''' +
             f'{vd["LP_A_E"]:.4f}' +
             r'''} \right)
             }
         \times \textcolor{red}{''' +
         f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
-        r'''}^{\textcolor{red}{''' +
+        r'''}^{''' +
         f'{vd["A_E_coeffs"][3]}' +
-        r'''}} \\
+        r'''} \\
         &= \textcolor{red}{''' +
         f'{vd["A_E_count_list"][vd["mrs"]]:.4f}' +
         r'''}
@@ -1219,7 +1219,7 @@ def nel_bed_days_generic():
         r'''
         \begin{equation}\tag{16}
         \mathrm{Count} =
-            -\log{\left(
+            -\ln{\left(
             \frac{1}{
                 1+ [\mathrm{yrs}\times\exp{(-LP_\mathrm{NEL})} ] ^{
                     1/ \gamma_{\mathrm{NEL}}}
@@ -1297,16 +1297,16 @@ def nel_bed_days(vd):
         r'''
         \begin{align*}
         \mathrm{Count} &=
-            -\log{\left(
+            -\ln{\left(
             \frac{1}{
                 1+ [\textcolor{red}{''' +
                 f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
                 r'''} \times \exp{(-\textcolor{red}{''' +
                 f'{vd["LP_NEL"]:.4f}' +
                 r'''})} ]^{
-                1/ \textcolor{red}{''' +
+                1/ ''' +
                 f'{vd["NEL_coeffs"][3]}' +
-                r'''}}}
+                r'''}}
             \right)} \\
             & = \textcolor{red}{''' +
             f'{vd["NEL_count_list"][vd["mrs"]]:.4f}' +
@@ -1384,7 +1384,7 @@ def el_bed_days_generic():
         r'''
         \begin{equation}\tag{18}
         \mathrm{Count} =
-            -\log{\left(
+            -\ln{\left(
             \frac{1}{
                 1+ [\mathrm{yrs} \times \exp{(-LP_\mathrm{EL})} ] ^{
                     1/ \gamma_{\mathrm{EL}}}
@@ -1462,16 +1462,16 @@ def el_bed_days(vd):
         r'''
         \begin{align*}
         \mathrm{Count} &=
-            -\log{\left(
+            -\ln{\left(
             \frac{1}{
                 1+ [\textcolor{red}{''' +
                 f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
                 r'''} \times \exp{(-\textcolor{red}{''' +
                 f'{vd["LP_EL"]:.4f}' +
                 r'''})} ]^{
-                1/ \textcolor{red}{''' +
+                1/ ''' +
                 f'{vd["EL_coeffs"][3]}' +
-                r'''}}}
+                r'''}}
             \right)} \\
             & = \textcolor{red}{''' +
             f'{vd["EL_count_list"][vd["mrs"]]:.4f}' +
