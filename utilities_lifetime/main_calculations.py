@@ -3,21 +3,9 @@ Set up the main calculations in this script.
 """
 # Imports:
 import numpy as np
-import streamlit as st
-
-# # Get the model type out of the streamlit session state:
-# model_input_str = st.session_state['lifetime_model_type']
-
-# if model_input_str == 'mRS':
-#     # Import constants:
-#     import utilities_lifetime.fixed_params_mRS as fixed_params
-# else:
-#     # Import constants:
-#     import utilities_lifetime.fixed_params_dicho as fixed_params
 
 # Import constants:
-import utilities_lifetime.fixed_params #as fixed_params
-
+import utilities_lifetime.fixed_params
 # Import functions for calculating various quantities:
 import utilities_lifetime.models
 
@@ -114,7 +102,8 @@ def find_cumhazard_with_time(time_list_yr, age, sex, mrs):
     pDeath_list = [0.0]
     for year in time_list_yr[1:]:
         if year == 1:
-            pDeath_yr1 = utilities_lifetime.models.find_pDeath_yr1(age, sex, mrs)
+            pDeath_yr1 = utilities_lifetime.models.\
+                find_pDeath_yr1(age, sex, mrs)
             pDeath = pDeath_yr1
         else:
             hazard, pDeath = utilities_lifetime.models.find_FDeath_yrn(
@@ -217,11 +206,14 @@ def main_qalys(median_survival_times, age_input, sex_input):
             age_input,
             sex_input,
             average_age,
-            dfq=utilities_lifetime.fixed_params.discount_factor_QALYs_perc/100.0
+            dfq=(
+                utilities_lifetime.fixed_params.discount_factor_QALYs_perc /
+                100.0
+                )
             )
         # # Excel v7.0 version:
         # qaly = utilities_lifetime.models.calculate_qaly_v7(
-        #     utilities_lifetime.fixed_params.utility_list[i], 
+        #     utilities_lifetime.fixed_params.utility_list[i],
         #     time,
         #     dfq=utilities_lifetime.fixed_params.discount_factor_QALYs_perc/100.0
         #     )
@@ -301,8 +293,11 @@ def main_resource_use(
             find_NEL_Count(age, sex, mRS, median_survival_years[mRS])
         EL_count = utilities_lifetime.models.\
             find_EL_Count(age, sex, mRS, median_survival_years[mRS])
-        years_in_care = utilities_lifetime.models.find_residential_care_average_time(
-            average_care_year_per_mRS[mRS], median_survival_years[mRS])
+        years_in_care = utilities_lifetime.models.\
+            find_residential_care_average_time(
+                average_care_year_per_mRS[mRS],
+                median_survival_years[mRS]
+                )
         # Populate lists:
         A_E_count_list.append(A_E_count)
         NEL_count_list.append(NEL_count)
@@ -348,11 +343,14 @@ def main_discounted_resource_use(
     # the six lists depends on the median survival year. Longer
     # survival means longer list.
     A_E_counts_per_mRS = find_resource_count_for_all_years(
-        age, sex, median_survival_years, utilities_lifetime.models.find_A_E_Count)
+        age, sex, median_survival_years,
+        utilities_lifetime.models.find_A_E_Count)
     NEL_counts_per_mRS = find_resource_count_for_all_years(
-        age, sex, median_survival_years, utilities_lifetime.models.find_NEL_Count)
+        age, sex, median_survival_years,
+        utilities_lifetime.models.find_NEL_Count)
     EL_counts_per_mRS = find_resource_count_for_all_years(
-        age, sex, median_survival_years, utilities_lifetime.models.find_EL_Count)
+        age, sex, median_survival_years,
+        utilities_lifetime.models.find_EL_Count)
     care_years_per_mRS = find_resource_count_for_all_years(
         age, sex, median_survival_years,
         utilities_lifetime.models.find_residential_care_average_time,
@@ -533,7 +531,10 @@ def find_discounted_resource_use_for_all_years(resource_list):
         # resource_list.
         year = i + 1
         # Define this to fit on one line more easily:
-        c = 1.0 + utilities_lifetime.fixed_params.discount_factor_QALYs_perc/100.0
+        c = (
+            1.0 +
+            utilities_lifetime.fixed_params.discount_factor_QALYs_perc / 100.0
+            )
         discounted_resource = val * (1.0 / ((c)**(year - 1.0)))
         discounted_resource_list.append(discounted_resource)
     return discounted_resource_list

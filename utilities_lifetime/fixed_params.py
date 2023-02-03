@@ -104,7 +104,6 @@ if model_input_str == 'mRS':
     # for mRS    = [0,    1,    2,    3,    4,    5   ]
     utility_list = [0.95, 0.93, 0.83, 0.62, 0.42, 0.11]
 
-
     # ----- Mortality -----
     # From the Excel "stata_yr1" sheet
     # File: Excel NHCT v7.4
@@ -138,7 +137,6 @@ if model_input_str == 'mRS':
         80.91837      # mrs5
         ])
 
-
     # -- Year >1 --
     # gz for Gompertz
     # From the Excel "stata_extrap" sheet, results set 2 (cells J11:J25).
@@ -169,7 +167,6 @@ if model_input_str == 'mRS':
 
     # From Excel "Coefficients" sheet, cell C16 in NHCT v7.4.
     gz_mean_age = 73.7324
-
 
     # ----- Resource use -----
     # From the Excel NHCT v7.4 "Resource_Use" sheet.
@@ -245,7 +242,6 @@ elif model_input_str == 'Dichotomous':
     # for [Independent, Dependent]
     utility_list = [0.86, 0.86, 0.86, 0.43, 0.43, 0.43]
 
-
     # ----- Mortality -----
     # From the Excel "stata_yr1" sheet
     # File: Excel NHCT v7.4
@@ -269,7 +265,6 @@ elif model_input_str == 'Dichotomous':
     # Coef. | Std. Err. | z | P>z | [95% Conf. Interval] x 2
     # The values in the list used here are from the Coef. column.
 
-
     lg_mean_ages = np.array([
         70.06683,  # Independent
         70.06683,  # Independent
@@ -278,7 +273,6 @@ elif model_input_str == 'Dichotomous':
         78.21609,  # Dependent
         78.21609   # Dependent
         ])
-
 
     # -- Year >1 --
     # gz for Gompertz
@@ -310,7 +304,6 @@ elif model_input_str == 'Dichotomous':
 
     # From Excel "Coefficients" sheet, cell C16 in NHCT v7.4.
     gz_mean_age = 73.7324
-
 
     # ----- Resource use -----
     # From the Excel NHCT v7.4 "Resource_Use" sheet.
@@ -367,7 +360,7 @@ elif model_input_str == 'Dichotomous':
     perc_care_home_all_ages_independent = (
         np.sum(n_care_home[:3]) /
         np.sum(n_care_home[:3] + n_not_care_home[:3])
-        )    
+        )
     perc_care_home_all_ages_dependent = (
         np.sum(n_care_home[3:]) /
         np.sum(n_care_home[3:] + n_not_care_home[3:])

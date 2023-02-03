@@ -7,8 +7,9 @@ import pandas as pd
 
 # For writing formulae in the "Details" sections:
 import utilities_lifetime.latex_equations
-
+# Import constants:
 import utilities_lifetime.fixed_params
+
 
 def main(survival_times, qalys, qalys_table, variables_dict):
     """
@@ -51,7 +52,6 @@ def main(survival_times, qalys, qalys_table, variables_dict):
         'weighted 85%-95% shortfall valued @ 120%, ',
         '95% shortfall valued @ 170%')
     st.write('**** NICE health technology evaluations: the manual (Jan 2022)')
-
 
 
 def write_table_discounted_qalys(survival_times, qalys):
@@ -282,7 +282,8 @@ def write_details_discounted_qalys(vd):
 
     # # ----- Calculate QALYs -----
     # st.markdown('For the median survival years: ')
-    # latex_discounted_qalys = utilities_lifetime.latex_equations.discounted_qalys(vd)
+    # latex_discounted_qalys = \
+    #     utilities_lifetime.latex_equations.discounted_qalys(vd)
     # st.latex(latex_discounted_qalys)
 
 
@@ -324,5 +325,6 @@ def write_details_discounted_qalys_v7(vd):
 
     # ----- Calculate QALYs -----
     st.markdown('For the median survival years: ')
-    latex_discounted_qalys = utilities_lifetime.latex_equations.discounted_qalys(vd)
+    latex_discounted_qalys = utilities_lifetime.latex_equations.\
+        discounted_qalys(vd)
     st.latex(latex_discounted_qalys)

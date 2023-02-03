@@ -6,6 +6,7 @@ import streamlit as st
 import importlib
 import utilities_lifetime.fixed_params
 
+
 def patient_detail_inputs(model_input_str):
     # Age:
     age_input = st.number_input(

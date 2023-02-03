@@ -59,7 +59,6 @@ def main():
     # write_text_from_file('pages/text_for_pages/2_Intro_for_demo.txt',
     #                      head_lines_to_skip=2)
 
-
     # ###########################
     # ########## SETUP ##########
     # ###########################
@@ -81,15 +80,15 @@ def main():
         # Add an empty header for breathing room in the sidebar:
         st.markdown('# ')
 
-
     with container_model_type_inputs:
-        model_input_str = utilities_lifetime.container_inputs.model_type_input()
+        model_input_str = utilities_lifetime.container_inputs.\
+            model_type_input()
         # model_input_str is a string, either "mRS" or "Dichotomous".
 
     with container_patient_detail_inputs:
         age_input, sex_input_str, sex_input, mRS_input = \
             utilities_lifetime.container_inputs.\
-                patient_detail_inputs(model_input_str)
+            patient_detail_inputs(model_input_str)
         # sex_input_str is a string, either "Female" or "Male".
         # sex_input is an integer,  0 for female and 1 for male.
         # age_input and mRS_input are both integers.
@@ -132,7 +131,6 @@ def main():
     # Pull out an array of just the median times, one for each mRS:
     median_survival_times = survival_times[:, 0]
 
-
     # ##### QALYs #####
     qalys = utilities_lifetime.main_calculations.main_qalys(
         median_survival_times, age_input, sex_input)
@@ -142,7 +140,6 @@ def main():
     # qalys_table is a 2D np.array, 6 rows by 6 columns, that contains
     # the data for the "Discounted QALYs by change in outcome" table,
     # and invalid cells already contain either '-' or '' depending.
-
 
     # ##### Resource use #####
     # Choose which list of care home percentage rates to use
@@ -188,14 +185,12 @@ def main():
     # contains the data for the "Discounted total costs by change in
     # outcome" table, and invalid cells already contain either '-' or ''.
 
-
     # ##### Cost-effectiveness #####
     table_cost_effectiveness = utilities_lifetime.main_calculations.\
         main_cost_effectiveness(qalys_table, table_discounted_cost)
     # table_cost_effectiveness is a 2D np.array, 6 rows by 6 columns, that
     # contains the data for the "Discounted total Net Benefit by change in
     # outcome" table, and invalid cells already contain either '-' or ''.
-
 
     # ##### General #####
     # Build a dictionary of variables used in these calculations.
@@ -227,7 +222,6 @@ def main():
         care_years_discounted_cost,
         )
 
-
     # ###########################
     # ######### RESULTS #########
     # ###########################
@@ -249,12 +243,10 @@ def main():
             variables_dict
             )
 
-
     with tabs[1]:
         st.header('QALYs')
         utilities_lifetime.container_qalys.main(
             survival_times, qalys, qalys_table, variables_dict)
-
 
     with tabs[2]:
         st.header('Resources and costs')
@@ -272,7 +264,6 @@ def main():
             variables_dict
             )
 
-
     with tabs[3]:
         st.header('Cost-effectiveness')
         utilities_lifetime.container_costeffectiveness.main(
@@ -281,6 +272,7 @@ def main():
             )
 
     # ----- The end! -----
+
 
 if __name__ == '__main__':
     main()

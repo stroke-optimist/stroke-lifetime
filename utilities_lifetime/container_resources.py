@@ -358,7 +358,6 @@ def write_table_discounted_change(table_discounted_cost):
         ]))
 
 
-
 def write_table_discounted_change_dicho(total_discounted_cost):
     """
     Write a table of the discounted resource use for each outcome.
@@ -468,7 +467,8 @@ def write_details_ae_admissions(vd):
         ]))
     ae_coeff_cols = st.columns(2)
     with ae_coeff_cols[0]:
-        markdown_ae_coeffs = utilities_lifetime.latex_equations.table_ae_coeffs(vd)
+        markdown_ae_coeffs = utilities_lifetime.latex_equations.\
+            table_ae_coeffs(vd)
         st.markdown(markdown_ae_coeffs)
 
     with ae_coeff_cols[1]:
@@ -544,7 +544,8 @@ def write_details_nel_admissions(vd):
         ]))
     nel_coeff_cols = st.columns(2)
     with nel_coeff_cols[0]:
-        markdown_nel_coeffs = utilities_lifetime.latex_equations.table_nel_coeffs(vd)
+        markdown_nel_coeffs = utilities_lifetime.latex_equations.\
+            table_nel_coeffs(vd)
         st.markdown(markdown_nel_coeffs)
 
     with nel_coeff_cols[1]:
@@ -620,7 +621,8 @@ def write_details_el_admissions(vd):
         ]))
     el_coeff_cols = st.columns(2)
     with el_coeff_cols[0]:
-        markdown_el_coeffs = utilities_lifetime.latex_equations.table_el_coeffs(vd)
+        markdown_el_coeffs = utilities_lifetime.latex_equations.\
+            table_el_coeffs(vd)
         st.markdown(markdown_el_coeffs)
 
     with el_coeff_cols[1]:
@@ -792,8 +794,8 @@ def write_details_discounted_resource_use(vd):
         'these values up to the median survival year, $m$, ',
         'multiplied by a cost factor $c$: '
     ]))
-    latex_discounted_resource_total_generic = utilities_lifetime.latex_equations.\
-        discounted_resource_total_generic()
+    latex_discounted_resource_total_generic = \
+        utilities_lifetime.latex_equations.discounted_resource_total_generic()
     st.latex(latex_discounted_resource_total_generic)
 
     # ----- Convert to costs -----
@@ -920,8 +922,9 @@ def write_details_discounted_resource(
     discounted_sum = np.sum(discounted_i)
 
     # ----- Write table with the values -----
-    table_ae = utilities_lifetime.latex_equations.build_table_str_resource_count(
-                counts_yrs, counts_i, discounted_i, discounted_sum)
+    table_ae = utilities_lifetime.latex_equations.\
+        build_table_str_resource_count(
+            counts_yrs, counts_i, discounted_i, discounted_sum)
     st.markdown(table_ae)
     st.caption(caption_str)
 
