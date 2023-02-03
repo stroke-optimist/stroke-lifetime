@@ -1050,7 +1050,7 @@ def ae_count_generic():
     str = (
         r'''
         \begin{equation}\tag{14}
-        \mathrm{Count} =
+        \mathrm{Count (yrs)} =
         \exp{
             \left(\gamma_\mathrm{AE}
             \times
@@ -1129,7 +1129,9 @@ def ae_count(vd):
     str = (
         r'''
         \begin{align*}
-        \mathrm{Count} &=
+        \mathrm{Count (yrs=\textcolor{red}{''' +
+        f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
+        r'''})} &=
         \exp{
             \left( ''' +
             f'{vd["A_E_coeffs"][3]}' +
@@ -1218,7 +1220,7 @@ def nel_bed_days_generic():
     str = (
         r'''
         \begin{equation}\tag{16}
-        \mathrm{Count} =
+        \mathrm{Count (yrs)} =
             -\ln{\left(
             \frac{1}{
                 1+ [\mathrm{yrs}\times\exp{(-LP_\mathrm{NEL})} ] ^{
@@ -1296,7 +1298,9 @@ def nel_bed_days(vd):
     str = (
         r'''
         \begin{align*}
-        \mathrm{Count} &=
+        \mathrm{Count (yrs=\textcolor{red}{''' +
+        f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
+        r'''})} &=
             -\ln{\left(
             \frac{1}{
                 1+ [\textcolor{red}{''' +
@@ -1383,7 +1387,7 @@ def el_bed_days_generic():
     str = (
         r'''
         \begin{equation}\tag{18}
-        \mathrm{Count} =
+        \mathrm{Count (yrs)} =
             -\ln{\left(
             \frac{1}{
                 1+ [\mathrm{yrs} \times \exp{(-LP_\mathrm{EL})} ] ^{
@@ -1461,7 +1465,9 @@ def el_bed_days(vd):
     str = (
         r'''
         \begin{align*}
-        \mathrm{Count} &=
+        \mathrm{Count (yrs=\textcolor{red}{''' +
+        f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
+        r'''})} &=
             -\ln{\left(
             \frac{1}{
                 1+ [\textcolor{red}{''' +
@@ -1563,7 +1569,7 @@ def tic_generic():
     str = (
         r'''
         \begin{equation}\tag{20}
-        \mathrm{Count} =
+        \mathrm{Count (yrs)} =
         95\% \times c \times \mathrm{yrs}
         \end{equation}
         '''
@@ -1583,7 +1589,9 @@ def tic(vd):
     str = (
         r'''
         \begin{align*}
-        \mathrm{Count} &=
+        \mathrm{Count (yrs=\textcolor{red}{''' +
+        f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
+        r'''})} &=
         95\% \times \textcolor{Fuchsia}{''' +
         f'{100.0*perc:.4f}' +
         r'''\%} \times \textcolor{red}{''' +
