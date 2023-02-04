@@ -271,7 +271,7 @@ def plot_hazard_vs_time_plotly(time_list_yr, all_hazard_lists):
     # it can only be removed by hovering (touching) a part of the plot
     # that does not generate a hover message. So add extra space for
     # clicking in this case.
-    fig.update_xaxes(range=[-10, time_list_yr[-1]],
+    fig.update_xaxes(range=[-6, time_list_yr[-1]],
                      constrain='domain')  # For aspect ratio.
     # Update ticks:
     fig.update_xaxes(
