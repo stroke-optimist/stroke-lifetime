@@ -37,6 +37,11 @@ def main(
     # Plot:
     plot_survival_vs_time_plotly(
         time_list_yr, all_survival_lists[mRS_input], time_of_death)
+    # Write a sentence to state the 0% survival time.
+    year_of_zero_survival = time_of_death // 1
+    months_of_zero_survival = (time_of_death % 1)*12.0
+    st.write(f'Survival falls to 0% at {year_of_zero_survival:.0f} years ',
+             f'{months_of_zero_survival:.0f} months.')
     # Plot:
     plot_hazard_vs_time_plotly(time_list_yr, all_hazard_lists)
 
@@ -82,12 +87,6 @@ def plot_survival_vs_time_plotly(
     time_list_yr_to_plot = np.append(time_list_yr[:v], time_of_zero_survival)
     survival_list_to_plot = np.append(survival_list[:v], 0.0)
 
-    # Ready to delete (15th Dec 2022):
-    # # Put the lists in order:
-    # sorted_inds = time_list_yr_to_plot.argsort()
-    # time_list_yr_to_plot = time_list_yr_to_plot[sorted_inds]
-    # survival_list_to_plot = survival_list_to_plot[sorted_inds]
-
     # Combine both lists into a table.
     # Also include a column of survival x 100 to have the values in
     # percentages, as this data will appear on the hover bubble.
@@ -129,6 +128,7 @@ def plot_survival_vs_time_plotly(
     fig.update_traces(
         hovertemplate=(
             '%{customdata[0]:>.2%}' +
+            # Remove the contents of the secondary box:
             '<extra></extra>'
             )
         )
@@ -145,14 +145,32 @@ def plot_survival_vs_time_plotly(
         constrain='domain'
     )
 
-    # Write to streamlit:
-    st.plotly_chart(fig, use_container_width=True)
+    # Disable zoom and pan:
+    fig.update_layout(xaxis=dict(fixedrange=True), 
+                      yaxis=dict(fixedrange=True))
 
-    # Write a sentence to state the 0% survival time.
-    year_of_zero_survival = time_of_zero_survival // 1
-    months_of_zero_survival = (time_of_zero_survival % 1)*12.0
-    st.write(f'Survival falls to 0% at {year_of_zero_survival:.0f} years ',
-             f'{months_of_zero_survival:.0f} months.')
+    # Turn off legend click events
+    # (default is click on legend item, remove that item from the plot)
+    fig.update_layout(legend_itemclick=False)
+
+    # Options for the mode bar.
+    # (which doesn't appear on touch devices.)
+    plotly_config = {
+        # Mode bar always visible:
+        # 'displayModeBar': True,
+        # Plotly logo in the mode bar:
+        'displaylogo': False,
+        # Remove the following from the mode bar:
+        'modeBarButtonsToRemove': [
+            'zoom', 'pan', 'select', 'zoomIn', 'zoomOut', 'autoScale',
+            'lasso2d'
+            ],
+        # Options when the image is saved:
+        'toImageButtonOptions': {'height': None, 'width': None},
+        }
+
+    # Write to streamlit:
+    st.plotly_chart(fig, use_container_width=True, config=plotly_config)
 
 
 def plot_hazard_vs_time_plotly(time_list_yr, all_hazard_lists):
@@ -168,27 +186,48 @@ def plot_hazard_vs_time_plotly(time_list_yr, all_hazard_lists):
     # Convert cumulative hazard lists into non-cumulative
     # for easier plotting with plotly.
     sub_hazard_lists = [all_hazard_lists[0]]
-    for mRS in np.arange(1, 6):
-        # For each mRS, subtract the values that came before it.
-        diff_list = np.array(all_hazard_lists[mRS]-all_hazard_lists[mRS-1])
+    # Check which model type we're using.
+    model_type_used = st.session_state['lifetime_model_type']
+    if model_type_used == 'mRS':
+        for mRS in np.arange(1, 6):
+            # For each mRS, subtract the values that came before it.
+            diff_list = np.array(all_hazard_lists[mRS]-all_hazard_lists[mRS-1])
+            sub_hazard_lists.append(diff_list)
+    else:
+        # For second outcome, subtract the values that came before it.
+        diff_list = np.array(all_hazard_lists[-1]-all_hazard_lists[0])
         sub_hazard_lists.append(diff_list)
+        # Reduce the length of all_hazard_lists. Only keep the first
+        # and final rows of data.
+        all_hazard_lists = np.array(all_hazard_lists)[[0, -1], :]
+
+    if model_type_used == 'mRS':
+        names = [f'{i}' for i in range(len(all_hazard_lists))]
+        labels = [f'mRS≤{i}' for i in range(len(all_hazard_lists))]
+        legend_title = 'mRS'
+        colours = colours_excel
+    else:
+        names = ['Independent', 'Dependent']
+        labels = ['Independent', 'Dependent']
+        legend_title = 'Outcome'
+        colours = [colours_excel[0], colours_excel[3]]
 
     # # Plot the data:
     fig = go.Figure()
-    for i in range(6):
+    for i in range(len(all_hazard_lists)):
         # Extra bits for setting the hover label data:
         customdata = np.stack((
             100.0*all_hazard_lists[i],     # Cumulative probs mRS<=i
-            [i]*len(all_hazard_lists[i]),  # mRS values
+            [labels[i]]*len(all_hazard_lists[i]),  # mRS values
             ), axis=-1)
         # Line and fill:
         fig.add_trace(go.Scatter(
             x=time_list_yr,
             y=100.0*sub_hazard_lists[i],   # probabilities mRS=i
             mode='lines',
-            line=dict(color=colours_excel[i]),
+            line=dict(color=colours[i]),
             stackgroup='one',              # Makes the bands stack
-            name=f'{i}',                   # Label for legend
+            name=names[i],                   # Label for legend
             customdata=customdata,
         ))
         # The custom_data aren't directly plotted in the previous line,
@@ -197,7 +236,7 @@ def plot_hazard_vs_time_plotly(time_list_yr, all_hazard_lists):
     # Set axis labels:
     fig.update_xaxes(title_text='Years since discharge')
     fig.update_yaxes(title_text='Cumulative hazard (%)')
-    fig.update_layout(legend_title='mRS')
+    fig.update_layout(legend_title=legend_title)
 
     # Hover settings:
     # When hovering, highlight all mRS bins' points for chosen x:
@@ -207,21 +246,32 @@ def plot_hazard_vs_time_plotly(time_list_yr, all_hazard_lists):
     # Otherwise get "0 mRS=0 ...".
     fig.update_traces(
         hovertemplate=(
-            'mRS≤%{customdata[1]}: %{customdata[0]:6.2f}%' +
+            '%{customdata[1]}: %{customdata[0]:6.2f}%' +
+            # Remove secondary box on the hover label:
             '<extra></extra>'
             )
         )
-    # # Ready to delete (15th Dec 2022):
-    # # The followings adds 'Year X' to the hover label,
-    # # but annoyingly also adds it to every xtick.
-    # fig.update_xaxes(tickprefix='Year ')
 
     # Figure title:
     fig.update_layout(title_text='Hazard function for Death by mRS',
                       title_x=0.5)
+    # Move legend to above plot:
+    fig.update_layout(legend=dict(
+        orientation='h',
+        yanchor='top',
+        y=1.2,
+        xanchor='right',
+        x=1.0
+        ))
     # Change axis:
     fig.update_yaxes(range=[0, 100])
-    fig.update_xaxes(range=[0, time_list_yr[-1]],
+
+    # Give breathing room in the x-axis limits to help with viewing
+    # the app on a touch screen - once the hover message appears,
+    # it can only be removed by hovering (touching) a part of the plot
+    # that does not generate a hover message. So add extra space for
+    # clicking in this case.
+    fig.update_xaxes(range=[-4, time_list_yr[-1]],
                      constrain='domain')  # For aspect ratio.
     # Update ticks:
     fig.update_xaxes(tick0=0, dtick=5)
@@ -234,8 +284,32 @@ def plot_hazard_vs_time_plotly(time_list_yr, all_hazard_lists):
         constrain='domain'
     )
 
+    # Disable zoom and pan:
+    fig.update_layout(xaxis=dict(fixedrange=True), 
+                      yaxis=dict(fixedrange=True))
+
+    # Turn off legend click events
+    # (default is click on legend item, remove that item from the plot)
+    fig.update_layout(legend_itemclick=False)
+
+    # Options for the mode bar.
+    # (which doesn't appear on touch devices.)
+    plotly_config = {
+        # Mode bar always visible:
+        # 'displayModeBar': True,
+        # Plotly logo in the mode bar:
+        'displaylogo': False,
+        # Remove the following from the mode bar:
+        'modeBarButtonsToRemove': [
+            'zoom', 'pan', 'select', 'zoomIn', 'zoomOut', 'autoScale',
+            'lasso2d'
+            ],
+        # Options when the image is saved:
+        'toImageButtonOptions': {'height': None, 'width': None},
+        }
+
     # Write to streamlit:
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, config=plotly_config)
 
 
 def write_table_of_pDeath(pDeath_list, invalid_inds_for_pDeath, n_columns=1):
@@ -608,17 +682,6 @@ def write_example_mortality_after_year_one(vd):
         'Cumulative probability of death by time $t$ ',
         '(using the previously-calculated $P_{1}$):',
     ]))
-    latex_FDeath_yrn = utilities_lifetime.latex_equations.\
-        FDeath_yrn(vd, time_input_yr)
-    st.latex(latex_FDeath_yrn)
-
-    # ----- Calculation for survival -----
-    st.markdown(''.join([
-        'Survival at time $t$:'
-    ]))
-    latex_survival = utilities_lifetime.latex_equations.\
-        survival(vd, time_input_yr)
-    st.latex(latex_survival)
 
 
 def write_details_mortality_in_chosen_year(vd):
@@ -893,93 +956,3 @@ def write_details_median_survival(vd):
             find_survival_time_for_pDeath(
                 prob_input_frac, vd['P_yr1'], vd['LP_yrn'])
         print_survival_time_calcs(prob_input_frac, survival_time, vd)
-
-
-# #####################################################################
-# The following is ready to delete (15th Dec 2022):
-# The following plots use matplotlib.pyplot and have been replaced
-# with the plotly versions elsewhere.
-def plot_survival_vs_time(time_list_yr, survival_list):
-    """
-    REPLACED with plotly version.
-    Plot survival vs time.
-    """
-    fig, ax = plt.subplots()
-
-    # Plot content:
-    ax.plot(time_list_yr, survival_list*100.0)
-
-    # Plot setup:
-    ax.set_title('Survival')
-    ax.set_xlabel('Years since discharge')
-    ax.set_ylabel('Survival (%)')
-
-    # Change axis ticks:
-    ax.set_xlim(0, time_list_yr[-1])
-    ax.set_ylim(0, 100)
-    ax.set_yticks(np.arange(0, 101, 25))
-    ax.set_yticks(np.arange(0, 101, 5), minor=True)
-    ax.set_xticks(np.arange(0, time_list_yr[-1]+5, 5))
-    ax.set_xticks(np.arange(0, time_list_yr[-1]+1, 1), minor=True)
-    ax.grid(color='k', alpha=0.2)
-
-    # Change how squat or skinny the plot is, where the smaller the
-    # fraction, the squatter the plot:
-    ax.set_aspect(1.0/10.0)
-
-    # Write to streamlit:
-    st.pyplot(fig)
-
-
-def plot_hazard_vs_time(time_list_yr, all_hazard_lists, colours):
-    """
-    REPLACED with plotly version.
-    Plot hazard vs time.
-    """
-    fig, ax = plt.subplots()
-
-    # Plot content:
-    # Create an array of zeroes for use with fill_between
-    # on the first go round the "for" loop.
-    y_before = np.zeros(len(all_hazard_lists[0]))
-
-    for mRS in np.arange(6):
-        # Get data from the big list
-        # and multiply by 100 for percent:
-        y_vals = all_hazard_lists[mRS] * 100.0
-
-        # Colour the gap between this line and the previous:
-        ax.fill_between(
-            time_list_yr, y_vals, y_before,
-            color=colours[mRS],
-            label=mRS
-            )
-
-        # Update the y-values of the previous line
-        # for the next go round the loop.
-        y_before = y_vals
-
-    # Plot setup:
-    ax.set_title('Hazard function for Death by mRS')
-    ax.set_xlabel('Years since discharge')
-    ax.set_ylabel('Cumulative hazard (%)')
-
-    # Change axis ticks:
-    ax.set_xlim(0, time_list_yr[-1])
-    ax.set_ylim(0, 100)
-    ax.set_yticks(np.arange(0, 101, 10))
-    ax.set_yticks(np.arange(0, 101, 5), minor=True)
-    ax.set_xticks(np.arange(0, time_list_yr[-1]+5, 5))
-    ax.set_xticks(np.arange(0, time_list_yr[-1]+1, 1), minor=True)
-    ax.grid(color='k', alpha=0.2)
-
-    # Change how squat or skinny the plot is, where the smaller the
-    # fraction, the squatter the plot:
-    ax.set_aspect(1.0/5.0)
-
-    # Add legend below the axis:
-    ax.legend(title='mRS', bbox_to_anchor=[0.5, -0.2],
-              loc='upper center', ncol=6)
-
-    # Write to streamlit:
-    st.pyplot(fig)
