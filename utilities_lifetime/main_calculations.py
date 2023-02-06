@@ -183,7 +183,7 @@ def calculate_survival_iqr(age, sex, mRS):
 # ############################## QALYs ################################
 # #####################################################################
 
-def main_qalys(median_survival_times, age_input, sex_input):
+def main_qalys(median_survival_times, age_input, sex_input, mrs_input):
     """
     For each time in the input list, calculate the associated QALYs.
 
@@ -199,8 +199,9 @@ def main_qalys(median_survival_times, age_input, sex_input):
     """
     qalys = []
     for i, time in enumerate(median_survival_times):
+        # One time for each input mRS. 
         average_age = utilities_lifetime.fixed_params.lg_mean_ages[i]
-        qaly = utilities_lifetime.models.calculate_qaly(
+        qaly, qaly_list, qaly_raw_list = utilities_lifetime.models.calculate_qaly(
             utilities_lifetime.fixed_params.utility_list[i],
             time,
             age_input,
@@ -211,6 +212,10 @@ def main_qalys(median_survival_times, age_input, sex_input):
                 100.0
                 )
             )
+        # If this is the input mRS, keep a copy of these lists:
+        if i == mrs_input:
+            qaly_list_r = qaly_list
+            qaly_raw_list_r = qaly_raw_list
         # # Excel v7.0 version:
         # qaly = utilities_lifetime.models.calculate_qaly_v7(
         #     utilities_lifetime.fixed_params.utility_list[i],
@@ -218,7 +223,7 @@ def main_qalys(median_survival_times, age_input, sex_input):
         #     dfq=utilities_lifetime.fixed_params.discount_factor_QALYs_perc/100.0
         #     )
         qalys.append(qaly)
-    return qalys
+    return qalys, qaly_list_r, qaly_raw_list_r
 
 
 def make_table_qaly_by_change_in_outcome(qalys):
@@ -689,6 +694,10 @@ def build_variables_dict(
         discount_factor_QALYs_perc,
         utility_list=utilities_lifetime.fixed_params.utility_list,
         qalys=qalys,
+        # Constants from fixed_params file:
+        qaly_age_coeff=utilities_lifetime.fixed_params.qaly_age_coeff,
+        qaly_age2_coeff=utilities_lifetime.fixed_params.qaly_age2_coeff,
+        qaly_sex_coeff=utilities_lifetime.fixed_params.qaly_sex_coeff,
         # ----- For resource use: -----
         total_discounted_cost=total_discounted_cost,
         # A&E:

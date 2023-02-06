@@ -132,8 +132,9 @@ def main():
     median_survival_times = survival_times[:, 0]
 
     # ##### QALYs #####
-    qalys = utilities_lifetime.main_calculations.main_qalys(
-        median_survival_times, age_input, sex_input)
+    qalys, qaly_list, qaly_raw_list = \
+        utilities_lifetime.main_calculations.main_qalys(
+            median_survival_times, age_input, sex_input, mRS_input)
     # qalys is a list of six floats, i.e. one QALY value for each mRS.
     qalys_table = utilities_lifetime.main_calculations.\
         make_table_qaly_by_change_in_outcome(qalys)
@@ -246,7 +247,9 @@ def main():
     with tabs[1]:
         st.header('QALYs')
         utilities_lifetime.container_qalys.main(
-            survival_times, qalys, qalys_table, variables_dict)
+            survival_times, qalys, qaly_list, qaly_raw_list,
+            qalys_table, variables_dict
+            )
 
     with tabs[2]:
         st.header('Resources and costs')

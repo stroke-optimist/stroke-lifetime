@@ -11,7 +11,7 @@ import utilities_lifetime.latex_equations
 import utilities_lifetime.fixed_params
 
 
-def main(survival_times, qalys, qalys_table, variables_dict):
+def main(survival_times, qalys, qaly_list, qaly_raw_list, qalys_table, variables_dict):
     """
 
     qalys      - array or list. Contains six floats, one for each
@@ -20,7 +20,9 @@ def main(survival_times, qalys, qalys_table, variables_dict):
     """
     st.markdown('### Discounted QALYs')
     with st.expander('Details: Discounted QALYs'):
-        write_details_discounted_qalys(variables_dict)
+        write_details_discounted_qalys(
+            qaly_list, qaly_raw_list, variables_dict
+            )
 
     # Check which model we're using and draw a bespoke table:
     if st.session_state['lifetime_model_type'] == 'mRS':
@@ -227,7 +229,7 @@ def write_table_discounted_qalys_outcome_dicho(qalys):
     st.table(df_table)
 
 
-def write_details_discounted_qalys(vd):
+def write_details_discounted_qalys(qaly_list, qaly_raw_list, vd):
     """
     TO DO - finish these equations! And then make examples.
 
@@ -239,6 +241,27 @@ def write_details_discounted_qalys(vd):
          It contains lots of useful constants and variables.
     """
     st.markdown(':warning: TO DO (check symbol consistency)')
+
+    # ----- Coefficients -----
+    cols_coeffs = st.columns(2)
+    with cols_coeffs[0]:
+        # QALY coefficients.
+        markdown_table_qaly_coeffs = utilities_lifetime.\
+            latex_equations.table_qaly_coeffs(vd)
+        st.markdown(markdown_table_qaly_coeffs)
+    with cols_coeffs[1]:
+        # Mean age coefficients.
+        # Check the model type to decide which table to show.
+        model_type_used = st.session_state['lifetime_model_type']
+        if model_type_used == 'mRS':
+            markdown_table_mean_age_coeffs = utilities_lifetime.\
+                latex_equations.table_mean_age_coeffs(vd)
+        else:
+            markdown_table_mean_age_coeffs = utilities_lifetime.\
+                latex_equations.table_mean_age_coeffs_dicho(vd)
+        st.markdown(markdown_table_mean_age_coeffs)
+
+
     st.markdown(''.join([
         'The discounted QALYs, $Q$, are calculated for each year until ',
         'the end of the median survival years.'
@@ -269,6 +292,10 @@ def write_details_discounted_qalys(vd):
         'Sum this up over all y for final QALy value.'
     ]))
 
+    latex_discounted_qalys_total_generic = utilities_lifetime.\
+        latex_equations.discounted_qalys_total_generic()
+    st.latex(latex_discounted_qalys_total_generic)
+
     # ##### EXAMPLE #####
     # ----- Calculations with user input -----
     st.markdown('### Example')
@@ -280,11 +307,45 @@ def write_details_discounted_qalys(vd):
     #     'on the patient details.'
     #     ]))
 
-    # # ----- Calculate QALYs -----
-    # st.markdown('For the median survival years: ')
-    # latex_discounted_qalys = \
-    #     utilities_lifetime.latex_equations.discounted_qalys(vd)
-    # st.latex(latex_discounted_qalys)
+    cols = st.columns([0.3, 0.6])
+    with cols[0]:
+        # ----- Write table with the values -----
+        table_qalys = utilities_lifetime.latex_equations.\
+            build_table_str_qalys(
+                qaly_raw_list, qaly_list, np.sum(qaly_list)
+                )
+        st.markdown(table_qalys)
+        st.caption('caption_str')
+
+    with cols[1]:
+        # ----- Example calculation of discounted resource -----
+        st.markdown(''.join([
+            'Example of the calculation of the discounted QALY ',
+            'for a chosen year:'
+        ]))
+
+        # ----- Input number of years -----
+        # Give this slider a key or streamlit throws warnings
+        # about multiple identical sliders.
+        time_input_yr = st.slider(
+            'Choose number of years for this example',
+            min_value=1,
+            max_value=len(qaly_list),
+            value=2,
+            key='TimeforQALYS'
+            )
+        for year in [time_input_yr]:
+            latex_discounted_raw_qalys = utilities_lifetime.latex_equations.\
+                discounted_raw_qalys(
+                    vd, year, qaly_raw_list[year-1]
+                    )
+            st.latex(latex_discounted_raw_qalys)
+            st.markdown('$^{*}$ This value is 0 for female patients and 1 for male.')
+
+            latex_discounted_qaly = utilities_lifetime.latex_equations.\
+                discounted_qalys(
+                    vd, qaly_raw_list[year-1], year, qaly_list[year-1])
+            st.latex(latex_discounted_qaly)
 
 
 def write_details_discounted_qalys_v7(vd):

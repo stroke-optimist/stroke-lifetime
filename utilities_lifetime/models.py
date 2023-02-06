@@ -316,6 +316,8 @@ def calculate_qaly(util, med_survival_years, age, sex, average_age, dfq=0.035):
     qaly               - float. Calculated number of QALYs.
     """
     qaly_list = []
+    # Return this for printing a details table later:
+    qaly_raw_list = []
     for year in np.arange(0, med_survival_years):
         # Calculate raw QALY
         raw_qaly = (
@@ -327,7 +329,7 @@ def calculate_qaly(util, med_survival_years, age, sex, average_age, dfq=0.035):
         )
         if raw_qaly > 1:
             raw_qaly = 1
-
+        qaly_raw_list.append(raw_qaly)
         # Calculate discounted QALY:
         qaly = raw_qaly * (1.0 + dfq)**(-year)
 
@@ -353,7 +355,7 @@ def calculate_qaly(util, med_survival_years, age, sex, average_age, dfq=0.035):
 
     # Sum up all of the values in the list:
     qaly = np.sum(qaly_list)
-    return qaly
+    return qaly, qaly_list, qaly_raw_list
 
 
 def calculate_qaly_v7(util, med_survival_years, dfq=0.035):
