@@ -947,7 +947,7 @@ def discounted_raw_qalys_generic():
     """
     str = (
         r'''
-        \begin{equation}\tag{5}
+        \begin{equation}\tag{13}
         Q_{y, \mathrm{raw}} =
             u +
             \displaystyle\sum_{i=1}^{n}
@@ -969,7 +969,7 @@ def discounted_raw_qalys_symbols_generic():
     """
     str = (
         r'''
-        \begin{align*}\tag{13}
+        \begin{align*}#\tag{15}
         Q_{y, \mathrm{raw}} =& u + \\
         & ([a + y] - \beta_{\mathrm{av\ age}})
             \times \beta_{\mathrm{age}} - \\
@@ -998,7 +998,7 @@ def discounted_qalys_total_generic():
     """Sum discounted resources in all years to get total use."""
     str = (
         r'''
-        \begin{equation*}\tag{23}
+        \begin{equation*}\tag{15}
         Q = \displaystyle\sum_{y=1}^{m} Q_{y}
         \end{equation*}
         '''
@@ -1053,8 +1053,16 @@ def discounted_raw_qalys(vd, year, qaly_raw):
     return str
 
 
-def discounted_qalys(vd, qaly_raw, year, qaly):
+def discounted_qalys(vd, qaly_raw, year, qaly, frac):
     """QALYs from utility, discount factor, and years."""
+    # Check if this is the final year.
+    # If it is, add an extra string to explain that we reduce
+    # the value to match the fraction of the year that is lived in.
+    if frac == 0:
+        extra_str = ''
+    else:
+        extra_str = r'''\times \textcolor{red}{''' + f'{frac:.2f}' + r'''}'''
+
     str = (
         r'''
         \begin{align*}
@@ -1066,7 +1074,9 @@ def discounted_qalys(vd, qaly_raw, year, qaly):
         f'{vd["discount_factor_QALYs_perc"]/100.0:.4f}' +
         r''')^{\textcolor{Fuchsia}{''' +
         f'{year}' +
-        r'''}}} \\
+        r'''}}} ''' +
+        extra_str +
+        r'''\\
         &= \textcolor{red}{''' +
         f'{qaly:.3f}' +
         r'''}
@@ -1172,7 +1182,7 @@ def discounted_qalys_generic_v7():
     """
     str = (
         r'''
-        \begin{equation*}\tag{13}
+        \begin{equation*}#\tag{13}
         Q = u +
         \frac{u}{1+d} \times
         \frac{1 - (1+d)^{-[\mathrm{yrs}-1]}}{1 - (1+d)^{-1}}
@@ -1284,7 +1294,7 @@ def ae_count_generic():
     """Model for number of A&E admissions."""
     str = (
         r'''
-        \begin{equation}\tag{14}
+        \begin{equation}\tag{16}
         \mathrm{Count (yrs)} =
         \exp{
             \left(\gamma_\mathrm{AE}
@@ -1303,7 +1313,7 @@ def ae_lp_generic():
     """Linear predictor for A&E admissions model."""
     str = (
         r'''
-        \begin{equation}\tag{15}
+        \begin{equation}\tag{17}
         LP_{\mathrm{AE}} =
         \alpha_{\mathrm{AE}} +
         \displaystyle\sum_{i=1}^{n}
@@ -1454,7 +1464,7 @@ def nel_bed_days_generic():
     """NEL count model."""
     str = (
         r'''
-        \begin{equation}\tag{16}
+        \begin{equation}\tag{18}
         \mathrm{Count (yrs)} =
             -\ln{\left(
             \frac{1}{
@@ -1472,7 +1482,7 @@ def nel_lp_generic():
     """Linear predictor for the NEL count model."""
     str = (
         r'''
-        \begin{equation}\tag{17}
+        \begin{equation}\tag{19}
         LP_{\mathrm{NEL}} =
         \alpha_{\mathrm{NEL}} +
         \displaystyle\sum_{i=1}^{n}
@@ -1621,7 +1631,7 @@ def el_bed_days_generic():
     """Model for counting EL bed days."""
     str = (
         r'''
-        \begin{equation}\tag{18}
+        \begin{equation}\tag{20}
         \mathrm{Count (yrs)} =
             -\ln{\left(
             \frac{1}{
@@ -1639,7 +1649,7 @@ def el_lp_generic():
     """Linear predictor for the EL bed days model."""
     str = (
         r'''
-        \begin{equation}\tag{19}
+        \begin{equation}\tag{21}
         LP_{\mathrm{EL}} =
         \alpha_{\mathrm{EL}} +
         \displaystyle\sum_{i=1}^{n}
@@ -1803,7 +1813,7 @@ def tic_generic():
     """Model for time spent in residential care."""
     str = (
         r'''
-        \begin{equation}\tag{20}
+        \begin{equation}\tag{22}
         \mathrm{Count (yrs)} =
         95\% \times c \times \mathrm{yrs}
         \end{equation}
@@ -1849,7 +1859,7 @@ def count_yeari_generic():
     """
     str = (
         r'''
-        \begin{equation*}\tag{21}
+        \begin{equation*}\tag{23}
         \mathrm{Count}_i =
         \mathrm{Count}(\mathrm{yrs}=i) -
         \mathrm{Count}(\mathrm{yrs}=[i-1])
@@ -1863,7 +1873,7 @@ def discounted_resource_generic(vd):
     """Converting resource use to discounted resource use."""
     str = (
         r'''
-        \begin{equation*}\tag{22}
+        \begin{equation*}\tag{24}
         D_i = \mathrm{Count}_i \times \frac{1}{\left(
             1 + ''' +
             f'{vd["discount_factor_QALYs_perc"]/100.0:.4f}' +
@@ -1879,7 +1889,7 @@ def discounted_resource_total_generic():
     """Sum discounted resources in all years to get total use."""
     str = (
         r'''
-        \begin{equation*}\tag{23}
+        \begin{equation*}\tag{25}
         D =
         c \times \displaystyle\sum_{i=1}^{m}
         D_i

@@ -846,8 +846,8 @@ def write_details_discounted_resource_use(vd):
     with tabs[0]:
         # A&E admissions:
         caption_str = ''.join([
-            '$\mathrm{Count}(\mathrm{yrs})$ is from Equation [14] ',
-            'and "Discounted use" is from Equation [22].'
+            '$\mathrm{Count}(\mathrm{yrs})$ is from Equation [16] ',
+            'and "Discounted use" is from Equation [24].'
             ])
         write_details_discounted_resource(
             vd, "A_E_counts", "discounted_list_A_E",
@@ -855,8 +855,8 @@ def write_details_discounted_resource_use(vd):
     with tabs[1]:
         # NEL bed days:
         caption_str = ''.join([
-            '$\mathrm{Count}(\mathrm{yrs})$ is from Equation [16] ',
-            'and "Discounted use" is from Equation [22].'
+            '$\mathrm{Count}(\mathrm{yrs})$ is from Equation [18] ',
+            'and "Discounted use" is from Equation [24].'
             ])
         write_details_discounted_resource(
             vd, "NEL_counts", "discounted_list_NEL",
@@ -865,8 +865,8 @@ def write_details_discounted_resource_use(vd):
     with tabs[2]:
         # EL bed days:
         caption_str = ''.join([
-            '$\mathrm{Count}(\mathrm{yrs})$ is from Equation [18] ',
-            'and "Discounted use" is from Equation [22].'
+            '$\mathrm{Count}(\mathrm{yrs})$ is from Equation [20] ',
+            'and "Discounted use" is from Equation [24].'
             ])
         write_details_discounted_resource(
             vd, "EL_counts", "discounted_list_EL",
@@ -875,8 +875,8 @@ def write_details_discounted_resource_use(vd):
     with tabs[3]:
         # Time in care:
         caption_str = ''.join([
-            '$\mathrm{Count}(\mathrm{yrs})$ is from Equation [20] ',
-            'and "Discounted use" is from Equation [22].'
+            '$\mathrm{Count}(\mathrm{yrs})$ is from Equation [22] ',
+            'and "Discounted use" is from Equation [24].'
             ])
         write_details_discounted_resource(
             vd, "care_years", "discounted_list_care",
