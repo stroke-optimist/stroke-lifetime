@@ -56,15 +56,20 @@ def model_type_input():
         ['mRS', 'Dichotomous'],
         horizontal=True
         )
+
+    # Find the previous user selection if possible,
+    # or else use a dummy string.
     try:
         model_input_str_before = st.session_state['lifetime_model_type']
     except KeyError:
         model_input_str_before = 'dummy'
     # Add the model type to the streamlit session state so
-    # that it can be accessed in the models.py preamble.
-    # (AL - this is a bit hacky but saves lots of rewrites and if/else
-    # depending on the model type)
+    # that it can be accessed throughout the code to check which
+    # model type we're using.
     st.session_state['lifetime_model_type'] = model_input_str
+    # If the model type has changed from the previous selection,
+    # re-import the fixed parameters file to make sure we're
+    # importing the correct set of params.
     if model_input_str != model_input_str_before:
         importlib.reload(utilities_lifetime.fixed_params)
     return model_input_str

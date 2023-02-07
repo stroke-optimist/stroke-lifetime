@@ -1,6 +1,17 @@
 """
 Define constants that will be used in multiple places throughout the
 script but that only need to be defined once.
+
+There are now two sets of parameters, one each for:
++ individual mRS levels
++ dichotomised outcome
+
+The equivalent parameters have the same name in both cases.
+There's a check in this script for which set to use
+depending on the user selection of model type.
+When the model type changes (in container_inputs.py),
+this script is re-loaded to make sure the correct set of
+parameters are used.
 """
 import streamlit as st
 import numpy as np

@@ -201,17 +201,18 @@ def main_qalys(median_survival_times, age_input, sex_input, mrs_input):
     for i, time in enumerate(median_survival_times):
         # One time for each input mRS. 
         average_age = utilities_lifetime.fixed_params.lg_mean_ages[i]
-        qaly, qaly_list, qaly_raw_list = utilities_lifetime.models.calculate_qaly(
-            utilities_lifetime.fixed_params.utility_list[i],
-            time,
-            age_input,
-            sex_input,
-            average_age,
-            dfq=(
-                utilities_lifetime.fixed_params.discount_factor_QALYs_perc /
-                100.0
+        qaly, qaly_list, qaly_raw_list = utilities_lifetime.models.\
+            calculate_qaly(
+                utilities_lifetime.fixed_params.utility_list[i],
+                time,
+                age_input,
+                sex_input,
+                average_age,
+                dfq=(
+                    utilities_lifetime.fixed_params.
+                    discount_factor_QALYs_perc / 100.0
+                    )
                 )
-            )
         # If this is the input mRS, keep a copy of these lists:
         if i == mrs_input:
             qaly_list_r = qaly_list

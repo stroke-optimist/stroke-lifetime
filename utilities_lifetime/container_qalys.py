@@ -237,7 +237,12 @@ def write_table_discounted_qalys_outcome_dicho(qalys):
     st.table(df_table)
 
 
-def write_details_discounted_qalys(qaly_list, qaly_raw_list, vd, med_survival_yrs_list):
+def write_details_discounted_qalys(
+        qaly_list,
+        qaly_raw_list,
+        vd,
+        med_survival_yrs_list
+        ):
     """
     Write method and example for calculating QALYs from utility, years,
     patient details, and fixed coefficients.

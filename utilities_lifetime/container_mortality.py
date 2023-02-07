@@ -2,7 +2,6 @@
 This contains everything in the Mortality section.
 """
 import streamlit as st
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -146,7 +145,7 @@ def plot_survival_vs_time_plotly(
     )
 
     # Disable zoom and pan:
-    fig.update_layout(xaxis=dict(fixedrange=True), 
+    fig.update_layout(xaxis=dict(fixedrange=True),
                       yaxis=dict(fixedrange=True))
 
     # Turn off legend click events
