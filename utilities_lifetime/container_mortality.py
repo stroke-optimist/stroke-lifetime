@@ -23,12 +23,20 @@ def main(
         ):
     # Details on probability with time
     # Year one:
+    st.markdown(''.join([
+        'Mortality during year one is calculated using ',
+        'a logistic model.'
+        ]))
     with st.expander('Details: Mortality during year one'):
         write_details_mortality_in_year_one(variables_dict)
     with st.expander('Example: Mortality during year one'):
         write_example_mortality_in_year_one(variables_dict)
 
     # After year one:
+    st.markdown(''.join([
+        'Mortality after year one is calculated using ',
+        'a Gompertz model.'
+        ]))
     with st.expander('Details: Mortality after year one'):
         write_details_mortality_after_year_one(variables_dict)
     with st.expander('Example: Mortality after year one'):

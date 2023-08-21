@@ -8,7 +8,7 @@ page_setup()
 
 st.warning(''.join([
     ':warning: __To do:__ ',
-    'The text on this page needs updating for the final app.'
+    'The text on this page will be updated on the next release.'
 ]))
 
 write_text_from_file('pages/text_for_pages/5_Citation.txt',

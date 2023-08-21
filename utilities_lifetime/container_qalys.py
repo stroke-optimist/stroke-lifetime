@@ -336,7 +336,7 @@ def write_details_discounted_qalys(
                 qaly_raw_list, qaly_list, np.sum(qaly_list)
                 )
         st.markdown(table_qalys)
-        st.caption('caption_str')
+        # st.caption('caption_str')
 
     with cols[1]:
         # ----- Example calculation of discounted resource -----

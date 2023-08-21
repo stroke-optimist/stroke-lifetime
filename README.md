@@ -22,9 +22,9 @@ Generally the necessary calculations are stored in functions in `utilities/main_
 
 If you want to use the models but aren't interested in the Streamlit parts, you will just need:
 
-+ `utilities/models.py` - Basic models
-+ `utilities/fixed_params.py` - Constants
-+ `utilities/main_calculations.py` - Gathers the basic models and calculates all of the useful outputs. 
++ `utilities_lifetime/models.py` - Basic models
++ `utilities_lifetime/fixed_params.py` - Constants
++ `utilities_lifetime/main_calculations.py` - Gathers the basic models and calculates all of the useful outputs. 
 
 To work out how to piece it all together, it might be helpful to look at the "Calculations" section of `Interactive_demo.py`
 
@@ -39,12 +39,12 @@ The Streamlit landing page is `1: Introduction.py`. In the sidebar there are a s
 + `5: Cite_this_work.py` - Zenodo citation. 
 + `6: Resources.py` - links to further useful materials. 
 
-The page topics follow the recommendations of Tom Monks and Alison Harper (in Proceedings of the Operational Research Society Simulation Workshop 2023 (SW23)). 
+The page topics follow the recommendations of [Tom Monks and Alison Harper (in Proceedings of the Operational Research Society Simulation Workshop 2023 (SW23))](https://doi.org/10.36819/SW23.030). 
 
 When these pages display a large amount of markdown text in one go, that text is imported from a `.txt` file in `pages/text_for_pages/` to prevent constant re-spacing to keep the lines below 79 characters. 
 
 ### Utilities
-The `utilities` directory contains the bulk of the useful code. 
+The `utilities_lifetime` directory contains the bulk of the useful code. 
 
 | File | Contents | 
 | --- | --- | 
@@ -59,6 +59,6 @@ The `utilities` directory contains the bulk of the useful code.
 | `main_calculations.py` | Contains more complicated functions with much python jiggery-pokery for calculating lots of quantities in one go. Typically uses the functions in `models.py` but wrapped in a "for" loop. |
 | `models.py` | Contains functions for calculating the simpler quantities, i.e. those that can be described by a short formula rather than lots of python jiggery-pokery.  |
 
-`utilities/` also contains an empty `__init__.py` file that allows the container scripts to import functions directly from the latex equations script. 
+`utilities_lifetime/` also contains an empty `__init__.py` file that allows the container scripts to import functions directly from the latex equations script. 
 
 #

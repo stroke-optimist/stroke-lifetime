@@ -7,18 +7,20 @@
 
 More detail can be found in these places:
 
-1. Our paper 
-2. Their paper
-3. This website 
+1. McMeekin et al., in prep. (link to be added)
+2. Similar methods are used in the United Kingdom Prospective Diabetes Study Outcomes Model. [Hayes AJ, Leal J, Gray AM, Holman RR and Clarke PM. UKPDS outcomes model 2: a new version of a model to simulate lifetime health outcomes of patients with type 2 diabetes mellitus using data from the 30 year United Kingdom Prospective Diabetes Study: UKPDS 82. Diabetologia. 2013; 56: 1925-33.](https://doi.org/10.1007/s00125-013-2940-y)
 
 ## About the app  
 
 The code behind this app is written in `python3` and the app itself is deployed using `streamlit`, which is a free service for hosting [python web apps](https://streamlit.io/). 
 
-If any unusual or particularly useful packages have been used, you could mention them here and encourage others to use them. 
+The code in this app is open-source and available on GitHub:
++ [![GitHub Badge][github-img]][github-link] __Source code:__ https://github.com/stroke-optimist/streamlit_lifetime_stroke
 
-## References
-
-+ Me, I. et al., 2022. A Brilliant Paper I Wrote. *Journal* 1, 1-10. DOI
+The README file on GitHub contains instructions on where to find the python code for the models and constants.
 
 
+
+
+[github-img]: https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white
+[github-link]: https://github.com/stroke-optimist/streamlit_lifetime_stroke

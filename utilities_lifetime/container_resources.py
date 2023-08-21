@@ -21,6 +21,12 @@ def main(
         ):
 
     st.write('### Resource use')
+    st.markdown(''.join([
+        'Acute hospital attendances are modelled using ',
+        'a Weibull distribution. ',
+        'Non-elective bed days and elective bed days are both ',
+        'modelled using a log-logistic distribution.'
+        ]))
     with st.expander('Details: Resource use'):
         write_details_resource_use(variables_dict)
 

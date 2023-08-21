@@ -1,30 +1,6 @@
 # To be printed as markdown on the landing page. 
 # ---------------------------------------------------------------------
 
-# Stroke risk equations 
-
-## Summary 
-
-Conclusion from the paper abstract:
-
-> _"Our model is the first published set of risk equations for use in economic models of acute stroke interventions. Their use provides the opportunity to improve the consistency of modelling the longer-term effects of acute interventions."_
-
-From Methods top summary in the paper:
-
-> _"By combining predictions of resource use with predictions of mortality, annual estimates resource utilisation based on model inputs can be modelled."_
-
-c.f. the UKPDS (UK Prospective Diabetes Study) outcome model:
-[https://www.dtu.ox.ac.uk/outcomesmodel/](https://www.dtu.ox.ac.uk/outcomesmodel/)
-
-
-_Goal:_ calculate probability of death at X years after onset, and convert to a life expectancy. 
-
-
-
-## Background information 
-
-Fill this. 
-
 
 ## How to use this app
 
@@ -34,32 +10,47 @@ There you can change the input parameters of age, sex, and mRS, and see the resu
 To change between light mode and dark mode or to make the display wider, change the settings under the Menu in the top right of the screen.
 
 
-### Acronym reference
+## Background information
+
+_The following is a copy of the abstract from the paper._
+
+__Introduction:__
+The long-term economic consequences of acute stroke are usually extrapolated from short term outcomes using models based upon assumptions about morbidity and mortality. Inconsistency of assumptions and methods of extrapolation used can create uncertainty when comparing estimates of life-time cost effectiveness. We sought to develop a model to estimate life-time consequences of strokes.  
+
+__Patients and methods:__
+Data from index stroke about further admissions and mortality was provided for acute stroke patients discharged between 2013 and 2014 from a large UK service.  This was combined with data from UK lifetables to create a set of parametric equations to predict the life-time risk of mortality based on age, sex and modified Rankin Scores. and secondary resource utilisation.  A second set of parametric equations were created to estimate secondary care resource use.
+
+__Results:__
+A cohort of 1,509 (Male 51%; mean age 74) stroke patients had median follow up of 2,187 days and represented 7,110.53 post discharge patient years.  A logistic model estimated mortality within twelve months of discharge and over the remainder of the lifetime a Gompertz model was used. Acute hospital attendances were modelled using a Weibull distribution. Non-elective bed days and elective bed days were both modelled using a log-logistic distribution. Overall and as expected, mortality risk increased with age and stroke severity as well as for males.  
+
+__Conclusion:__
+Using data about patients outside of clinical trials, the risk equations allow extrapolation of results from short term trials over the life course and provide an opportunity to improve the real-world accuracy and comparison of long-term cost-effectiveness estimates for acute interventions.  
+
+
+### Glossary and acronym reference
 
 | Acronym | Description | 
 | --- | --- | 
 | mRS | Modified Rankin Scale | 
-| QALY | Quality-adjusted life-year (??) | 
+| QALY | Quality-adjusted life-year | 
 | WTP | Willingness To Pay | 
 | A&E | Accident and Emergency | 
 | EL | Elective bed days | 
 | NEL | Non-elective bed days | 
 | AIC | Akaike information criterion |
 
-Some words I was unfamiliar with: 
+Selected terms used in the app:
 
 | Vocabulary | Description | 
 | --- | --- | 
-| Hazard | Probability of death |
-| Discounted (as in QALY or resource cost) | ??? | 
-
-
-And some abbreviations that might only be used in the code:
-| Term | Description | 
-| --- | --- | 
-| `adjage` | Adjusted age. (Adjusted how?? Quality-adjusted?) |
+| Hazard | Risk of mortality and risk of secondary care resources. |
+| Discount | QALYs are discounted at 3.5%. | 
+| Adjusted age | Age variables are mean centred. The Gompertz model mean is 73.7324 years.  The logistic model uses centred group means on mRS (67.09161, 67.98058, 72.85753, 76.48837, 78.56029, 80.91837 for mRS 0-5 respectively) and independent/dependent (70.06683 and 78.21609 respectively). |
 
 
 ### Limitations 
 
-Is there anything your app *does not* do but that people might reasonably misunderstand it to be doing? 
+This is an initial presentation of a stroke model which aims to predict mortality and secondary resource use in the longer-term across lifetimes. Validation of the model may require future research using data from patients in other settings and with more recent cohorts.
+
+Limiting model inputs to age at time of stroke, modified Rankin Score at discharge and sex means the models are unsuitable for predictions at individual patient level. 
+

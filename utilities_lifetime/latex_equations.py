@@ -382,13 +382,19 @@ def hazard_yrn(vd, time_input_yr):
         ''' +
         f'{time_input_yr}' +
         r'''
-        }} &= \frac{1}{\gamma} \cdot
+        }} &= \frac{1}{\textcolor{red}{
+        ''' +
+        f'{vd["gz_gamma"]}' +
+        r'''}} \cdot
         e^{
         \textcolor{red}{
         ''' +
         f'{vd["LP_yrn"]:.4f}' +
         r'''
-        }} \cdot \left(e^{\gamma \times [\textcolor{Fuchsia}{
+        }} \cdot \left(e^{\textcolor{red}{
+        ''' +
+        f'{vd["gz_gamma"]}' +
+        r'''} \times [\textcolor{Fuchsia}{
         ''' +
         f'{time_input_yr}' +
         r'''
