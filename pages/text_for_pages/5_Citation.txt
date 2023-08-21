@@ -5,14 +5,15 @@
 
 Please cite this model as: 
 
-    @software{your_reference_here,
-        author       = {Me, I and Myself, I},
-        title        = {template\_app Streamlit app v1.0.0},
-        month        = nov,
-        year         = 2022,
+    @software{streamlit_stroke_lifetime,
+        author       = {Laws, A., McMeekin, P., McCarthy, S., McCarthy, A., Porteous, J., Allen, M., White, P., James, M., Ford, G., Price, C.},
+        title        = {Lifetime Mortality Streamlit app v1.0.0},
+        month        = aug,
+        year         = 2023,
         publisher    = {Zenodo},
         version      = {v1.0.0},
-        doi          = {your DOI here},
-        url          = {DOI URL here}
+        doi          = {10.5281/zenodo.8269389},
+        url          = {https://doi.org/10.5281/zenodo.8269389}
 	}
 
+[![DOI](https://zenodo.org/badge/575076706.svg)](https://zenodo.org/badge/latestdoi/575076706)

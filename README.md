@@ -1,8 +1,12 @@
 # Lifetime stroke outcome model
 
-This repository contains the code behind the Streamlit app for the lifetime stroke model:
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://lifetime-stroke-outcome.streamlit.app/)
+[![Open in Streamlit][streamlit-img]][streamlit-link] [![DOI][doi-img]][doi-link]
+
+This repository contains the code behind the Streamlit app for the lifetime stroke model.
+
++ __Streamlit app:__ https://lifetime-stroke-outcome.streamlit.app/
++ __DOI:__ https://doi.org/10.5281/zenodo.8269389
 
 The model is described in _a paper that's not yet published. Link will be added when available_.
 
@@ -62,3 +66,9 @@ The `utilities_lifetime` directory contains the bulk of the useful code.
 `utilities_lifetime/` also contains an empty `__init__.py` file that allows the container scripts to import functions directly from the latex equations script. 
 
 #
+
+[streamlit-img]: https://static.streamlit.io/badges/streamlit_badge_black_white.svg
+[streamlit-link]: https://lifetime-stroke-outcome.streamlit.app/
+
+[doi-img]: https://zenodo.org/badge/575076706.svg
+[doi-link]: https://doi.org/10.5281/zenodo.8269389
