@@ -5,7 +5,7 @@
 
 Please cite this model as: 
 
-    @software{streamlit_stroke_lifetime,
+    @software{streamlit_lifetime_stroke,
         author       = {Laws, A., McMeekin, P., McCarthy, S., McCarthy, A., Porteous, J., Allen, M., White, P., James, M., Ford, G., Price, C.},
         title        = {Lifetime Mortality Streamlit app v1.0.0},
         month        = aug,
