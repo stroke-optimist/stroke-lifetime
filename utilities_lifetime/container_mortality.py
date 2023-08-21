@@ -686,6 +686,17 @@ def write_example_mortality_after_year_one(vd):
         'Cumulative probability of death by time $t$ ',
         '(using the previously-calculated $P_{1}$):',
     ]))
+    latex_FDeath_yrn = utilities_lifetime.latex_equations.FDeath_yrn(
+        vd, time_input_yr)
+    st.latex(latex_FDeath_yrn)
+
+    # ----- Calculation for survival -----
+    st.markdown(''.join([
+        'Survival at time $t$:'
+    ]))
+    latex_survival = utilities_lifetime.latex_equations.survival(
+        vd, time_input_yr)
+    st.latex(latex_survival)
 
 
 def write_details_mortality_in_chosen_year(vd):
