@@ -27,8 +27,38 @@ def main(
         'Non-elective bed days and elective bed days are both ',
         'modelled using a log-logistic distribution.'
         ]))
-    with st.expander('Details: Resource use'):
-        write_details_resource_use(variables_dict)
+
+    tabs = st.tabs([
+        'A&E Admissions',
+        'Non-elective bed days',
+        'Elective bed days',
+        'Time in residential care'
+        ])
+
+    with tabs[0]:
+        # A&E admissions:
+        with st.expander('Details: A&E Resource use'):
+            write_details_ae_admissions(variables_dict)
+        with st.expander('Example: A&E Resource use'):
+            write_example_ae_admissions(variables_dict)
+    with tabs[1]:
+        # NEL admissions:
+        with st.expander('Details: NEL Resource use'):
+            write_details_nel_admissions(variables_dict)
+        with st.expander('Example: NEL Resource use'):
+            write_example_nel_admissions(variables_dict)
+    with tabs[2]:
+        # EL admissions:
+        with st.expander('Details: EL Resource use'):
+            write_details_el_admissions(variables_dict)
+        with st.expander('Example: EL Resource use'):
+            write_example_el_admissions(variables_dict)
+    with tabs[3]:
+        # Time in care:
+        with st.expander('Details: Time in care Resource use'):
+            write_details_time_in_care(variables_dict)
+        with st.expander('Example: Time in care Resource use'):
+            write_example_time_in_care(variables_dict)
 
     # Check which model we're using and draw a bespoke table:
     if st.session_state['lifetime_model_type'] == 'mRS':
@@ -45,6 +75,8 @@ def main(
     st.write('### Discounted Cost of Resource use')
     with st.expander('Details: Discounted resource use'):
         write_details_discounted_resource_use(variables_dict)
+    with st.expander('Example: Discounted resource use'):
+        write_example_discounted_resource_use(variables_dict)
 
     # Check which model we're using and draw a bespoke table:
     if st.session_state['lifetime_model_type'] == 'mRS':
@@ -425,42 +457,9 @@ def write_table_discounted_change_dicho(total_discounted_cost):
         ]))
 
 
-def write_details_resource_use(vd):
-    """
-    Write method and example for calculating resouce use, i.e. A&E
-    admissions, NEL/EL bed days, and time in residential care.
-
-    This is split into multiple functions to make it easier to move the
-    categories around on the Streamlit page.
-
-    Inputs:
-    vd - dict. vd is short for variables_dict from main_calculations.
-         It contains lots of useful constants and variables.
-    """
-    tabs = st.tabs([
-        'A&E Admissions',
-        'Non-elective bed days',
-        'Elective bed days',
-        'Time in residential care'
-        ])
-
-    with tabs[0]:
-        # A&E admissions:
-        write_details_ae_admissions(vd)
-    with tabs[1]:
-        # A&E admissions:
-        write_details_nel_admissions(vd)
-    with tabs[2]:
-        # A&E admissions:
-        write_details_el_admissions(vd)
-    with tabs[3]:
-        # A&E admissions:
-        write_details_time_in_care(vd)
-
-
 def write_details_ae_admissions(vd):
     """
-    Write method and example for calculating number of A&E admissions.
+    Write method for calculating number of A&E admissions.
 
     Inputs:
     vd - dict. vd is short for variables_dict from main_calculations.
@@ -507,9 +506,17 @@ def write_details_ae_admissions(vd):
         '$X$ are values of the patient details (e.g. age, sex, and mRS).'
         ]))
 
+
+def write_example_ae_admissions(vd):
+    """
+    Write example for calculating number of A&E admissions.
+
+    Inputs:
+    vd - dict. vd is short for variables_dict from main_calculations.
+         It contains lots of useful constants and variables.
+    """
     # ##### EXAMPLE #####
     # ----- Calculations with user input -----
-    st.markdown('### Example')
     st.markdown(''.join([
         'For the current patient details, these are calculated as follows.',
         ' Values in red change with the patient details, and values in ',
@@ -537,7 +544,7 @@ def write_details_ae_admissions(vd):
 
 def write_details_nel_admissions(vd):
     """
-    Write method and example for calculating number of NEL bed-days.
+    Write method for calculating number of NEL bed-days.
 
     Inputs:
     vd - dict. vd is short for variables_dict from main_calculations.
@@ -584,9 +591,17 @@ def write_details_nel_admissions(vd):
         '$X$ are values of the patient details (e.g. age, sex, and mRS).'
         ]))
 
+
+def write_example_nel_admissions(vd):
+    """
+    Write example for calculating number of NEL bed-days.
+
+    Inputs:
+    vd - dict. vd is short for variables_dict from main_calculations.
+         It contains lots of useful constants and variables.
+    """
     # ##### EXAMPLE #####
     # ----- Calculations with user input -----
-    st.markdown('### Example')
     st.markdown(''.join([
         'For the current patient details, these are calculated as follows.',
         ' Values in red change with the patient details, and values in ',
@@ -614,7 +629,7 @@ def write_details_nel_admissions(vd):
 
 def write_details_el_admissions(vd):
     """
-    Write method and example for calculating number of EL bed-days.
+    Write method for calculating number of EL bed-days.
 
     Inputs:
     vd - dict. vd is short for variables_dict from main_calculations.
@@ -661,9 +676,17 @@ def write_details_el_admissions(vd):
         '$X$ are values of the patient details (e.g. age, sex, and mRS).'
         ]))
 
+
+def write_example_el_admissions(vd):
+    """
+    Write example for calculating number of EL bed-days.
+
+    Inputs:
+    vd - dict. vd is short for variables_dict from main_calculations.
+         It contains lots of useful constants and variables.
+    """
     # ##### EXAMPLE #####
     # ----- Calculations with user input -----
-    st.markdown('### Example')
     st.markdown(''.join([
         'For the current patient details, these are calculated as follows.',
         ' Values in red change with the patient details, and values in ',
@@ -691,7 +714,7 @@ def write_details_el_admissions(vd):
 
 def write_details_time_in_care(vd):
     """
-    Write method and example for calculating time spent in care.
+    Write method for calculating time spent in care.
 
     Inputs:
     vd - dict. vd is short for variables_dict from main_calculations.
@@ -733,9 +756,17 @@ def write_details_time_in_care(vd):
         'for $c$, the value from the table.'
     ]))
 
+
+def write_example_time_in_care(vd):
+    """
+    Write example for calculating time spent in care.
+
+    Inputs:
+    vd - dict. vd is short for variables_dict from main_calculations.
+         It contains lots of useful constants and variables.
+    """
     # ##### EXAMPLE #####
     # ----- Calculations with user input -----
-    st.markdown('### Example')
     st.markdown(''.join([
         'For the current patient details, these are calculated as follows.',
         ' Values in red change with the patient details, and values in ',
@@ -757,7 +788,7 @@ def write_details_time_in_care(vd):
 
 def write_details_discounted_resource_use(vd):
     """
-    Write method and example for calculating the discounted resource
+    Write method for calculating the discounted resource
     use and cost.
 
     The method is the same for all resources so the example code is
@@ -824,9 +855,21 @@ def write_details_discounted_resource_use(vd):
         'resource costs across the four categories.'
     ]))
 
+
+def write_example_discounted_resource_use(vd):
+    """
+    Write example for calculating the discounted resource
+    use and cost.
+
+    The method is the same for all resources so the example code is
+    in a function and used by all four resources.
+
+    Inputs:
+    vd - dict. vd is short for variables_dict from main_calculations.
+         It contains lots of useful constants and variables.
+    """
     # ##### EXAMPLE #####
     # ----- Calculations with user input -----
-    st.markdown('### Example')
     st.markdown(''.join([
         'For the current patient details, these are calculated as follows.',
         ' Values in red change with the patient details ',

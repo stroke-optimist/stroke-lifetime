@@ -27,7 +27,9 @@ def main(
     """
     st.markdown('### Discounted QALYs')
     with st.expander('Details: Discounted QALYs'):
-        write_details_discounted_qalys(
+        write_details_discounted_qalys(variables_dict)
+    with st.expander('Example: Discounted QALYs'):
+        write_example_discounted_qalys(
             qaly_list, qaly_raw_list, variables_dict, survival_times[:, 0]
             )
 
@@ -237,14 +239,9 @@ def write_table_discounted_qalys_outcome_dicho(qalys):
     st.table(df_table)
 
 
-def write_details_discounted_qalys(
-        qaly_list,
-        qaly_raw_list,
-        vd,
-        med_survival_yrs_list
-        ):
+def write_details_discounted_qalys(vd):
     """
-    Write method and example for calculating QALYs from utility, years,
+    Write method for calculating QALYs from utility, years,
     patient details, and fixed coefficients.
 
     Inputs:
@@ -317,9 +314,23 @@ def write_details_discounted_qalys(
         latex_equations.discounted_qalys_total_generic()
     st.latex(latex_discounted_qalys_total_generic)
 
+
+def write_example_discounted_qalys(
+        qaly_list,
+        qaly_raw_list,
+        vd,
+        med_survival_yrs_list
+        ):
+    """
+    Write example for calculating QALYs from utility, years,
+    patient details, and fixed coefficients.
+
+    Inputs:
+    vd - dict. vd is short for variables_dict from main_calculations.
+         It contains lots of useful constants and variables.
+    """
     # ##### EXAMPLE #####
     # ----- Calculations with user input -----
-    st.markdown('### Example')
     st.markdown(''.join([
         'For the current patient details, these are calculated as follows.',
         ' Values in red change with the patient details, and values in ',
