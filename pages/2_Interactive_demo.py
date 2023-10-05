@@ -49,7 +49,7 @@ def main():
     page_setup()
 
     # Page title:
-    st.markdown('# Lifetime mortality')
+    st.markdown('# Lifetime outcomes')
     # Draw a blue information box:
     st.info(
         ':information_source: ' +  # emoji
