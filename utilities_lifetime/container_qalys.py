@@ -17,6 +17,8 @@ def main(
         qaly_list,
         qaly_raw_list,
         qalys_table,
+        all_survival_times,
+        qalys_all_mrs,
         variables_dict
         ):
     """
@@ -30,14 +32,14 @@ def main(
         write_details_discounted_qalys(variables_dict)
     with st.expander('Example: Discounted QALYs'):
         write_example_discounted_qalys(
-            qaly_list, qaly_raw_list, variables_dict, survival_times[:, 0]
+            qaly_list, qaly_raw_list, variables_dict, survival_times[0]
             )
 
     # Check which model we're using and draw a bespoke table:
     if st.session_state['lifetime_model_type'] == 'mRS':
-        write_table_discounted_qalys(survival_times, qalys)
+        write_table_discounted_qalys(all_survival_times, qalys_all_mrs)
     else:
-        write_table_discounted_qalys_dicho(survival_times, qalys)
+        write_table_discounted_qalys_dicho(all_survival_times, qalys_all_mrs)
 
     st.markdown('### Discounted QALYs by change in outcome')
     st.markdown(''.join([
@@ -51,12 +53,12 @@ def main(
             'For example, the change from ',
             'an outcome of mRS=1 to mRS=2 gives a difference of:'
         ]))
-        diff_str = f'{qalys[1]:.2f}-{qalys[2]:.2f}={qalys[1]-qalys[2]:.2f}'
+        diff_str = f'{qalys_all_mrs[1]:.2f}-{qalys_all_mrs[2]:.2f}={qalys_all_mrs[1]-qalys_all_mrs[2]:.2f}'
         st.latex(diff_str)
         write_table_discounted_qalys_outcome(qalys_table)
         st.caption('Change in outcome from column value to row value.')
     else:
-        write_table_discounted_qalys_outcome_dicho(qalys)
+        write_table_discounted_qalys_outcome_dicho(qalys_all_mrs)
 
     # Notes from the Excel FrontSheet:
     st.write('Stroke. 2018;49:965-971')
@@ -319,7 +321,7 @@ def write_example_discounted_qalys(
         qaly_list,
         qaly_raw_list,
         vd,
-        med_survival_yrs_list
+        med_survival_yrs
         ):
     """
     Write example for calculating QALYs from utility, years,
@@ -382,7 +384,6 @@ def write_example_discounted_qalys(
             # Check if this is the final year.
             # If it is, add an extra string to explain that we reduce
             # the value to match the fraction of the year that is lived in.
-            med_survival_yrs = med_survival_yrs_list[vd["mrs"]]
             if year > med_survival_yrs:
                 # Get just the bit after the decimal place:
                 frac = med_survival_yrs % int(med_survival_yrs)

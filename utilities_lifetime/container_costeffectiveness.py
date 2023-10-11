@@ -9,7 +9,7 @@ import pandas as pd
 import utilities_lifetime.latex_equations
 
 
-def main(table_cost_effectiveness, variables_dict):
+def main(table_cost_effectiveness, qalys_all_mrs, total_discounted_cost_list, variables_dict):
     st.markdown('### Discounted total Net Benefit by change in outcome')
     st.markdown(''.join([
         'Net Benefit is QALYs valued at Willingness to pay (WTP) ',
@@ -20,7 +20,7 @@ def main(table_cost_effectiveness, variables_dict):
 
     # Check which model we're using and draw a bespoke table:
     if st.session_state['lifetime_model_type'] == 'mRS':
-        write_example_cost_effectiveness(variables_dict)
+        write_example_cost_effectiveness(qalys_all_mrs, total_discounted_cost_list, variables_dict)
         write_table_cost_effectiveness(table_cost_effectiveness)
     else:
         write_table_cost_effectiveness_dicho(table_cost_effectiveness)
@@ -147,7 +147,7 @@ def write_table_cost_effectiveness_dicho(table_cost_effectiveness):
         ]))
 
 
-def write_example_cost_effectiveness(vd):
+def write_example_cost_effectiveness(qalys_all_mrs, total_discounted_cost_list, vd):
     """
     Write example for calculating net benefit for change in outcome.
 
@@ -156,8 +156,8 @@ def write_example_cost_effectiveness(vd):
          It contains lots of useful constants and variables.
     """
     # Pick out some values for the example:
-    qaly = vd["qalys"][1]-vd["qalys"][2]
-    cost = vd["total_discounted_cost"][2]-vd["total_discounted_cost"][1]
+    qaly = qalys_all_mrs[1]-qalys_all_mrs[2]
+    cost = total_discounted_cost_list[2]-total_discounted_cost_list[1]
     total = vd["WTP_QALY_gpb"]*qaly + cost
 
     # Write the example:

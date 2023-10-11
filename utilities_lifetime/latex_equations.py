@@ -708,7 +708,7 @@ def median_survival_display(vd):
         r'''
         \begin{equation*}
         \mathrm{yrs} = \textcolor{red}{''' +
-        f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
+        f'{vd["survival_meds_IQRs"][0]:.2f}' +
         r'''}
         \end{equation*}
         '''
@@ -1166,12 +1166,12 @@ def discounted_qalys_v7(vd):
         r'''} \times \frac{1 - (1+''' +
         f'{vd["discount_factor_QALYs_perc"]/100.0:.4f}' +
         r''')^{-[\textcolor{red}{''' +
-        f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
+        f'{vd["survival_meds_IQRs"][0]:.2f}' +
         r'''}-1]}}{1 - (1+''' +
         f'{vd["discount_factor_QALYs_perc"]/100.0:.4f}' +
         r''')^{-1}} \\
         &= \textcolor{red}{''' +
-        f'{vd["qalys"][vd["mrs"]]:.4f}' +
+        f'{vd["qalys"]:.4f}' +
         r'''}
         \end{align*}
         '''
@@ -1218,12 +1218,12 @@ def discounted_qalys_v7(vd):
         r'''} \times \frac{1 - (1+''' +
         f'{vd["discount_factor_QALYs_perc"]/100.0:.4f}' +
         r''')^{-[\textcolor{red}{''' +
-        f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
+        f'{vd["survival_meds_IQRs"][0]:.2f}' +
         r'''}-1]}}{1 - (1+''' +
         f'{vd["discount_factor_QALYs_perc"]/100.0:.4f}' +
         r''')^{-1}} \\
         &= \textcolor{red}{''' +
-        f'{vd["qalys"][vd["mrs"]]:.4f}' +
+        f'{vd["qalys"]:.4f}' +
         r'''}
         \end{align*}
         '''
@@ -1381,7 +1381,7 @@ def ae_count(vd):
         r'''
         \begin{align*}
         \mathrm{Count (yrs=\textcolor{red}{''' +
-        f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
+        f'{vd["survival_meds_IQRs"][0]:.2f}' +
         r'''})} &=
         \exp{
             \left( ''' +
@@ -1391,12 +1391,12 @@ def ae_count(vd):
             r'''} \right)
             }
         \times \textcolor{red}{''' +
-        f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
+        f'{vd["survival_meds_IQRs"][0]:.2f}' +
         r'''}^{''' +
         f'{vd["A_E_coeffs"][3]}' +
         r'''} \\
         &= \textcolor{red}{''' +
-        f'{vd["A_E_count_list"][vd["mrs"]]:.4f}' +
+        f'{vd["A_E_count"]:.4f}' +
         r'''}
         \mathrm{\ admissions}
         \end{align*}
@@ -1550,12 +1550,12 @@ def nel_bed_days(vd):
         r'''
         \begin{align*}
         \mathrm{Count (yrs=\textcolor{red}{''' +
-        f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
+        f'{vd["survival_meds_IQRs"][0]:.2f}' +
         r'''})} &=
             -\ln{\left(
             \frac{1}{
                 1+ [\textcolor{red}{''' +
-                f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
+                f'{vd["survival_meds_IQRs"][0]:.2f}' +
                 r'''} \times \exp{(-\textcolor{red}{''' +
                 f'{vd["LP_NEL"]:.4f}' +
                 r'''})} ]^{
@@ -1564,7 +1564,7 @@ def nel_bed_days(vd):
                 r'''}}
             \right)} \\
             & = \textcolor{red}{''' +
-            f'{vd["NEL_count_list"][vd["mrs"]]:.4f}' +
+            f'{vd["NEL_count"]:.4f}' +
             r'''} \mathrm{\ days}
         \end{align*}
         '''
@@ -1696,7 +1696,7 @@ def el_lp(vd):
         r'''}\right) + & \mathrm{sex}^{*} \\''' +
         # 3rd coeff
         r'''& \left(\textcolor{Fuchsia}{''' +
-        f'{vd["EL_mRS"][vd["mrs"]]}' +
+        f'{vd["EL_mRS"]}' +
         r'''} \right) & \mathrm{mRS} \\''' +
         # Next line, value equal to:
         r'''=& \textcolor{red}{''' +
@@ -1717,12 +1717,12 @@ def el_bed_days(vd):
         r'''
         \begin{align*}
         \mathrm{Count (yrs=\textcolor{red}{''' +
-        f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
+        f'{vd["survival_meds_IQRs"][0]:.2f}' +
         r'''})} &=
             -\ln{\left(
             \frac{1}{
                 1+ [\textcolor{red}{''' +
-                f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
+                f'{vd["survival_meds_IQRs"][0]:.2f}' +
                 r'''} \times \exp{(-\textcolor{red}{''' +
                 f'{vd["LP_EL"]:.4f}' +
                 r'''})} ]^{
@@ -1731,7 +1731,7 @@ def el_bed_days(vd):
                 r'''}}
             \right)} \\
             & = \textcolor{red}{''' +
-            f'{vd["EL_count_list"][vd["mrs"]]:.4f}' +
+            f'{vd["EL_count"]:.4f}' +
             r'''} \mathrm{\ days}
         \end{align*}
         '''
@@ -1841,15 +1841,15 @@ def tic(vd):
         r'''
         \begin{align*}
         \mathrm{Count (yrs=\textcolor{red}{''' +
-        f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
+        f'{vd["survival_meds_IQRs"][0]:.2f}' +
         r'''})} &=
         95\% \times \textcolor{Fuchsia}{''' +
         f'{100.0*perc:.4f}' +
         r'''\%} \times \textcolor{red}{''' +
-        f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
+        f'{vd["survival_meds_IQRs"][0]:.2f}' +
         r'''} \\
         &= \textcolor{red}{''' +
-        f'{vd["care_years_list"][vd["mrs"]]:.4f}' +
+        f'{vd["care_years"]:.4f}' +
         r'''} \mathrm{\ years}
         \end{align*}
         '''
@@ -2046,7 +2046,7 @@ def discounted_cost(vd, discounted_sum, cost_str, discounted_cost_str,
         f'{discounted_sum:.4f}' +
         r'''} \\
         &= \textcolor{red}{''' +
-        f'£{vd[discounted_cost_str][vd["mrs"]]:.2f}' +
+        f'£{vd[discounted_cost_str]:.2f}' +
         r'''}
         \end{align*}
         '''

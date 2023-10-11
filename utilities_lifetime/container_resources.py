@@ -899,7 +899,7 @@ def write_example_discounted_resource_use(vd):
             'and "Discounted use" is from Equation [24].'
             ])
         write_details_discounted_resource(
-            vd, "A_E_counts", "discounted_list_A_E",
+            vd, "A_E_counts_by_year", "discounted_list_A_E",
             "cost_ae_gbp", "A_E_discounted_cost", caption_str)
     with tabs[1]:
         # NEL bed days:
@@ -908,7 +908,7 @@ def write_example_discounted_resource_use(vd):
             'and "Discounted use" is from Equation [24].'
             ])
         write_details_discounted_resource(
-            vd, "NEL_counts", "discounted_list_NEL",
+            vd, "NEL_counts_by_year", "discounted_list_NEL",
             "cost_non_elective_bed_day_gbp", "NEL_discounted_cost",
             caption_str)
     with tabs[2]:
@@ -918,7 +918,7 @@ def write_example_discounted_resource_use(vd):
             'and "Discounted use" is from Equation [24].'
             ])
         write_details_discounted_resource(
-            vd, "EL_counts", "discounted_list_EL",
+            vd, "EL_counts_by_year", "discounted_list_EL",
             "cost_elective_bed_day_gbp", "EL_discounted_cost",
             caption_str)
     with tabs[3]:
@@ -928,7 +928,7 @@ def write_example_discounted_resource_use(vd):
             'and "Discounted use" is from Equation [24].'
             ])
         write_details_discounted_resource(
-            vd, "care_years", "discounted_list_care",
+            vd, "care_years_by_year", "discounted_list_care",
             "cost_residential_day_gbp", "care_years_discounted_cost",
             caption_str, care=1)
 

@@ -950,13 +950,13 @@ def write_example_median_survival(vd):
     # Use the function with the following values:
     # Median
     p_med = 0.5
-    tDeath_med = vd['survival_meds_IQRs'][vd['mrs'], 0]
+    tDeath_med = vd['survival_meds_IQRs'][0]
     # IQR lower
     p_iqr_low = 0.25
-    tDeath_iqr_low = vd['survival_meds_IQRs'][vd['mrs'], 1]
+    tDeath_iqr_low = vd['survival_meds_IQRs'][1]
     # IQR higher
     p_iqr_high = 0.75
-    tDeath_iqr_high = vd['survival_meds_IQRs'][vd['mrs'], 2]
+    tDeath_iqr_high = vd['survival_meds_IQRs'][2]
 
     tabs = st.tabs([
         'Median', 'IQR (lower)', 'IQR (higher)', 'Choose a probability'])
