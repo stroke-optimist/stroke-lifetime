@@ -243,6 +243,9 @@ def main_calculations(age, sex, mrs, model_input_str, fixed_params):
         care_years_discounted_cost
     ])
 
+    # ##### COST EFFECTIVENESS #####
+    net_benefit = fixed_params['WTP_QALY_gpb'] * qalys - total_discounted_cost
+
     # ##### General #####
     # Build a dictionary of variables used in these calculations.
     # This is mostly for the use of the detailed explanations and examples,
@@ -254,6 +257,7 @@ def main_calculations(age, sex, mrs, model_input_str, fixed_params):
         sex=sex,
         mrs=mrs,
         # ----- For mortality: -----
+        time_list_yr=time_list_yr,
         P_yr1=pDeath_list[0],
         LP_yr1=lp_yr1,
         LP_yrn=lp_yrn,
@@ -297,6 +301,7 @@ def main_calculations(age, sex, mrs, model_input_str, fixed_params):
         EL_discounted_cost=EL_discounted_cost,
         care_years_discounted_cost=care_years_discounted_cost,
         # ----- For cost-effectiveness -----
+        net_benefit=net_benefit
         )
 
     return results_dict
@@ -572,7 +577,7 @@ def build_table_discounted_change(total_discounted_cost):
     return table
 
 
-def main_cost_effectiveness(qaly_table, cost_table, WTP_QALY_gpb):
+def build_table_cost_effectiveness(net_benefit):
     """
     Make a table of net benefit by change in outcome, taking into
     account the willingness-to-pay threshold. The table is used for the
@@ -593,116 +598,23 @@ def main_cost_effectiveness(qaly_table, cost_table, WTP_QALY_gpb):
                                same as in the input QALY and cost
                                tables.
     """
-    table_cost_effectiveness = (WTP_QALY_gpb * qaly_table) + cost_table
-    return table_cost_effectiveness
+    # The following is equivalent to this:
+    # table_cost_effectiveness = (WTP_QALY_gpb * qaly_table) + cost_table
 
-
-# #####################################################################
-# ############################## General ##############################
-# #####################################################################
-
-def build_variables_dict(
-        fixed_params,
-        age,
-        sex,
-        mrs,
-        lp_yr1,
-        lp_yrn,
-        pDeath_list,
-        invalid_inds_for_pDeath,
-        hazard_list,
-        survival_list,
-        fhazard_list,
-        survival_times,
-        time_of_zero_survival,
-        A_E_lp,
-        NEL_lp,
-        EL_lp,
-        A_E_count_list,
-        NEL_count_list,
-        EL_count_list,
-        care_years_list,
-        qalys,
-        qaly_list,
-        qaly_raw_list,
-        total_discounted_cost,
-        A_E_counts,
-        NEL_counts,
-        EL_counts,
-        care_years,
-        A_E_discounted_list,
-        NEL_discounted_list,
-        EL_discounted_list,
-        care_years_discounted_list,
-        A_E_discounted_cost,
-        NEL_discounted_cost,
-        EL_discounted_cost,
-        care_years_discounted_cost,
-        ):
-    """
-    Build a dictionary to gather useful variables in one place.
-
-    This is used when printing values in the example calculations
-    in the "details" sections. This function looks clunky but saves
-    faff in importing the right variables to those examples.
-
-    Inputs:
-    loads of assorted constants, variables, lists...
-
-    Returns:
-    variables_dict - dictionary of useful quantities.
-    """
-
-    # Fill the dictionary:
-    variables_dict = dict(
-        # Input variables:
-        age=age,
-        sex=sex,
-        mrs=mrs,
-        # ----- For mortality: -----
-        P_yr1=pDeath_list[0],
-        LP_yr1=lp_yr1,
-        LP_yrn=lp_yrn,
-        pDeath_list=pDeath_list,
-        invalid_inds_for_pDeath=invalid_inds_for_pDeath,
-        hazard_list=hazard_list,
-        survival_list=survival_list,
-        fhazard_list=fhazard_list,
-        survival_meds_IQRs=survival_times,
-        survival_yr1=1.0-pDeath_list[0],
-        time_of_zero_survival=time_of_zero_survival,
-        # ----- For QALYs: -----
-        qalys=qalys,
-        qaly_list=qaly_list,
-        qaly_raw_list=qaly_raw_list,
-        # ----- For resource use: -----
-        total_discounted_cost=total_discounted_cost,
-        # A&E:
-        LP_A_E=A_E_lp,
-        A_E_count=A_E_count_list,
-        # lambda_A_E=lambda_A_E,
-        # Non-elective bed days
-        LP_NEL=NEL_lp,
-        NEL_count=NEL_count_list,
-        # Elective bed days
-        LP_EL=EL_lp,
-        EL_count=EL_count_list,
-        # Care home
-        care_years=care_years_list,
-        # For cost conversions:
-        # For details in discounted cost calculations:
-        A_E_counts_by_year=A_E_counts,
-        NEL_counts_by_year=NEL_counts,
-        EL_counts_by_year=EL_counts,
-        care_years_by_year=care_years,
-        discounted_list_A_E=A_E_discounted_list,
-        discounted_list_NEL=NEL_discounted_list,
-        discounted_list_EL=EL_discounted_list,
-        discounted_list_care=care_years_discounted_list,
-        A_E_discounted_cost=A_E_discounted_cost,
-        NEL_discounted_cost=NEL_discounted_cost,
-        EL_discounted_cost=EL_discounted_cost,
-        care_years_discounted_cost=care_years_discounted_cost,
-        # ----- For cost-effectiveness -----
-        )
-    return variables_dict
+    # Turn into grid by change of outcome:
+    # Keep formatted values in here:
+    table = []
+    for row in range(6):
+        row_vals = []
+        for column in range(6):
+            if column < row:
+                diff_val = (net_benefit[column] -
+                            net_benefit[row])
+                row_vals.append(diff_val)
+            elif column == row:
+                row_vals.append('-')
+            else:
+                row_vals.append('')
+        table.append(row_vals)
+    table = np.array(table, dtype=object)
+    return table

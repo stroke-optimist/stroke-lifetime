@@ -13,6 +13,7 @@ named container_(something).py.
 # ----- Imports -----
 import streamlit as st
 import numpy as np
+import pandas as pd
 
 # Add an extra bit to the path if we need to.
 # Try importing something as though we're running this from the same
@@ -29,9 +30,6 @@ except ModuleNotFoundError:
     # The following should work now:
     from utilities_lifetime.fixed_params import page_setup
 
-# from utilities_lifetime.inputs import write_text_from_file
-# Models for calculating various quantities:
-import utilities_lifetime.models as model
 # Container scripts (which will be called after the calculations):
 import utilities_lifetime.container_inputs
 import utilities_lifetime.container_mortality
@@ -115,32 +113,26 @@ def main():
             fixed_params
             )
 
-        # # Combine the separate dictionaries into one:
-        # results_dict = dict(**results_dict, **fixed_params)
-
         # Store this dictionary in the list of dicts:
         results_dict_list.append(results_dict)
 
         if mrs == mRS_input:
-            variables_dict = results_dict
+            # Pick out the results and fixed parameters dicts:
+            variables_dict = dict(**results_dict, **fixed_params)
 
-    import pandas as pd
+    # Turn all results dictionaries into a single data frame:
     df = pd.DataFrame(results_dict_list)
-    st.write(df)
 
     # #####################################
     # ######### CHANGE IN OUTCOME #########
     # #####################################
 
     # qalys is a list of six floats, i.e. one QALY value for each mRS.
-    qalys_all_mrs = [d['qalys'] for d in results_dict_list]
     # total_discounted_cost is a list of six floats, i.e. one value per mRS.
-    total_discounted_cost_all_mrs = [d['total_discounted_cost']
-                                     for d in results_dict_list]
 
     # ##### QALYs #####
     qalys_table = calc.make_table_qaly_by_change_in_outcome(
-        qalys_all_mrs
+        df['qalys']
         )
     # qalys_table is a 2D np.array, 6 rows by 6 columns, that contains
     # the data for the "Discounted QALYs by change in outcome" table,
@@ -148,17 +140,15 @@ def main():
 
     # ##### Resource use #####
     table_discounted_cost = calc.build_table_discounted_change(
-        total_discounted_cost_all_mrs
+        df['total_discounted_cost']
         )
     # table_discounted_cost is a 2D np.array, 6 rows by 6 columns, that
     # contains the data for the "Discounted total costs by change in
     # outcome" table, and invalid cells already contain either '-' or ''.
 
     # ##### Cost-effectiveness #####
-    table_cost_effectiveness = calc.main_cost_effectiveness(
-        qalys_table,
-        table_discounted_cost,
-        fixed_params['WTP_QALY_gpb']
+    table_cost_effectiveness = calc.build_table_cost_effectiveness(
+        df['net_benefit']
         )
     # table_cost_effectiveness is a 2D np.array, 6 rows by 6 columns, that
     # contains the data for the "Discounted total Net Benefit by change in
@@ -168,33 +158,19 @@ def main():
     # ######### RESULTS #########
     # ###########################
 
-    # Pick some more bits out of the results dictionaries:
-    all_survival_lists = np.array([d['survival_list'] for d in results_dict_list])
-    all_hazard_lists = np.array([d['hazard_list'] for d in results_dict_list])
-    all_survival_years_iqr = np.array([d['survival_meds_IQRs'] for d in results_dict_list])
-    A_E_count_list = [d['A_E_count'] for d in results_dict_list]
-    NEL_count_list = [d['NEL_count'] for d in results_dict_list]
-    EL_count_list = [d['EL_count'] for d in results_dict_list]
-    care_years_list = [d['care_years'] for d in results_dict_list]
-    A_E_discounted_cost_list = [d['A_E_discounted_cost'] for d in results_dict_list]
-    NEL_discounted_cost_list = [d['NEL_discounted_cost'] for d in results_dict_list]
-    EL_discounted_cost_list = [d['EL_discounted_cost'] for d in results_dict_list]
-    care_years_discounted_cost_list = [d['care_years_discounted_cost'] for d in results_dict_list]
-    total_discounted_cost_list = [d['total_discounted_cost'] for d in results_dict_list]
-
     # Put each section into its own tab.
     tabs = st.tabs(['Mortality', 'QALYs', 'Resources', 'Cost'])
 
     with tabs[0]:
         st.header('Mortality')
         utilities_lifetime.container_mortality.main(
-            time_list_yr,
-            all_survival_lists,
+            df.loc[0]['time_list_yr'],
+            df['survival_list'],
             mRS_input,
-            all_hazard_lists,
+            df['hazard_list'],
             variables_dict['pDeath_list'],
             variables_dict['invalid_inds_for_pDeath'],
-            all_survival_years_iqr,
+            np.array(df['survival_meds_IQRs'].tolist()),
             variables_dict['time_of_zero_survival'],
             variables_dict,
             fixed_params
@@ -208,8 +184,8 @@ def main():
             variables_dict['qaly_list'],
             variables_dict['qaly_raw_list'],
             qalys_table,
-            all_survival_years_iqr,
-            qalys_all_mrs,
+            np.array(df['survival_meds_IQRs'].tolist()),  # To get 2d array
+            df['qalys'],
             variables_dict,
             fixed_params
             )
@@ -217,15 +193,15 @@ def main():
     with tabs[2]:
         st.header('Resources and costs')
         utilities_lifetime.container_resources.main(
-            A_E_count_list,
-            NEL_count_list,
-            EL_count_list,
-            care_years_list,
-            A_E_discounted_cost_list,
-            NEL_discounted_cost_list,
-            EL_discounted_cost_list,
-            care_years_discounted_cost_list,
-            total_discounted_cost_list,
+            df['A_E_count'],
+            df['NEL_count'],
+            df['EL_count'],
+            df['care_years'],
+            df['A_E_discounted_cost'],
+            df['NEL_discounted_cost'],
+            df['EL_discounted_cost'],
+            df['care_years_discounted_cost'],
+            df['total_discounted_cost'],
             table_discounted_cost,
             variables_dict
             )
@@ -234,8 +210,8 @@ def main():
         st.header('Cost-effectiveness')
         utilities_lifetime.container_costeffectiveness.main(
             table_cost_effectiveness,
-            qalys_all_mrs,
-            total_discounted_cost_list,
+            df['qalys'],
+            df['total_discounted_cost'],
             variables_dict
             )
 
