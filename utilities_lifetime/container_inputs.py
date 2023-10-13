@@ -70,6 +70,6 @@ def model_type_input():
     # If the model type has changed from the previous selection,
     # re-import the fixed parameters file to make sure we're
     # importing the correct set of params.
-    if model_input_str != model_input_str_before:
-        importlib.reload(utilities_lifetime.fixed_params)
+    # if model_input_str != model_input_str_before:
+    #     importlib.reload(utilities_lifetime.fixed_params)
     return model_input_str

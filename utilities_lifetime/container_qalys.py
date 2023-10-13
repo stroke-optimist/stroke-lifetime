@@ -19,7 +19,8 @@ def main(
         qalys_table,
         all_survival_times,
         qalys_all_mrs,
-        variables_dict
+        variables_dict,
+        fixed_params
         ):
     """
 
@@ -37,9 +38,9 @@ def main(
 
     # Check which model we're using and draw a bespoke table:
     if st.session_state['lifetime_model_type'] == 'mRS':
-        write_table_discounted_qalys(all_survival_times, qalys_all_mrs)
+        write_table_discounted_qalys(all_survival_times, qalys_all_mrs, fixed_params)
     else:
-        write_table_discounted_qalys_dicho(all_survival_times, qalys_all_mrs)
+        write_table_discounted_qalys_dicho(all_survival_times, qalys_all_mrs, fixed_params)
 
     st.markdown('### Discounted QALYs by change in outcome')
     st.markdown(''.join([
@@ -69,7 +70,7 @@ def main(
     st.write('**** NICE health technology evaluations: the manual (Jan 2022)')
 
 
-def write_table_discounted_qalys(survival_times, qalys):
+def write_table_discounted_qalys(survival_times, qalys, fixed_params):
     """
     Write a table of the discounted QALY values for each mRS. It also
     includes the median and IQR survival times.
@@ -86,7 +87,7 @@ def write_table_discounted_qalys(survival_times, qalys):
     qaly_table = []
     for i, mRS in enumerate(range(6)):
         qaly_table.append([
-            utilities_lifetime.fixed_params.utility_list[i],
+            fixed_params['utility_list'][i],
             # mRS,
             survival_times[i][0],
             survival_times[i][1],
@@ -119,7 +120,7 @@ def write_table_discounted_qalys(survival_times, qalys):
     st.table(df_table.style.format(format_dict))
 
 
-def write_table_discounted_qalys_dicho(survival_times, qalys):
+def write_table_discounted_qalys_dicho(survival_times, qalys, fixed_params):
     """
     Write a table of the discounted QALY values for each mRS. It also
     includes the median and IQR survival times.
@@ -141,7 +142,7 @@ def write_table_discounted_qalys_dicho(survival_times, qalys):
     for i in [0, -1]:
         qaly_table.append([
             outcome_labels[i],
-            utilities_lifetime.fixed_params.utility_list[i],
+            fixed_params['utility_list'][i],
             # mRS,
             survival_times[i][0],
             survival_times[i][1],

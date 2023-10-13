@@ -31,7 +31,7 @@ except ModuleNotFoundError:
 
 # from utilities_lifetime.inputs import write_text_from_file
 # Models for calculating various quantities:
-import utilities_lifetime.models
+import utilities_lifetime.models as model
 # Container scripts (which will be called after the calculations):
 import utilities_lifetime.container_inputs
 import utilities_lifetime.container_mortality
@@ -39,9 +39,7 @@ import utilities_lifetime.container_qalys
 import utilities_lifetime.container_resources
 import utilities_lifetime.container_costeffectiveness
 # The home of the main calculation functions:
-import utilities_lifetime.main_calculations
-# Fixed parameters:
-from utilities_lifetime.fixed_params import time_max_post_discharge_yr
+import utilities_lifetime.main_calculations as calc
 
 
 def main():
@@ -101,14 +99,17 @@ def main():
     # ##################################
 
     # Shared for all patients.
+    # Fixed parameters:
+    fixed_params = utilities_lifetime.fixed_params.get_fixed_params(
+        model_input_str)
     # Times for hazard with time calculations:
     # This list contains [0, 1, 2, ..., time_max_post_discharge_yr].
-    time_list_yr = np.arange(0, time_max_post_discharge_yr+1, 1)
+    time_list_yr = np.arange(
+        0, fixed_params['time_max_post_discharge_yr'] + 1, 1)
 
     # Choose which list of care home percentage rates to use
     # based on the age input.
-    average_care_year_per_mRS = utilities_lifetime.models.\
-        find_average_care_year_per_mRS(age_input)
+    average_care_year_per_mRS = model.find_average_care_year_per_mRS(age_input, fixed_params)
 
     # ################################
     # ######### SEPARATE mRS #########
@@ -117,83 +118,116 @@ def main():
     results_dict_list = []
     for mrs in range(6):
         # ##### Mortality #####
-        # Probabilities:
-        (
-            hazard_list,              # np.array. Cumulative hazard for
-            #                         #   each year in the range
-            #                         #   1 to max year.
-            survival_list,            # np.array. Cumulative survival
-            #                         # for each year in the range
-            #                         #   1 to max year.
-            fhazard_list,             # np.array. Output from
-            #                         #   the Gompertz predictor.
-            pDeath_list,              # np.array. Prob of death in each year
-            #                         #   from 1 to max year (fixed_params.py).
-            invalid_inds_for_pDeath,  # np.array. Contains indices of pDeath
-            #                         #   where survival is below 0%.
-            time_of_zero_survival     # float. Years from discharge to when
-            #                         #   survival probability is zero.
-        ) \
-            = utilities_lifetime.main_calculations.\
-            main_probabilities(age_input, sex_input, mrs, time_list_yr)
+        # Find hazard and survival:
+        # The following arrays contain one value for each year in the
+        # range 1 to max year (defined in fixed_params.py).
+        # Cumulative hazard, cumulative survival, output from Gompertz.
+        hazard_list, survival_list, fhazard_list = (
+            calc.find_cumhazard_with_time(
+                time_list_yr, age_input, sex_input, mrs, fixed_params))
+
+        # Find indices where survival is less than 0% and so the
+        # calculated probability of death is invalid.
+        invalid_inds_for_pDeath = np.where(hazard_list >= 1.0)[0] + 1
+        # Add one to the index because we start hazard_list from year 0
+        # but pDeath_list from year 1.
+
+        # Calculate pDeath, the probability of death in each year
+        # from 1 to max year (fixed_params.py).
+        pDeath_list = calc.calculate_prob_death_per_year(
+                age_input, sex_input, mrs, time_list_yr, fixed_params)
+
+        # Find when survival=0% for the survival vs. time chart:
+        # Years from discharge to when survival probability is zero.
+        time_of_zero_survival = model.find_t_zero_survival(
+            age_input, sex_input, mrs, fixed_params, 1.0)
 
         # Survival times:
-        survival_times = utilities_lifetime.main_calculations.\
-            main_survival_times(age_input, sex_input, mrs)
-        # survival_times is a list containing
+        survival_years_iqr = calc.calculate_survival_iqr(
+            age_input, sex_input, mrs, fixed_params)
+        # survival_years_iqr is a list containing
         # [median, lower IQR, upper IQR, life expectancy].
         # Pull out just the median time:
-        median_survival_time = survival_times[0]
+        median_survival_time = survival_years_iqr[0]
 
         # ##### QALYs #####
-        qalys, qaly_list, qaly_raw_list = \
-            utilities_lifetime.main_calculations.main_qalys(
-                median_survival_time, age_input, sex_input, mrs)
+        # Pick out some fixed parameters:
+        utility_here = fixed_params['utility_list'][mrs]
+        average_age = fixed_params['lg_mean_ages'][mrs]
+        dfq = fixed_params['discount_factor_QALYs_perc']
+
+        qalys, qaly_list, qaly_raw_list = model.calculate_qaly(
+            utility_here,
+            median_survival_time,
+            age_input,
+            sex_input,
+            average_age,
+            fixed_params,
+            dfq=(dfq / 100.0)
+            )
 
         # ##### Resource use #####
         average_care_year = average_care_year_per_mRS[mrs]
-        # Resource uses:
-        A_E_count = utilities_lifetime.models.\
-            find_A_E_Count(age_input, sex_input, mrs,
-                           median_survival_time)
-        NEL_count = utilities_lifetime.models.\
-            find_NEL_Count(age_input, sex_input, mrs,
-                           median_survival_time)
-        EL_count = utilities_lifetime.models.\
-            find_EL_Count(age_input, sex_input, mrs,
-                          median_survival_time)
-        care_years = utilities_lifetime.models.\
-            find_residential_care_average_time(
-                average_care_year,
-                median_survival_time
-                )
+        # Resource use across the median survival time in years:
+        A_E_count = model.find_A_E_Count(
+            age_input, sex_input, mrs, median_survival_time, fixed_params)
+        NEL_count = model.find_NEL_Count(
+            age_input, sex_input, mrs, median_survival_time, fixed_params)
+        EL_count = model.find_EL_Count(
+            age_input, sex_input, mrs, median_survival_time, fixed_params)
+        care_years = model.find_residential_care_average_time(
+            average_care_year, median_survival_time)
 
-        # Discounted resource use:
-        (   #                            # cost x discounted number of...
-            A_E_discounted_cost,         # ... A&E admissions.
-            NEL_discounted_cost,         # ... non-elective bed days.
-            EL_discounted_cost,          # ... elective bed days.
-            care_years_discounted_cost,  # ... years in care.
-            total_discounted_cost,       # sum of these four ^ values.
-            # Return the following for printing examples in details sections.
-            #   Each list contains one float for each year in the range
-            #   from year=1 to year=median_survival_year (rounded up).
-            #                            # Non-discounted number of...
-            A_E_counts_by_year,          # ... A&E admissions.
-            NEL_counts_by_year,          # ... non-elective bed days.
-            EL_counts_by_year,           # ... elective bed days.
-            care_years_by_year           # ... years in care.
-        ) = \
-            utilities_lifetime.main_calculations.main_discounted_resource_use(
+        # Calculate the non-discounted values:
+        # Each list contains one float for each year in the range
+        # from year=1 to year=median_survival_year (rounded up).
+        A_E_count_by_year = calc.find_resource_count_for_all_years(
             age_input, sex_input, mrs, median_survival_time,
-            average_care_year)
+            utilities_lifetime.models.find_A_E_Count, fixed_params)
+        NEL_count_by_year = calc.find_resource_count_for_all_years(
+            age_input, sex_input, mrs, median_survival_time,
+            utilities_lifetime.models.find_NEL_Count, fixed_params)
+        EL_count_by_year = calc.find_resource_count_for_all_years(
+            age_input, sex_input, mrs, median_survival_time,
+            utilities_lifetime.models.find_EL_Count, fixed_params)
+        care_years_by_year = calc.find_resource_count_for_all_years(
+            age_input, sex_input, mrs, median_survival_time,
+            utilities_lifetime.models.find_residential_care_average_time, fixed_params
+            ,
+            average_care_year, 1)
+
+        # Find discounted lists for each category:
+        A_E_discounted_cost = (
+            fixed_params['cost_ae_gbp'] *
+            np.sum(calc.find_discounted_resource_use_for_all_years(
+                A_E_count_by_year, fixed_params)))
+        NEL_discounted_cost = (
+            fixed_params['cost_non_elective_bed_day_gbp'] *
+            np.sum(calc.find_discounted_resource_use_for_all_years(
+                NEL_count_by_year, fixed_params)))
+        EL_discounted_cost = (
+            fixed_params['cost_elective_bed_day_gbp'] *
+            np.sum(calc.find_discounted_resource_use_for_all_years(
+                EL_count_by_year, fixed_params)))
+        care_years_discounted_cost = (
+            fixed_params['cost_residential_day_gbp'] * 365 *
+            np.sum(calc.find_discounted_resource_use_for_all_years(
+                care_years_by_year, fixed_params)))
+        # Sum for total costs:
+        total_discounted_cost = np.sum([
+            A_E_discounted_cost,
+            NEL_discounted_cost,
+            EL_discounted_cost,
+            care_years_discounted_cost
+        ])
 
         # ##### General #####
         # Build a dictionary of variables used in these calculations.
         # This is mostly for the use of the detailed explanations and examples,
         # which is why it's incomplete. Other bits (e.g. from fixed_params)
         # get added to the dictionary in the function itself.
-        results_dict = utilities_lifetime.main_calculations.build_variables_dict(
+        results_dict = calc.build_variables_dict(
+            fixed_params,
             age_input,
             sex_input,
             mRS_input,
@@ -202,7 +236,7 @@ def main():
             hazard_list,
             survival_list,
             fhazard_list,
-            survival_times,
+            survival_years_iqr,
             time_of_zero_survival,
             A_E_count,
             NEL_count,
@@ -212,9 +246,9 @@ def main():
             qaly_list,
             qaly_raw_list,
             total_discounted_cost,
-            A_E_counts_by_year,
-            NEL_counts_by_year,
-            EL_counts_by_year,
+            A_E_count_by_year,
+            NEL_count_by_year,
+            EL_count_by_year,
             care_years_by_year,
             A_E_discounted_cost,
             NEL_discounted_cost,
@@ -238,22 +272,21 @@ def main():
                                      for d in results_dict_list]
 
     # ##### QALYs #####
-    qalys_table = utilities_lifetime.main_calculations.\
-        make_table_qaly_by_change_in_outcome(qalys_all_mrs)
+    qalys_table = calc.make_table_qaly_by_change_in_outcome(qalys_all_mrs)
     # qalys_table is a 2D np.array, 6 rows by 6 columns, that contains
     # the data for the "Discounted QALYs by change in outcome" table,
     # and invalid cells already contain either '-' or '' depending.
 
     # ##### Resource use #####
-    table_discounted_cost = utilities_lifetime.main_calculations.\
-        build_table_discounted_change(total_discounted_cost_all_mrs)
+    table_discounted_cost = calc.build_table_discounted_change(
+        total_discounted_cost_all_mrs)
     # table_discounted_cost is a 2D np.array, 6 rows by 6 columns, that
     # contains the data for the "Discounted total costs by change in
     # outcome" table, and invalid cells already contain either '-' or ''.
 
     # ##### Cost-effectiveness #####
-    table_cost_effectiveness = utilities_lifetime.main_calculations.\
-        main_cost_effectiveness(qalys_table, table_discounted_cost)
+    table_cost_effectiveness = calc.main_cost_effectiveness(
+        qalys_table, table_discounted_cost, fixed_params)
     # table_cost_effectiveness is a 2D np.array, 6 rows by 6 columns, that
     # contains the data for the "Discounted total Net Benefit by change in
     # outcome" table, and invalid cells already contain either '-' or ''.
@@ -265,7 +298,7 @@ def main():
     # Pick some more bits out of the results dictionaries:
     all_survival_lists = np.array([d['survival_list'] for d in results_dict_list])
     all_hazard_lists = np.array([d['hazard_list'] for d in results_dict_list])
-    all_survival_times = np.array([d['survival_meds_IQRs'] for d in results_dict_list])
+    all_survival_years_iqr = np.array([d['survival_meds_IQRs'] for d in results_dict_list])
     A_E_count_list = [d['A_E_count'] for d in results_dict_list]
     NEL_count_list = [d['NEL_count'] for d in results_dict_list]
     EL_count_list = [d['EL_count'] for d in results_dict_list]
@@ -288,9 +321,10 @@ def main():
             all_hazard_lists,
             variables_dict['pDeath_list'],
             variables_dict['invalid_inds_for_pDeath'],
-            all_survival_times,
+            all_survival_years_iqr,
             variables_dict['time_of_zero_survival'],
-            variables_dict
+            variables_dict,
+            fixed_params
             )
 
     with tabs[1]:
@@ -301,9 +335,10 @@ def main():
             variables_dict['qaly_list'],
             variables_dict['qaly_raw_list'],
             qalys_table,
-            all_survival_times,
+            all_survival_years_iqr,
             qalys_all_mrs,
-            variables_dict
+            variables_dict,
+            fixed_params
             )
 
     with tabs[2]:

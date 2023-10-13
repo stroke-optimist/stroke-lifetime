@@ -19,7 +19,7 @@ def main(
         time_list_yr, all_survival_lists,
         mRS_input, all_hazard_lists,
         pDeath_list, invalid_inds_for_pDeath, survival_times,
-        time_of_death, variables_dict
+        time_of_death, variables_dict, fixed_params
         ):
     # Details on probability with time
     # Year one:
@@ -66,7 +66,7 @@ def main(
     with st.expander('Details: Median survival'):
         write_details_median_survival(variables_dict)
     with st.expander('Example: Median survival'):
-        write_example_median_survival(variables_dict)
+        write_example_median_survival(variables_dict, fixed_params)
     # Table:
     # Check which model we're using and draw a bespoke table:
     if st.session_state['lifetime_model_type'] == 'mRS':
@@ -873,7 +873,7 @@ def write_details_median_survival(vd):
     ]))
 
 
-def write_example_median_survival(vd):
+def write_example_median_survival(vd, fixed_params):
     """
     Write the example for calculating the survival time
     for a given probability, e.g. median is P=0.5.
@@ -997,5 +997,5 @@ def write_example_median_survival(vd):
         # Calculate the survival time:
         survival_time, survival_yrs, time_log, eqperc = \
             find_survival_time_for_pDeath(
-                prob_input_frac, vd['P_yr1'], vd['LP_yrn'])
+                prob_input_frac, vd['P_yr1'], vd['LP_yrn'], fixed_params)
         print_survival_time_calcs(prob_input_frac, survival_time, vd)

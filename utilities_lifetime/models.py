@@ -7,14 +7,14 @@ These were adapted from the following R script:
 import numpy as np
 
 # Import constants:
-import utilities_lifetime.fixed_params as fixed_params
+# import utilities_lifetime.fixed_params as fixed_params
 
 
 # #####################################################################
 # ############################ Mortality ##############################
 # #####################################################################
 
-def find_lpDeath_yr1(age, sex, mrs):
+def find_lpDeath_yr1(age, sex, mrs, fixed_params):
     """
     The linear predictor for logit year 1.
 
@@ -27,29 +27,29 @@ def find_lpDeath_yr1(age, sex, mrs):
 
     ivs = np.array([
         1,
-        age - fixed_params.lg_mean_ages[mrs],
+        age - fixed_params['lg_mean_ages'][mrs],
         sex,
         *mrss
         ])
 
-    lp = np.sum(fixed_params.lg_coeffs * ivs)
+    lp = np.sum(fixed_params['lg_coeffs'] * ivs)
     return lp
 
 
-def find_pDeath_yr1(age, sex, mrs):
+def find_pDeath_yr1(age, sex, mrs, fixed_params):
     """
     Gets probability in year 1
 
     Returns a float, probability of death in year one.
     """
     # Find linear predictor:
-    lp = find_lpDeath_yr1(age, sex, mrs)
+    lp = find_lpDeath_yr1(age, sex, mrs, fixed_params)
     # Logistic formula for probability:
     p = 1.0 / (1.0 + np.exp(-lp))
     return p
 
 
-def find_lpDeath_yrn(age, sex, mrs):
+def find_lpDeath_yrn(age, sex, mrs, fixed_params):
     """
     linear predictor for Gompertz
 
@@ -62,19 +62,19 @@ def find_lpDeath_yrn(age, sex, mrs):
 
     ivs = np.array([
         1,
-        age - fixed_params.gz_mean_age,
-        (age**2.0) - fixed_params.gz_mean_age**2.0,
+        age - fixed_params['gz_mean_age'],
+        (age**2.0) - fixed_params['gz_mean_age']**2.0,
         sex,
-        *mrss * (age - fixed_params.gz_mean_age),
+        *mrss * (age - fixed_params['gz_mean_age']),
         *mrss
         ])
 
-    lp = np.sum(fixed_params.gz_coeffs * ivs)
+    lp = np.sum(fixed_params['gz_coeffs'] * ivs)
 
     return lp
 
 
-def find_FDeath_yrn(age, sex, mrs, yr, p1=None):
+def find_FDeath_yrn(age, sex, mrs, yr, fixed_params, p1=None):
     """
     Cumm hazard Gompertz
 
@@ -89,10 +89,10 @@ def find_FDeath_yrn(age, sex, mrs, yr, p1=None):
     """
     if p1 is None:
         # Calculate the prob in year 1 if it's not given:
-        p1 = find_pDeath_yr1(age, sex, mrs)
+        p1 = find_pDeath_yr1(age, sex, mrs, fixed_params)
 
     # Find the linear predictor:
-    lp = find_lpDeath_yrn(age, sex, mrs)
+    lp = find_lpDeath_yrn(age, sex, mrs, fixed_params)
     # Convert input years to days:
     days = (yr - 1.0)*365.0
     # ^ AL changed this definition of days to match the Excel
@@ -101,8 +101,8 @@ def find_FDeath_yrn(age, sex, mrs, yr, p1=None):
     # Cumulative hazard at time t:
     hazard = (
         np.exp(lp) *
-        (np.exp(days*fixed_params.gz_gamma)-1.0) /
-        fixed_params.gz_gamma
+        (np.exp(days*fixed_params['gz_gamma'])-1.0) /
+        fixed_params['gz_gamma']
         )
 
     # Also calculate the adjustment for year 1.
@@ -111,7 +111,7 @@ def find_FDeath_yrn(age, sex, mrs, yr, p1=None):
     return hazard, cum_prob
 
 
-def find_iDeath(age, sex, mrs, yr):
+def find_iDeath(age, sex, mrs, yr, fixed_params):
     """
     prob of death in year n
 
@@ -127,21 +127,21 @@ def find_iDeath(age, sex, mrs, yr):
     # rVal = 0.0
     if yr == 1:
         # AL changed the above from original "if(yr==0)".
-        iDeath = find_pDeath_yr1(age, sex, mrs)
+        iDeath = find_pDeath_yr1(age, sex, mrs, fixed_params)
     elif yr == 2:
         # AL changed the above from original
         # "else if (rVal == 1)"
-        hazard0, p0 = find_FDeath_yrn(age, sex, mrs, yr)
-        p1 = find_pDeath_yr1(age, sex, mrs)
+        hazard0, p0 = find_FDeath_yrn(age, sex, mrs, yr, fixed_params)
+        p1 = find_pDeath_yr1(age, sex, mrs, fixed_params)
         iDeath = 1.0 - np.exp(p1 - p0)
     else:
-        hazard0, p0 = find_FDeath_yrn(age, sex, mrs, yr)
-        hazard1, p1 = find_FDeath_yrn(age, sex, mrs, yr-1.0)
+        hazard0, p0 = find_FDeath_yrn(age, sex, mrs, yr, fixed_params)
+        hazard1, p1 = find_FDeath_yrn(age, sex, mrs, yr-1.0, fixed_params)
         iDeath = 1.0 - np.exp(p1 - p0)
     return iDeath
 
 
-def find_t_zero_survival(age, sex, mrs, prob=1.0):
+def find_t_zero_survival(age, sex, mrs, fixed_params, prob=1.0):
     """
     Find the time where survival is zero.
     Based on find_tDeath.
@@ -155,7 +155,7 @@ def find_t_zero_survival(age, sex, mrs, prob=1.0):
                      probability of death is reached.
     """
     # Probability of death in year one:
-    pd1 = find_pDeath_yr1(age, sex, mrs)
+    pd1 = find_pDeath_yr1(age, sex, mrs, fixed_params)
     if pd1 < prob:
         # AL has changed the following line from R:
         # prob_prime = ((1.0 + prob)/(1.0 + pd1)) - 1.0
@@ -163,17 +163,17 @@ def find_t_zero_survival(age, sex, mrs, prob=1.0):
         # gives the expected result for the survival-time graph.
         prob_prime = prob
         # Linear predictor for death in year n:
-        glp = find_lpDeath_yrn(age, sex, mrs)
+        glp = find_lpDeath_yrn(age, sex, mrs, fixed_params)
         # Invert the pDeath_yrn formula to get time:
         days = (
             np.log(
                 (
-                    fixed_params.gz_gamma *
+                    fixed_params['gz_gamma'] *
                     prob_prime *
                     np.exp(-glp)
                 ) + 1.0
             ) /
-            fixed_params.gz_gamma
+            fixed_params['gz_gamma']
             )
         # Convert days to years:
         years_to_death = (days/365) + 1
@@ -234,7 +234,7 @@ def find_t_zero_survival(age, sex, mrs, prob=1.0):
 #     return years_to_death
 
 
-def find_survival_time_for_pDeath(pDeath, pDeath_yr1, lpDeath_yrn):
+def find_survival_time_for_pDeath(pDeath, pDeath_yr1, lpDeath_yrn, fixed_params):
     """
     Calculate the time when the probability of death is equal to
     the input probability, pDeath.
@@ -270,11 +270,11 @@ def find_survival_time_for_pDeath(pDeath, pDeath_yr1, lpDeath_yrn):
             np.log(
                 (
                     eqperc *
-                    fixed_params.gz_gamma /
+                    fixed_params['gz_gamma'] /
                     np.exp(lpDeath_yrn)
                 ) + 1.0
             )
-            / (fixed_params.gz_gamma*365.0)
+            / (fixed_params['gz_gamma']*365.0)
         )
         # Note: one year added to median survival years as they
         # survive the first year.
@@ -303,7 +303,7 @@ def find_survival_time_for_pDeath(pDeath, pDeath_yr1, lpDeath_yrn):
 # ############################## QALYs ################################
 # #####################################################################
 
-def calculate_qaly(util, med_survival_years, age, sex, average_age, dfq=0.035):
+def calculate_qaly(util, med_survival_years, age, sex, average_age, fixed_params, dfq=0.035):
     """
     Calculate the number of QALYs.
 
@@ -322,10 +322,10 @@ def calculate_qaly(util, med_survival_years, age, sex, average_age, dfq=0.035):
         # Calculate raw QALY
         raw_qaly = (
             util -
-            ((age+year) - average_age) * fixed_params.qaly_age_coeff -
+            ((age+year) - average_age) * fixed_params['qaly_age_coeff'] -
             ((age+year)**2.0 - average_age**2.0) *
-            fixed_params.qaly_age2_coeff +
-            sex * fixed_params.qaly_sex_coeff
+            fixed_params['qaly_age2_coeff'] +
+            sex * fixed_params['qaly_sex_coeff']
         )
         if raw_qaly > 1:
             raw_qaly = 1
@@ -388,7 +388,7 @@ def calculate_qaly_v7(util, med_survival_years, dfq=0.035):
 # ############################ Resources ##############################
 # #####################################################################
 
-def find_A_E_Count(age, sex, mrs, yrs):
+def find_A_E_Count(age, sex, mrs, yrs, fixed_params):
     """
     This section predicts the cumulative A_E admissions count for
     a given individual and a given number of years
@@ -400,19 +400,19 @@ def find_A_E_Count(age, sex, mrs, yrs):
     Count - float. Number of admissions to A&E over input years.
     """
     # Find linear predictor:
-    A_E_lp = find_lp_AE_Count(age, sex, mrs)
+    A_E_lp = find_lp_AE_Count(age, sex, mrs, fixed_params)
     # creates the lambda function for the equation
     # AL - for python, changed this to a variable:
-    lambda_factor = np.exp(fixed_params.A_E_coeffs[3] * A_E_lp)
+    lambda_factor = np.exp(fixed_params['A_E_coeffs'][3] * A_E_lp)
     # equation that estimates the A_E admissions count
     # Define this to help fit everything on one line:
-    c = (-lambda_factor) * (yrs**fixed_params.A_E_coeffs[3])
+    c = (-lambda_factor) * (yrs**fixed_params['A_E_coeffs'][3])
     # Final count:
     Count = -np.log(np.exp(c))
     return Count
 
 
-def find_lp_AE_Count(age, sex, mrs):
+def find_lp_AE_Count(age, sex, mrs, fixed_params):
     """
     Linear predictor for A&E admissions count.
 
@@ -420,18 +420,18 @@ def find_lp_AE_Count(age, sex, mrs):
     A_E_lp - float.
     """
     # calculates the normalized age
-    age_norm = age - fixed_params.lg_mean_ages[mrs]
+    age_norm = age - fixed_params['lg_mean_ages'][mrs]
     # calculates the linear predictor for A_E
     A_E_lp = (
-        fixed_params.A_E_coeffs[0] +
-        (fixed_params.A_E_coeffs[1]*age_norm) +
-        (fixed_params.A_E_coeffs[2]*sex) +
-        fixed_params.A_E_mRS[mrs]
+        fixed_params['A_E_coeffs'][0] +
+        (fixed_params['A_E_coeffs'][1]*age_norm) +
+        (fixed_params['A_E_coeffs'][2]*sex) +
+        fixed_params['A_E_mRS'][mrs]
     )
     return A_E_lp
 
 
-def find_NEL_Count(age, sex, mrs, yrs):
+def find_NEL_Count(age, sex, mrs, yrs, fixed_params):
     """
     This section predicts the cumulative NEL bed days count for
     a given individual and a given number of years
@@ -443,20 +443,20 @@ def find_NEL_Count(age, sex, mrs, yrs):
     Count - float. Number of non-elective bed days over input years.
     """
     # Find linear predictor:
-    NEL_lp = find_lp_NEL_Count(age, sex, mrs)
+    NEL_lp = find_lp_NEL_Count(age, sex, mrs, fixed_params)
     # creates the lambda function for the equation
     # AL - for python, changed this to a variable:
     lambda_factor = np.exp(-NEL_lp)
     # equation that estimates the NEL bed days count
 
     # Define this to help fit everything on one line:
-    c = (yrs*lambda_factor)**(1.0/fixed_params.NEL_coeffs[3])
+    c = (yrs*lambda_factor)**(1.0/fixed_params['NEL_coeffs'][3])
     # Final count:
     Count = -np.log((1.0 + c)**(-1.0))
     return Count
 
 
-def find_lp_NEL_Count(age, sex, mrs):
+def find_lp_NEL_Count(age, sex, mrs, fixed_params):
     """
     Linear predictor for NEL bed days count.
 
@@ -464,18 +464,18 @@ def find_lp_NEL_Count(age, sex, mrs):
     NEL_lp - float.
     """
     # calculates the normalized age
-    age_norm = age - fixed_params.lg_mean_ages[mrs]
+    age_norm = age - fixed_params['lg_mean_ages'][mrs]
     # calculates the linear predictor for NEL bed days
     NEL_lp = (
-        fixed_params.NEL_coeffs[0] +
-        (fixed_params.NEL_coeffs[1]*age_norm) +
-        (fixed_params.NEL_coeffs[2]*sex) +
-        fixed_params.NEL_mRS[mrs]
+        fixed_params['NEL_coeffs'][0] +
+        (fixed_params['NEL_coeffs'][1]*age_norm) +
+        (fixed_params['NEL_coeffs'][2]*sex) +
+        fixed_params['NEL_mRS'][mrs]
     )
     return NEL_lp
 
 
-def find_EL_Count(age, sex, mrs, yrs):
+def find_EL_Count(age, sex, mrs, yrs, fixed_params):
     """
     This section predicts the cumulative EL bed days count for
     a given individual and a given number of years
@@ -487,19 +487,19 @@ def find_EL_Count(age, sex, mrs, yrs):
     Count - float. Number of elective bed days over the input years.
     """
     # Find linear predictor:
-    EL_lp = find_lp_EL_Count(age, sex, mrs)
+    EL_lp = find_lp_EL_Count(age, sex, mrs, fixed_params)
     # creates the lambda function for the equation
     # AL - for python, changed this to a variable:
     lambda_factor = np.exp(-EL_lp)
     # equation that estimates the EL bed days count
     # Define this to help fit everything on one line:
-    c = (yrs*lambda_factor)**(1.0/fixed_params.EL_coeffs[3])
+    c = (yrs*lambda_factor)**(1.0/fixed_params['EL_coeffs'][3])
     # Final count:
     Count = -np.log((1.0 + c)**(-1.0))
     return Count
 
 
-def find_lp_EL_Count(age, sex, mrs):
+def find_lp_EL_Count(age, sex, mrs, fixed_params):
     """
     Linear predictor for EL bed days count.
 
@@ -507,13 +507,13 @@ def find_lp_EL_Count(age, sex, mrs):
     EL_lp - float.
     """
     # calculates the normalized age
-    age_norm = age - fixed_params.lg_mean_ages[mrs]
+    age_norm = age - fixed_params['lg_mean_ages'][mrs]
     # calculates the linear predictor for EL bed days
     EL_lp = (
-        fixed_params.EL_coeffs[0] +
-        (fixed_params.EL_coeffs[1]*age_norm) +
-        (fixed_params.EL_coeffs[2]*sex) +
-        fixed_params.EL_mRS[mrs]
+        fixed_params['EL_coeffs'][0] +
+        (fixed_params['EL_coeffs'][1]*age_norm) +
+        (fixed_params['EL_coeffs'][2]*sex) +
+        fixed_params['EL_mRS'][mrs]
     )
     return EL_lp
 
@@ -538,7 +538,7 @@ def find_residential_care_average_time(average_care_year, yrs):
     return years_in_care
 
 
-def find_average_care_year_per_mRS(age):
+def find_average_care_year_per_mRS(age, fixed_params):
     """
     Find the average care year per mRS for a patient of the input age.
 
@@ -555,9 +555,9 @@ def find_average_care_year_per_mRS(age):
                                 for each mRS.
     """
     if age > 70:
-        perc_care_home = fixed_params.perc_care_home_over70
+        perc_care_home = fixed_params['perc_care_home_over70']
     else:
-        perc_care_home = fixed_params.perc_care_home_not_over70
+        perc_care_home = fixed_params['perc_care_home_not_over70']
     # Define the "Average care (Years)" from Resource_Use sheet.
     average_care_year_per_mRS = 0.95 * perc_care_home
     return average_care_year_per_mRS

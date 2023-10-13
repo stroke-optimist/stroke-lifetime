@@ -12,6 +12,16 @@ depending on the user selection of model type.
 When the model type changes (in container_inputs.py),
 this script is re-loaded to make sure the correct set of
 parameters are used.
+
+This script contains multiple functions that build up a single
+dictionary of fixed parameters. The dictionary values are defined
+as variables in the functions and then at the end added to the
+dictionary. This layout is used instead of just making a dictionary
+at the start and adding values as they're defined because this way
+is better for including very many comments about where exactly
+all of the numbers came from. It's also better for the values that
+are calculated every time, and in case one day we change the dicts
+to another format but need to keep the same data.
 """
 import streamlit as st
 import numpy as np
@@ -28,86 +38,140 @@ def page_setup():
         )
 
 
-# Calculate survival and hazard up to and including this year:
-time_max_post_discharge_yr = 50
+def get_fixed_params(model_input_str: str=''):
+    # Start with parameters that are shared for all model types:
+    fixed_params_shared = make_fixed_params_shared()
 
-# Colour scheme to match Excel hazard chart:
-colours_excel = [
-    '#ffc000',   # mRS 0
-    '#ed7d31',   # mRS 1
-    '#a5a5a5',   # mRS 2
-    '#b4c7e7',   # mRS 3
-    '#5b9bd5',   # mRS 4
-    '#70ad47',   # mRS 5
-]
+    if len(model_input_str) < 1:
+        # If nothing was given by the user:
+        try:
+            # Get the model type out of the streamlit session state:
+            model_input_str = st.session_state['lifetime_model_type']
+        except KeyError:
+            model_input_str = 'mRS'
 
+    # Get parameters for the selected model type:
+    if model_input_str == 'mRS':
+        fixed_params_model = make_fixed_params_mrs_model(fixed_params_shared)
+    elif model_input_str == 'Dichotomous':
+        fixed_params_model = make_fixed_params_dicho_model(fixed_params_shared)
 
-# ############################
-# ##### Both model types #####
-# ############################
-# ----- From the Excel FrontSheet -----
-# File: Excel NHCT v7.4
-#   perc = percentage
-#   GBP = GB pounds
-# Inputs column 2:
-discount_factor_QALYs_perc = 3.50       # %
-discount_factor_costs_perc = 3.50       # %
-WTP_QALY_gpb = 20000                    # £
-# Inputs column 3:
-cost_ae_gbp = 170.46                    # £
-cost_elective_bed_day_gbp = 443.80      # £
-cost_non_elective_bed_day_gbp = 532.56  # £
-cost_residential_day_gbp = 102.71       # £
+    # Combine the separate dictionaries into one:
+    fixed_params = dict(**fixed_params_shared, **fixed_params_model)
+
+    return fixed_params
 
 
-# ----- Discharge destinations: -----
-# From the Excel NHCT v7.4 "Discharge_Dest" sheet.
-# Number of people "n" in each category.
-# mRS 0, 1, 2, 3, 4, 5
-n_care_home = np.array([1, 3, 3, 32, 109, 26])
-n_Home = np.array([120, 276, 269, 158, 77, 10])
-n_Somewhere_else = np.array([3, 5, 10, 25, 39, 4])
-n_Transfer_inpatient = np.array([0, 2, 4, 3, 3, 0])
-n_Transfer_community_team = np.array([2, 17, 41, 95, 7, 0])
-n_Transfer_community_team_not_SSNAP = np.array([0, 2, 0, 2, 0, 0])
-n_Transfer_inpatient_not_SSNAP = np.array([0, 0, 1, 2, 4, 1])
+def make_fixed_params_shared():
+    # ############################
+    # ##### Both model types #####
+    # ############################
 
-# Get a list of the number of people not in a care home,
-# one value per mRS like in the lists above.
-n_not_care_home = np.sum([
-    n_Home,
-    n_Somewhere_else,
-    n_Transfer_inpatient,
-    n_Transfer_community_team,
-    n_Transfer_community_team_not_SSNAP,
-    n_Transfer_inpatient_not_SSNAP
-    ], axis=0
+    # Calculate survival and hazard up to and including this year:
+    time_max_post_discharge_yr = 50
+
+    # ----- QALYs -----
+    qaly_age_coeff = 0.0002587
+    qaly_age2_coeff = 0.0000332
+    qaly_sex_coeff = 0.0212126
+
+    # ----- From the Excel FrontSheet -----
+    # File: Excel NHCT v7.4
+    #   perc = percentage
+    #   GBP = GB pounds
+    # Inputs column 2:
+    discount_factor_QALYs_perc = 3.50       # %
+    discount_factor_costs_perc = 3.50       # %
+    WTP_QALY_gpb = 20000                    # £
+    # Inputs column 3:
+    cost_ae_gbp = 170.46                    # £
+    cost_elective_bed_day_gbp = 443.80      # £
+    cost_non_elective_bed_day_gbp = 532.56  # £
+    cost_residential_day_gbp = 102.71       # £
+
+    # ----- Discharge destinations: -----
+    # From the Excel NHCT v7.4 "Discharge_Dest" sheet.
+    # Number of people "n" in each category.
+    # mRS 0, 1, 2, 3, 4, 5
+    n_care_home = np.array([1, 3, 3, 32, 109, 26])
+    n_Home = np.array([120, 276, 269, 158, 77, 10])
+    n_Somewhere_else = np.array([3, 5, 10, 25, 39, 4])
+    n_Transfer_inpatient = np.array([0, 2, 4, 3, 3, 0])
+    n_Transfer_community_team = np.array([2, 17, 41, 95, 7, 0])
+    n_Transfer_community_team_not_SSNAP = np.array([0, 2, 0, 2, 0, 0])
+    n_Transfer_inpatient_not_SSNAP = np.array([0, 0, 1, 2, 4, 1])
+
+    # Get a list of the number of people not in a care home,
+    # one value per mRS like in the lists above.
+    n_not_care_home = np.sum([
+        n_Home,
+        n_Somewhere_else,
+        n_Transfer_inpatient,
+        n_Transfer_community_team,
+        n_Transfer_community_team_not_SSNAP,
+        n_Transfer_inpatient_not_SSNAP
+        ], axis=0
+        )
+    # Only store the "care home" and "not care home" values
+    # and discard the separate non-care-home destination values.
+
+    # Separate conditions for mRS>=3.
+    # Numbers for age > 70...
+    n_care_home_over70 = np.array([28, 94, 24])
+    n_not_care_home_over70 = np.array([245, 190, 34])
+    # ... and for age <= 70.
+    n_care_home_not_over70 = np.array([4, 15, 2])
+    n_not_care_home_not_over70 = np.array([72, 49, 7])
+
+    # Place into a dictionary:
+    return dict(
+        time_max_post_discharge_yr=time_max_post_discharge_yr,
+        qaly_age_coeff=qaly_age_coeff,
+        qaly_age2_coeff=qaly_age2_coeff,
+        qaly_sex_coeff=qaly_sex_coeff,
+        discount_factor_QALYs_perc=discount_factor_QALYs_perc,
+        discount_factor_costs_perc=discount_factor_costs_perc,
+        WTP_QALY_gpb=WTP_QALY_gpb,
+        cost_ae_gbp=cost_ae_gbp,
+        cost_elective_bed_day_gbp=cost_elective_bed_day_gbp,
+        cost_non_elective_bed_day_gbp=cost_non_elective_bed_day_gbp,
+        cost_residential_day_gbp=cost_residential_day_gbp,
+        n_care_home=n_care_home,
+        n_not_care_home=n_not_care_home,
+        n_care_home_over70=n_care_home_over70,
+        n_not_care_home_over70=n_not_care_home_over70,
+        n_care_home_not_over70=n_care_home_not_over70,
+        n_not_care_home_not_over70=n_not_care_home_not_over70
     )
 
-# Separate conditions for mRS>=3.
-# Numbers for age > 70...
-n_care_home_over70 = np.array([28, 94, 24])
-n_not_care_home_over70 = np.array([245, 190, 34])
-# ... and for age <= 70.
-n_care_home_not_over70 = np.array([4, 15, 2])
-n_not_care_home_not_over70 = np.array([72, 49, 7])
 
-# ----- QALYs -----
-qaly_age_coeff = 0.0002587
-qaly_age2_coeff = 0.0000332
-qaly_sex_coeff = 0.0212126
-
-
-try:
-    # Get the model type out of the streamlit session state:
-    model_input_str = st.session_state['lifetime_model_type']
-except KeyError:
-    model_input_str = 'mRS'
-
-if model_input_str == 'mRS':
+def make_fixed_params_mrs_model(fixed_params):
     # ################################
     # ##### mRS individual model #####
     # ################################
+    # Separate mRS model
+    # ----- Discharge destinations -----
+
+    # Pick variables out of the dictionary:
+    n_care_home = fixed_params['n_care_home']
+    n_not_care_home = fixed_params['n_not_care_home']
+    n_care_home_over70 = fixed_params['n_care_home_over70']
+    n_not_care_home_over70 = fixed_params['n_not_care_home_over70']
+    n_care_home_not_over70 = fixed_params['n_care_home_not_over70']
+    n_not_care_home_not_over70 = fixed_params['n_not_care_home_not_over70']
+
+    # Combine these counts into percentage rates:
+    perc_care_home_all_ages = n_care_home / (n_care_home + n_not_care_home)
+
+    perc_care_home_over70 = np.append(
+        perc_care_home_all_ages[:3],
+        n_care_home_over70 / n_not_care_home_over70
+        )
+    perc_care_home_not_over70 = np.append(
+        perc_care_home_all_ages[:3],
+        n_care_home_not_over70 / n_not_care_home_not_over70
+        )
+
 
     # From Excel "Coefficients" sheet, "QALYs" table
     # File: Excel NHCT v7.4
@@ -229,23 +293,73 @@ if model_input_str == 'mRS':
         -1.72541        # mrs5
         ])
 
-    # ----- Discharge destinations -----
-    # Combine these counts into percentage rates:
-    perc_care_home_all_ages = n_care_home / (n_care_home + n_not_care_home)
+    # Put all of this into a dictionary:
+    return dict(
+        perc_care_home_all_ages=perc_care_home_all_ages,
+        perc_care_home_over70=perc_care_home_over70,
+        perc_care_home_not_over70=perc_care_home_not_over70,
+        utility_list=utility_list,
+        lg_coeffs=lg_coeffs,
+        lg_mean_ages=lg_mean_ages,
+        gz_coeffs=gz_coeffs,
+        gz_gamma=gz_gamma,
+        gz_mean_age=gz_mean_age,
+        A_E_coeffs=A_E_coeffs,
+        A_E_mRS=A_E_mRS,
+        NEL_coeffs=NEL_coeffs,
+        NEL_mRS=NEL_mRS,
+        EL_coeffs=EL_coeffs,
+        EL_mRS=EL_mRS
+    )
 
-    perc_care_home_over70 = np.append(
-        perc_care_home_all_ages[:3],
-        n_care_home_over70/n_not_care_home_over70
-        )
-    perc_care_home_not_over70 = np.append(
-        perc_care_home_all_ages[:3],
-        n_care_home_not_over70/n_not_care_home_not_over70
-        )
 
-elif model_input_str == 'Dichotomous':
+def make_fixed_params_dicho_model(fixed_params):
     # ################################
     # ##### Dichotomous model #####
     # ################################
+
+    # ----- Discharge destinations -----
+
+    # Pick variables out of the dictionary:
+    n_care_home = fixed_params['n_care_home']
+    n_not_care_home = fixed_params['n_not_care_home']
+    n_care_home_over70 = fixed_params['n_care_home_over70']
+    n_not_care_home_over70 = fixed_params['n_not_care_home_over70']
+    n_care_home_not_over70 = fixed_params['n_care_home_not_over70']
+    n_not_care_home_not_over70 = fixed_params['n_not_care_home_not_over70']
+
+    # Combine these counts into percentage rates:
+    perc_care_home_all_ages_independent = (
+        np.sum(n_care_home[:3]) /
+        np.sum(n_care_home[:3] + n_not_care_home[:3])
+        )
+    perc_care_home_all_ages_dependent = (
+        np.sum(n_care_home[3:]) /
+        np.sum(n_care_home[3:] + n_not_care_home[3:])
+        )
+    perc_care_home_all_ages = np.array(
+        [perc_care_home_all_ages_independent] * 3 +
+        [perc_care_home_all_ages_dependent] * 3
+    )
+
+    perc_care_home_over70_dependent = (
+        np.sum(n_care_home_over70) /
+        (np.sum(n_care_home_over70) + np.sum(n_not_care_home_over70))
+        )
+
+    perc_care_home_not_over70_dependent = (
+        np.sum(n_care_home_not_over70) /
+        (np.sum(n_care_home_not_over70) + np.sum(n_not_care_home_not_over70))
+        )
+
+    perc_care_home_over70 = np.append(
+        perc_care_home_all_ages[:3],
+        [perc_care_home_over70_dependent] * 3
+        )
+    perc_care_home_not_over70 = np.append(
+        perc_care_home_all_ages[:3],
+        [perc_care_home_not_over70_dependent] * 3
+        )
 
     # From Excel "Coefficients" sheet, "QALYs" table
     # File: Excel NHCT v7.4
@@ -365,42 +479,32 @@ elif model_input_str == 'Dichotomous':
         0.6038344,      # Dependent
         0.6038344       # Dependent
         ])
-
-    # ----- Discharge destinations -----
-    # Combine these counts into percentage rates:
-    perc_care_home_all_ages_independent = (
-        np.sum(n_care_home[:3]) /
-        np.sum(n_care_home[:3] + n_not_care_home[:3])
-        )
-    perc_care_home_all_ages_dependent = (
-        np.sum(n_care_home[3:]) /
-        np.sum(n_care_home[3:] + n_not_care_home[3:])
-        )
-    perc_care_home_all_ages = np.array(
-        [perc_care_home_all_ages_independent] * 3 +
-        [perc_care_home_all_ages_dependent] * 3
+    # Put all of this into a dictionary:
+    return dict(
+        perc_care_home_all_ages=perc_care_home_all_ages,
+        perc_care_home_over70=perc_care_home_over70,
+        perc_care_home_not_over70=perc_care_home_not_over70,
+        utility_list=utility_list,
+        lg_coeffs=lg_coeffs,
+        lg_mean_ages=lg_mean_ages,
+        gz_coeffs=gz_coeffs,
+        gz_gamma=gz_gamma,
+        gz_mean_age=gz_mean_age,
+        A_E_coeffs=A_E_coeffs,
+        A_E_mRS=A_E_mRS,
+        NEL_coeffs=NEL_coeffs,
+        NEL_mRS=NEL_mRS,
+        EL_coeffs=EL_coeffs,
+        EL_mRS=EL_mRS
     )
 
-    perc_care_home_over70_dependent = (
-        np.sum(n_care_home_over70) /
-        (np.sum(n_care_home_over70) + np.sum(n_not_care_home_over70))
-        )
 
-    perc_care_home_not_over70_dependent = (
-        np.sum(n_care_home_not_over70) /
-        (np.sum(n_care_home_not_over70) + np.sum(n_not_care_home_not_over70))
-        )
-
-    perc_care_home_over70 = np.append(
-        perc_care_home_all_ages[:3],
-        [perc_care_home_over70_dependent] * 3
-        )
-    perc_care_home_not_over70 = np.append(
-        perc_care_home_all_ages[:3],
-        [perc_care_home_not_over70_dependent] * 3
-        )
-else:
-    # This shouldn't happen!
-    st.write('Failed to import fixed parameters.')
-    st.stop()
-    pass
+# Colour scheme to match Excel hazard chart:
+colours_excel = [
+    '#ffc000',   # mRS 0
+    '#ed7d31',   # mRS 1
+    '#a5a5a5',   # mRS 2
+    '#b4c7e7',   # mRS 3
+    '#5b9bd5',   # mRS 4
+    '#70ad47',   # mRS 5
+]
