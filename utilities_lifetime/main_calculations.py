@@ -38,12 +38,17 @@ def find_cumhazard_with_time(time_list_yr, age, sex, mrs, fixed_params):
     pDeath_list = [0.0]
     for year in time_list_yr[1:]:
         if year == 1:
+            # Find linear predictor:
+            lp_yr1 = utilities_lifetime.models.find_lpDeath_yr1(age, sex, mrs, 
+                fixed_params['lg_mean_ages'], fixed_params['lg_coeffs'])
             pDeath_yr1 = utilities_lifetime.models.\
-                find_pDeath_yr1(age, sex, mrs, fixed_params)
+                find_pDeath_yr1(lp_yr1)
             pDeath = pDeath_yr1
         else:
+            lp_yrn = utilities_lifetime.models.find_lpDeath_yrn(age, sex, mrs,
+                fixed_params['gz_mean_age'], fixed_params['gz_coeffs'])
             hazard, pDeath = utilities_lifetime.models.find_FDeath_yrn(
-                age, sex, mrs, year, fixed_params, pDeath_yr1
+                year, fixed_params['gz_gamma'], pDeath_yr1, lp_yrn
                 )
             hazard_list.append(hazard)
         # Manual override if the value is too big:
@@ -59,20 +64,30 @@ def find_cumhazard_with_time(time_list_yr, age, sex, mrs, fixed_params):
     return pDeath_list, survival_list, hazard_list
 
 
-def calculate_prob_death_per_year(age_input, sex_input, mrs, time_list_yr, fixed_params):
+def calculate_prob_death_per_year(
+        time_list_yr,
+        gz_gamma,
+        pDeath_yr1,
+        lp_yrn
+        ):
     """
     WRITE ME
     """
     pDeath_list = []
     for year in time_list_yr[1:]:
         pDeath = utilities_lifetime.models.find_iDeath(
-            age_input, sex_input, mrs, year, fixed_params)
+            year, gz_gamma, lp_yrn, pDeath_yr1)
         pDeath_list.append(pDeath)
     pDeath_list = np.array(pDeath_list)
     return pDeath_list
 
 
-def calculate_survival_iqr(age, sex, mRS, fixed_params):
+def calculate_survival_iqr(
+        age,
+        gz_gamma,
+        lpDeath_yrn,
+        pDeath_yr1
+        ):
     """
     Find the median and IQR survival times in years and the life
     expectancy given this age, sex, and mRS.
@@ -82,9 +97,6 @@ def calculate_survival_iqr(age, sex, mRS, fixed_params):
                     life expectancy] for this patient.
     """
     # Probability of death in year one:
-    pDeath_yr1 = utilities_lifetime.models.find_pDeath_yr1(age, sex, mRS, fixed_params)
-    # Linear predictor for years after year one:
-    lpDeath_yrn = utilities_lifetime.models.find_lpDeath_yrn(age, sex, mRS, fixed_params)
 
     years_to_note = []
     # Loop over three probabilities: median, lower IQR, then upper IQR.
@@ -93,7 +105,7 @@ def calculate_survival_iqr(age, sex, mRS, fixed_params):
         # *(adjusted for year one death chance if necessary).
         survival_time, survival_yrs, time_log, eqperc = \
             utilities_lifetime.models.find_survival_time_for_pDeath(
-                pDeath, pDeath_yr1, lpDeath_yrn, fixed_params)
+                pDeath, pDeath_yr1, lpDeath_yrn, gz_gamma)
         years_to_note.append(survival_time)
 
         if pDeath == 0.5:
@@ -110,8 +122,11 @@ def calculate_survival_iqr(age, sex, mRS, fixed_params):
 # #####################################################################
 
 def find_resource_count_for_all_years(
-        age, sex, mrs, median_survival_years, count_function, fixed_params,
-        average_care_year=np.NaN, care_home=0
+        median_survival_years,
+        count_function,
+        coeffs=[],
+        average_care_year=np.NaN,
+        LP=None
         ):
     """
     Calculates amount of the input resource used over the remaining
@@ -125,9 +140,6 @@ def find_resource_count_for_all_years(
                                 calculating resource use in a given year.
                                 Intended options: find_A_E_Count,
                                 find_NEL_Count, find_EL_Count.
-    care_home                 - int. Set to 1 if using the time in care
-                                resource so that the right function
-                                is used.
     average_care_year_per_mRS - list or array. For each mRS score, the
                                 average time per year spent in
                                 residential care (units of years).
@@ -151,21 +163,20 @@ def find_resource_count_for_all_years(
     previous_count = 0.0
     for year in years_to_tabulate:
         if year < death_year:
-            if care_home == 0:
-                count = count_function(age, sex, mrs, year, fixed_params)
+            if LP is None:
+                count = (utilities_lifetime.models.
+                         find_residential_care_average_time(
+                            average_care_year, year))
             else:
-                count = utilities_lifetime.models.\
-                    find_residential_care_average_time(
-                        average_care_year, year)
+                count = count_function(LP, coeffs, year)
+
         elif year == death_year:
-            if care_home == 0:
-                count = count_function(
-                    age, sex, mrs, median_survival_years, fixed_params)
+            if LP is None:
+                count = (utilities_lifetime.models.
+                         find_residential_care_average_time(
+                            average_care_year, median_survival_years))
             else:
-                count = utilities_lifetime.models.\
-                    find_residential_care_average_time(
-                        average_care_year,
-                        median_survival_years)
+                count = count_function(LP, coeffs, median_survival_years)
 
         # Subtract the count up until this year:
         count -= previous_count
@@ -176,7 +187,7 @@ def find_resource_count_for_all_years(
     return counts
 
 
-def find_discounted_resource_use_for_all_years(resource_list, fixed_params):
+def find_discounted_resource_use_for_all_years(resource_list, discount_factor_QALYs_perc):
     """
     Convert the input resource list to a discounted resource list.
 
@@ -200,7 +211,7 @@ def find_discounted_resource_use_for_all_years(resource_list, fixed_params):
         # Define this to fit on one line more easily:
         c = (
             1.0 +
-            fixed_params['discount_factor_QALYs_perc'] / 100.0
+            discount_factor_QALYs_perc / 100.0
             )
         discounted_resource = val * (1.0 / ((c)**(year - 1.0)))
         discounted_resource_list.append(discounted_resource)
@@ -311,6 +322,8 @@ def build_variables_dict(
         age,
         sex,
         mrs,
+        lp_yr1,
+        lp_yrn,
         pDeath_list,
         invalid_inds_for_pDeath,
         hazard_list,
@@ -318,6 +331,9 @@ def build_variables_dict(
         fhazard_list,
         survival_times,
         time_of_zero_survival,
+        A_E_lp,
+        NEL_lp,
+        EL_lp,
         A_E_count_list,
         NEL_count_list,
         EL_count_list,
@@ -330,6 +346,10 @@ def build_variables_dict(
         NEL_counts,
         EL_counts,
         care_years,
+        A_E_discounted_list,
+        NEL_discounted_list,
+        EL_discounted_list,
+        care_years_discounted_list,
         A_E_discounted_cost,
         NEL_discounted_cost,
         EL_discounted_cost,
@@ -348,21 +368,6 @@ def build_variables_dict(
     Returns:
     variables_dict - dictionary of useful quantities.
     """
-    # Calculate some bits we're missing:
-    # P_yr1 = find_pDeath_yr1(age, sex, mrs)
-    LP_yr1 = utilities_lifetime.models.find_lpDeath_yr1(age, sex, mrs, fixed_params)
-    LP_yrn = utilities_lifetime.models.find_lpDeath_yrn(age, sex, mrs, fixed_params)
-    LP_A_E = utilities_lifetime.models.find_lp_AE_Count(age, sex, mrs, fixed_params)
-    LP_NEL = utilities_lifetime.models.find_lp_NEL_Count(age, sex, mrs, fixed_params)
-    LP_EL = utilities_lifetime.models.find_lp_EL_Count(age, sex, mrs, fixed_params)
-    discounted_list_A_E = \
-        find_discounted_resource_use_for_all_years(A_E_counts, fixed_params)
-    discounted_list_NEL = \
-        find_discounted_resource_use_for_all_years(NEL_counts, fixed_params)
-    discounted_list_EL = \
-        find_discounted_resource_use_for_all_years(EL_counts, fixed_params)
-    discounted_list_care = \
-        find_discounted_resource_use_for_all_years(care_years, fixed_params)
 
     # Fill the dictionary:
     variables_dict = dict(
@@ -370,16 +375,10 @@ def build_variables_dict(
         age=age,
         sex=sex,
         mrs=mrs,
-        # Constants from fixed_params file:
-        lg_coeffs=fixed_params['lg_coeffs'],
-        lg_mean_ages=fixed_params['lg_mean_ages'],
-        gz_coeffs=fixed_params['gz_coeffs'],
-        gz_mean_age=fixed_params['gz_mean_age'],
-        gz_gamma=fixed_params['gz_gamma'],
         # ----- For mortality: -----
         P_yr1=pDeath_list[0],
-        LP_yr1=LP_yr1,
-        LP_yrn=LP_yrn,
+        LP_yr1=lp_yr1,
+        LP_yrn=lp_yrn,
         pDeath_list=pDeath_list,
         invalid_inds_for_pDeath=invalid_inds_for_pDeath,
         hazard_list=hazard_list,
@@ -389,56 +388,37 @@ def build_variables_dict(
         survival_yr1=1.0-pDeath_list[0],
         time_of_zero_survival=time_of_zero_survival,
         # ----- For QALYs: -----
-        discount_factor_QALYs_perc=fixed_params['discount_factor_QALYs_perc'],
-        utility_list=fixed_params['utility_list'],
         qalys=qalys,
         qaly_list=qaly_list,
         qaly_raw_list=qaly_raw_list,
-        # Constants from fixed_params file:
-        qaly_age_coeff=fixed_params['qaly_age_coeff'],
-        qaly_age2_coeff=fixed_params['qaly_age2_coeff'],
-        qaly_sex_coeff=fixed_params['qaly_sex_coeff'],
         # ----- For resource use: -----
         total_discounted_cost=total_discounted_cost,
         # A&E:
-        A_E_coeffs=fixed_params['A_E_coeffs'],
-        A_E_mRS=fixed_params['A_E_mRS'],
-        LP_A_E=LP_A_E,
+        LP_A_E=A_E_lp,
         A_E_count=A_E_count_list,
         # lambda_A_E=lambda_A_E,
         # Non-elective bed days
-        NEL_coeffs=fixed_params['NEL_coeffs'],
-        NEL_mRS=fixed_params['NEL_mRS'],
-        LP_NEL=LP_NEL,
+        LP_NEL=NEL_lp,
         NEL_count=NEL_count_list,
         # Elective bed days
-        EL_coeffs=fixed_params['EL_coeffs'],
-        EL_mRS=fixed_params['EL_mRS'],
-        LP_EL=LP_EL,
+        LP_EL=EL_lp,
         EL_count=EL_count_list,
         # Care home
         care_years=care_years_list,
-        perc_care_home_over70=fixed_params['perc_care_home_over70'],
-        perc_care_home_not_over70=fixed_params['perc_care_home_not_over70'],
         # For cost conversions:
-        cost_ae_gbp=fixed_params['cost_ae_gbp'],
-        cost_non_elective_bed_day_gbp=fixed_params['cost_non_elective_bed_day_gbp'],
-        cost_elective_bed_day_gbp=fixed_params['cost_elective_bed_day_gbp'],
-        cost_residential_day_gbp=fixed_params['cost_residential_day_gbp'],
         # For details in discounted cost calculations:
         A_E_counts_by_year=A_E_counts,
         NEL_counts_by_year=NEL_counts,
         EL_counts_by_year=EL_counts,
         care_years_by_year=care_years,
-        discounted_list_A_E=discounted_list_A_E,
-        discounted_list_NEL=discounted_list_NEL,
-        discounted_list_EL=discounted_list_EL,
-        discounted_list_care=discounted_list_care,
+        discounted_list_A_E=A_E_discounted_list,
+        discounted_list_NEL=NEL_discounted_list,
+        discounted_list_EL=EL_discounted_list,
+        discounted_list_care=care_years_discounted_list,
         A_E_discounted_cost=A_E_discounted_cost,
         NEL_discounted_cost=NEL_discounted_cost,
         EL_discounted_cost=EL_discounted_cost,
         care_years_discounted_cost=care_years_discounted_cost,
         # ----- For cost-effectiveness -----
-        WTP_QALY_gpb=fixed_params['WTP_QALY_gpb']
         )
     return variables_dict

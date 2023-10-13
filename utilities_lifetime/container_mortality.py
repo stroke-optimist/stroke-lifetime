@@ -997,5 +997,5 @@ def write_example_median_survival(vd, fixed_params):
         # Calculate the survival time:
         survival_time, survival_yrs, time_log, eqperc = \
             find_survival_time_for_pDeath(
-                prob_input_frac, vd['P_yr1'], vd['LP_yrn'], fixed_params)
+                prob_input_frac, vd['P_yr1'], vd['LP_yrn'], fixed_params['gz_gamma'])
         print_survival_time_calcs(prob_input_frac, survival_time, vd)
