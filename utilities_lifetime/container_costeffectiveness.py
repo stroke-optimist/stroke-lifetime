@@ -9,7 +9,26 @@ import pandas as pd
 import utilities_lifetime.latex_equations
 
 
-def main(table_cost_effectiveness, qalys_all_mrs, total_discounted_cost_list, variables_dict):
+def main(
+        df,
+        mRS_input,
+        fixed_params,
+        table_cost_effectiveness
+        ):
+
+    # Pick bits out of the dataframe for all mRS:
+    qalys_all_mrs = df['qalys'].to_list()
+    total_discounted_cost_list = df['total_discounted_cost']
+
+    # Get the results for just the selected mRS:
+    results_dict = df.loc[mRS_input].to_dict()
+    variables_dict = dict(**results_dict, **fixed_params)
+
+    # Pick bits out of the results for just the selected mRS:
+    pDeath_list = variables_dict['pDeath_list']
+    invalid_inds_for_pDeath = variables_dict['invalid_inds_for_pDeath']
+    time_of_death = variables_dict['time_of_zero_survival']
+
     st.markdown('### Discounted total Net Benefit by change in outcome')
     st.markdown(''.join([
         'Net Benefit is QALYs valued at Willingness to pay (WTP) ',

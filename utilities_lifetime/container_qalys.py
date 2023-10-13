@@ -12,15 +12,10 @@ import utilities_lifetime.fixed_params
 
 
 def main(
-        survival_times,
-        qalys,
-        qaly_list,
-        qaly_raw_list,
-        qalys_table,
-        all_survival_times,
-        qalys_all_mrs,
-        variables_dict,
-        fixed_params
+        df,
+        mRS_input,
+        fixed_params,
+        qalys_table
         ):
     """
 
@@ -28,6 +23,21 @@ def main(
                  mRS, that are the QALY values. This is just used for
                  printing the example val1 - val2 = diff in table.
     """
+
+    # Pick bits out of the dataframe for all mRS:
+    all_survival_times = np.array(df['survival_meds_IQRs'].tolist())  # To get 2d array
+    qalys_all_mrs = df['qalys'].tolist()
+
+    # Get the results for just the selected mRS:
+    results_dict = df.loc[mRS_input].to_dict()
+    variables_dict = dict(**results_dict, **fixed_params)
+
+    # Pick bits out of the results for just the selected mRS:
+    survival_times = variables_dict['survival_meds_IQRs']
+    qalys = variables_dict['qalys']
+    qaly_list = variables_dict['qaly_list']
+    qaly_raw_list = variables_dict['qaly_raw_list']
+
     st.markdown('### Discounted QALYs')
     with st.expander('Details: Discounted QALYs'):
         write_details_discounted_qalys(variables_dict)

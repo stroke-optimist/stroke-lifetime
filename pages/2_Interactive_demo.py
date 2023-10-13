@@ -99,7 +99,10 @@ def main():
     # ######### MAIN CALCULATIONS #########
     # #####################################
 
-    # Fixed parameters:
+    # Get the fixed parameters dictionary.
+    # This is found via a function because the parameters used
+    # depend on whether we're using the separate-mRS or the dichotomous
+    # model.
     fixed_params = get_fixed_params(model_input_str)
 
     # Store results dictionaries in here:
@@ -109,16 +112,17 @@ def main():
             age,
             sex,
             mrs,
-            model_input_str,
             fixed_params
             )
 
         # Store this dictionary in the list of dicts:
         results_dict_list.append(results_dict)
 
-        if mrs == mRS_input:
-            # Pick out the results and fixed parameters dicts:
-            variables_dict = dict(**results_dict, **fixed_params)
+        # if mrs == mRS_input:
+        #     # Pick out the results and fixed parameters dicts.
+        #     # These are used for printing all sorts of information
+        #     # in the various "Details:" and "Example:" containers.
+        #     variables_dict = dict(**results_dict, **fixed_params)
 
     # Turn all results dictionaries into a single data frame:
     df = pd.DataFrame(results_dict_list)
@@ -127,11 +131,12 @@ def main():
     # ######### CHANGE IN OUTCOME #########
     # #####################################
 
-    # qalys is a list of six floats, i.e. one QALY value for each mRS.
-    # total_discounted_cost is a list of six floats, i.e. one value per mRS.
+    # Take a column from the dataframe that contains one value for
+    # each mRS score from 0 to 5. Turn those six values into a 6x6
+    # grid to show the change in the value between mRS scores.
 
     # ##### QALYs #####
-    qalys_table = calc.make_table_qaly_by_change_in_outcome(
+    qalys_table = calc.build_table_qaly_by_change_in_outcome(
         df['qalys']
         )
     # qalys_table is a 2D np.array, 6 rows by 6 columns, that contains
@@ -164,55 +169,36 @@ def main():
     with tabs[0]:
         st.header('Mortality')
         utilities_lifetime.container_mortality.main(
-            df.loc[0]['time_list_yr'],
-            df['survival_list'],
+            df,
             mRS_input,
-            df['hazard_list'],
-            variables_dict['pDeath_list'],
-            variables_dict['invalid_inds_for_pDeath'],
-            np.array(df['survival_meds_IQRs'].tolist()),
-            variables_dict['time_of_zero_survival'],
-            variables_dict,
             fixed_params
             )
 
     with tabs[1]:
         st.header('QALYs')
         utilities_lifetime.container_qalys.main(
-            variables_dict['survival_meds_IQRs'],
-            variables_dict['qalys'],
-            variables_dict['qaly_list'],
-            variables_dict['qaly_raw_list'],
+            df,
+            mRS_input,
+            fixed_params,
             qalys_table,
-            np.array(df['survival_meds_IQRs'].tolist()),  # To get 2d array
-            df['qalys'],
-            variables_dict,
-            fixed_params
             )
 
     with tabs[2]:
         st.header('Resources and costs')
         utilities_lifetime.container_resources.main(
-            df['A_E_count'],
-            df['NEL_count'],
-            df['EL_count'],
-            df['care_years'],
-            df['A_E_discounted_cost'],
-            df['NEL_discounted_cost'],
-            df['EL_discounted_cost'],
-            df['care_years_discounted_cost'],
-            df['total_discounted_cost'],
-            table_discounted_cost,
-            variables_dict
+            df,
+            mRS_input,
+            fixed_params,
+            table_discounted_cost
             )
 
     with tabs[3]:
         st.header('Cost-effectiveness')
         utilities_lifetime.container_costeffectiveness.main(
-            table_cost_effectiveness,
-            df['qalys'],
-            df['total_discounted_cost'],
-            variables_dict
+            df,
+            mRS_input,
+            fixed_params,
+            table_cost_effectiveness
             )
 
     # ----- The end! -----

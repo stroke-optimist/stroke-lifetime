@@ -12,7 +12,7 @@ import utilities_lifetime.models as model
 # ######################## Overall function ###########################
 # #####################################################################
 
-def main_calculations(age, sex, mrs, model_input_str, fixed_params):
+def main_calculations(age, sex, mrs, fixed_params):
     # ##################################
     # ########## CALCULATIONS ##########
     # ##################################
@@ -477,7 +477,10 @@ def find_resource_count_for_all_years(
     return counts
 
 
-def find_discounted_resource_use_for_all_years(resource_list, discount_factor_QALYs_perc):
+def find_discounted_resource_use_for_all_years(
+        resource_list,
+        discount_factor_QALYs_perc
+        ):
     """
     Convert the input resource list to a discounted resource list.
 
@@ -512,7 +515,7 @@ def find_discounted_resource_use_for_all_years(resource_list, discount_factor_QA
 # ######################## CHANGE IN OUTCOME ##########################
 # #####################################################################
 
-def make_table_qaly_by_change_in_outcome(qalys):
+def build_table_qaly_by_change_in_outcome(qalys):
     """
     Make a table of the change in QALYs with change in outcome.
 

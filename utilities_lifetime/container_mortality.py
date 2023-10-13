@@ -16,11 +16,26 @@ import utilities_lifetime.latex_equations
 
 
 def main(
-        time_list_yr, all_survival_lists,
-        mRS_input, all_hazard_lists,
-        pDeath_list, invalid_inds_for_pDeath, survival_times,
-        time_of_death, variables_dict, fixed_params
+        df,
+        mRS_input,
+        fixed_params
         ):
+
+    # Pick bits out of the dataframe for all mRS:
+    time_list_yr = df.loc[0]['time_list_yr']
+    all_survival_lists = df['survival_list']
+    all_hazard_lists = df['hazard_list'].tolist()
+    survival_times = np.array(df['survival_meds_IQRs'].tolist())
+
+    # Get the results for just the selected mRS:
+    results_dict = df.loc[mRS_input].to_dict()
+    variables_dict = dict(**results_dict, **fixed_params)
+
+    # Pick bits out of the results for just the selected mRS:
+    pDeath_list = variables_dict['pDeath_list']
+    invalid_inds_for_pDeath = variables_dict['invalid_inds_for_pDeath']
+    time_of_death = variables_dict['time_of_zero_survival']
+
     # Details on probability with time
     # Year one:
     st.markdown(''.join([

@@ -10,15 +10,26 @@ import utilities_lifetime.latex_equations
 
 
 def main(
-        A_E_count_list, NEL_count_list, EL_count_list, care_years_list,
-        A_E_discounted_cost,
-        NEL_discounted_cost,
-        EL_discounted_cost,
-        care_years_discounted_cost,
-        total_discounted_cost,
-        table_discounted_cost,
-        variables_dict
+        df,
+        mRS_input,
+        fixed_params,
+        table_discounted_cost
         ):
+
+    # Pick bits out of the dataframe for all mRS:
+    A_E_count_list = df['A_E_count']
+    NEL_count_list = df['NEL_count']
+    EL_count_list = df['EL_count']
+    care_years_list = df['care_years']
+    A_E_discounted_cost = df['A_E_discounted_cost']
+    NEL_discounted_cost = df['NEL_discounted_cost']
+    EL_discounted_cost = df['EL_discounted_cost']
+    care_years_discounted_cost = df['care_years_discounted_cost']
+    total_discounted_cost = df['total_discounted_cost'].tolist()
+
+    # Get the results for just the selected mRS:
+    results_dict = df.loc[mRS_input].to_dict()
+    variables_dict = dict(**results_dict, **fixed_params)
 
     st.write('### Resource use')
     st.markdown(''.join([
