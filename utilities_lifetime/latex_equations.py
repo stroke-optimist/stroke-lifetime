@@ -98,7 +98,7 @@ def pDeath_year1_generic():
     str = (
         r'''
         \begin{equation}\tag{1}
-        P_{1} = \frac{1}{1+e^{-lp_{1}}}
+        P_{1} = \frac{1}{1+e^{-LP_{1}}}
         \end{equation}
         '''
         )
@@ -153,7 +153,7 @@ def lp_year1_generic():
     str = (
         r'''
         \begin{equation}\tag{2}
-        lp_{1} =
+        LP_{1} =
         \alpha_{1} +
         \displaystyle\sum_{i=1}^{n}
         \beta_{1,\ i}
@@ -172,7 +172,7 @@ def lp_year1(vd):
     """
     str = (
         r'''\begin{align*}
-        lp_{1} =&''' +
+        LP_{1} =&''' +
         # alpha
         f'{vd["lg_coeffs"][0]}' +
         r'''
@@ -349,7 +349,7 @@ def hazard_yearn_generic():
     str = (
         r'''
         \begin{equation}\tag{4}
-        H_t = \frac{e^{lp_{\mathrm{H}}}(e^{\gamma t} - 1)}{\gamma}
+        H_t = \frac{e^{LP_{\mathrm{H}}}(e^{\gamma t} - 1)}{\gamma}
         \end{equation}
         '''
         )
@@ -418,7 +418,7 @@ def lp_yearn_generic():
     str = (
         r'''
         \begin{equation}\tag{5}
-        lp_{\mathrm{H}} =
+    LP_{\mathrm{H}} =
             \alpha_{\mathrm{H}} +
             \displaystyle\sum_{i=1}^{n}
             \beta_{\mathrm{H},\ i}
@@ -438,7 +438,7 @@ def lp_yearn(vd):
     str = (
         r'''
         \begin{align*}
-        lp_{\mathrm{H}} =&
+        LP_{\mathrm{H}} =&
         ''' +
         # alpha
         f'{vd["gz_coeffs"][0]}' +
@@ -494,7 +494,7 @@ def LPyearn_display(lp_yearn):
     """
     str = (
         r'''
-        lp_{H} =  \textcolor{red}{''' +
+        LP_{H} =  \textcolor{red}{''' +
         f'{lp_yearn:.4f}' + r'''}
         '''
     )
@@ -766,7 +766,7 @@ def death_time_case1_generic():
         \frac{1}{\gamma \times 365} \cdot
         \ln\left(
             \frac{P^{\prime} \times \gamma}{
-                \exp{(lp_\mathrm{H})}} + 1
+                \exp{(LP_\mathrm{H})}} + 1
             \right)
         \end{equation*}
         '''
@@ -1305,7 +1305,7 @@ def ae_count_generic():
         \exp{
             \left(\gamma_\mathrm{AE}
             \times
-            lp_{\mathrm{AE}}\right)
+            LP_{\mathrm{AE}}\right)
             }
         \times
         \mathrm{years}^{\gamma_{\mathrm{AE}}}
@@ -1320,7 +1320,7 @@ def ae_lp_generic():
     str = (
         r'''
         \begin{equation}\tag{17}
-        lp_{\mathrm{AE}} =
+        LP_{\mathrm{AE}} =
         \alpha_{\mathrm{AE}} +
         \displaystyle\sum_{i=1}^{n}
         \beta_{\mathrm{AE},\ i}
@@ -1340,7 +1340,7 @@ def ae_lp(vd):
     str = (
         r'''
         \begin{align*}
-        lp_{\mathrm{AE}} =&''' +
+        LP_{\mathrm{AE}} =&''' +
         # alpha
         f'{vd["ae_coeffs"][0]}' +
         r''' + & \mathrm{constant} \\''' +
@@ -1474,7 +1474,7 @@ def nel_bed_days_generic():
         \mathrm{Count (years)} =
             -\ln{\left(
             \frac{1}{
-                1+ [\mathrm{years}\times\exp{(-lp_\mathrm{NEL})} ] ^{
+                1+ [\mathrm{years}\times\exp{(-LP_\mathrm{NEL})} ] ^{
                     1/ \gamma_{\mathrm{NEL}}}
             }
             \right)}
@@ -1489,7 +1489,7 @@ def nel_lp_generic():
     str = (
         r'''
         \begin{equation}\tag{19}
-        lp_{\mathrm{NEL}} =
+        LP_{\mathrm{NEL}} =
         \alpha_{\mathrm{NEL}} +
         \displaystyle\sum_{i=1}^{n}
         \beta_{\mathrm{NEL},\ i}
@@ -1509,7 +1509,7 @@ def nel_lp(vd):
     str = (
         r'''
         \begin{align*}
-        lp_{\mathrm{NEL}} =&''' +
+        LP_{\mathrm{NEL}} =&''' +
         # alpha
         f'{vd["nel_coeffs"][0]}' +
         r''' + & \mathrm{constant} \\''' +
@@ -1641,7 +1641,7 @@ def el_bed_days_generic():
         \mathrm{Count (years)} =
             -\ln{\left(
             \frac{1}{
-                1+ [\mathrm{years} \times \exp{(-lp_\mathrm{EL})} ] ^{
+                1+ [\mathrm{years} \times \exp{(LP_\mathrm{EL})} ] ^{
                     1/ \gamma_{\mathrm{EL}}}
             }
             \right)}
@@ -1656,7 +1656,7 @@ def el_lp_generic():
     str = (
         r'''
         \begin{equation}\tag{21}
-        lp_{\mathrm{EL}} =
+        LP_{\mathrm{EL}} =
         \alpha_{\mathrm{EL}} +
         \displaystyle\sum_{i=1}^{n}
         \beta_{\mathrm{EL},\ i}
@@ -1676,7 +1676,7 @@ def el_lp(vd):
     str = (
         r'''
         \begin{align*}
-        lp_{\mathrm{EL}} =&''' +
+        LP_{\mathrm{EL}} =&''' +
         # alpha
         f'{vd["el_coeffs"][0]}' +
         r''' + & \mathrm{constant} \\''' +

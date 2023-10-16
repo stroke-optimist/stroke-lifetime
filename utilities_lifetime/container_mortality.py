@@ -534,7 +534,7 @@ def write_details_mortality_in_year_one(vd):
     st.latex(latex_pDeath_year1_generic)
 
     # ----- Equation for linear predictor -----
-    st.markdown('with linear predictor $lp_{1}$ where:')
+    st.markdown('with linear predictor $LP_{1}$ where:')
     latex_lp_year1_generic = utilities_lifetime.latex_equations.lp_year1_generic()
     st.latex(latex_lp_year1_generic)
     st.markdown(''.join([
@@ -629,7 +629,7 @@ def write_details_mortality_after_year_one(vd):
     st.latex(latex_hazard_yearn_generic)
 
     # ----- Equation for linear predictor -----
-    st.markdown('with linear predictor $lp_{\mathrm{H}}$ where:')
+    st.markdown('with linear predictor $LP_{\mathrm{H}}$ where:')
     latex_lp_yearn_generic = utilities_lifetime.latex_equations.lp_yearn_generic()
     st.latex(latex_lp_yearn_generic)
 
