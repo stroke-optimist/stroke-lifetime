@@ -396,9 +396,9 @@ def calculate_qaly_v7(util, med_survival_years, dfq=0.035):
 # ############################ Resources ##############################
 # #####################################################################
 
-def find_A_E_Count(A_E_lp, A_E_coeffs, yrs):
+def find_ae_Count(ae_lp, ae_coeffs, yrs):
     """
-    This section predicts the cumulative A_E admissions count for
+    This section predicts the cumulative ae admissions count for
     a given individual and a given number of years
 
     Inputs:
@@ -409,35 +409,35 @@ def find_A_E_Count(A_E_lp, A_E_coeffs, yrs):
     """
     # creates the lambda function for the equation
     # AL - for python, changed this to a variable:
-    lambda_factor = np.exp(A_E_coeffs[3] * A_E_lp)
-    # equation that estimates the A_E admissions count
+    lambda_factor = np.exp(ae_coeffs[3] * ae_lp)
+    # equation that estimates the ae admissions count
     # Define this to help fit everything on one line:
-    c = (-lambda_factor) * (yrs**A_E_coeffs[3])
+    c = (-lambda_factor) * (yrs**ae_coeffs[3])
     # Final count:
     Count = -np.log(np.exp(c))
     return Count
 
 
-def find_lp_AE_Count(age, sex, mrs, lg_mean_ages, A_E_coeffs, A_E_mRS):
+def find_lp_AE_Count(age, sex, mrs, lg_mean_ages, ae_coeffs, ae_mRS):
     """
     Linear predictor for A&E admissions count.
 
     Returns:
-    A_E_lp - float.
+    ae_lp - float.
     """
     # calculates the normalized age
     age_norm = age - lg_mean_ages[mrs]
-    # calculates the linear predictor for A_E
-    A_E_lp = (
-        A_E_coeffs[0] +
-        (A_E_coeffs[1]*age_norm) +
-        (A_E_coeffs[2]*sex) +
-        A_E_mRS[mrs]
+    # calculates the linear predictor for ae
+    ae_lp = (
+        ae_coeffs[0] +
+        (ae_coeffs[1]*age_norm) +
+        (ae_coeffs[2]*sex) +
+        ae_mRS[mrs]
     )
-    return A_E_lp
+    return ae_lp
 
 
-def find_NEL_Count(NEL_lp, NEL_coeffs, yrs):
+def find_nel_Count(nel_lp, nel_coeffs, yrs):
     """
     This section predicts the cumulative NEL bed days count for
     a given individual and a given number of years
@@ -450,36 +450,36 @@ def find_NEL_Count(NEL_lp, NEL_coeffs, yrs):
     """
     # creates the lambda function for the equation
     # AL - for python, changed this to a variable:
-    lambda_factor = np.exp(-NEL_lp)
+    lambda_factor = np.exp(-nel_lp)
     # equation that estimates the NEL bed days count
 
     # Define this to help fit everything on one line:
-    c = (yrs*lambda_factor)**(1.0/NEL_coeffs[3])
+    c = (yrs*lambda_factor)**(1.0/nel_coeffs[3])
     # Final count:
     Count = -np.log((1.0 + c)**(-1.0))
     return Count
 
 
-def find_lp_NEL_Count(age, sex, mrs, lg_mean_ages, NEL_coeffs, NEL_mRS):
+def find_lp_nel_Count(age, sex, mrs, lg_mean_ages, nel_coeffs, nel_mRS):
     """
     Linear predictor for NEL bed days count.
 
     Returns:
-    NEL_lp - float.
+    nel_lp - float.
     """
     # calculates the normalized age
     age_norm = age - lg_mean_ages[mrs]
     # calculates the linear predictor for NEL bed days
-    NEL_lp = (
-        NEL_coeffs[0] +
-        (NEL_coeffs[1]*age_norm) +
-        (NEL_coeffs[2]*sex) +
-        NEL_mRS[mrs]
+    nel_lp = (
+        nel_coeffs[0] +
+        (nel_coeffs[1]*age_norm) +
+        (nel_coeffs[2]*sex) +
+        nel_mRS[mrs]
     )
-    return NEL_lp
+    return nel_lp
 
 
-def find_EL_Count(EL_lp, EL_coeffs, yrs):
+def find_el_Count(el_lp, el_coeffs, yrs):
     """
     This section predicts the cumulative EL bed days count for
     a given individual and a given number of years
@@ -492,32 +492,32 @@ def find_EL_Count(EL_lp, EL_coeffs, yrs):
     """
     # creates the lambda function for the equation
     # AL - for python, changed this to a variable:
-    lambda_factor = np.exp(-EL_lp)
+    lambda_factor = np.exp(-el_lp)
     # equation that estimates the EL bed days count
     # Define this to help fit everything on one line:
-    c = (yrs*lambda_factor)**(1.0/EL_coeffs[3])
+    c = (yrs*lambda_factor)**(1.0/el_coeffs[3])
     # Final count:
     Count = -np.log((1.0 + c)**(-1.0))
     return Count
 
 
-def find_lp_EL_Count(age, sex, mrs, lg_mean_ages, EL_coeffs, EL_mRS):
+def find_lp_el_Count(age, sex, mrs, lg_mean_ages, el_coeffs, el_mRS):
     """
     Linear predictor for EL bed days count.
 
     Returns:
-    EL_lp - float.
+    el_lp - float.
     """
     # calculates the normalized age
     age_norm = age - lg_mean_ages[mrs]
     # calculates the linear predictor for EL bed days
-    EL_lp = (
-        EL_coeffs[0] +
-        (EL_coeffs[1]*age_norm) +
-        (EL_coeffs[2]*sex) +
-        EL_mRS[mrs]
+    el_lp = (
+        el_coeffs[0] +
+        (el_coeffs[1]*age_norm) +
+        (el_coeffs[2]*sex) +
+        el_mRS[mrs]
     )
-    return EL_lp
+    return el_lp
 
 
 def find_residential_care_average_time(average_care_year, yrs):

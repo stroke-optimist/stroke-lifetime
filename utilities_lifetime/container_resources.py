@@ -13,17 +13,18 @@ def main(
         df,
         mRS_input,
         fixed_params,
-        table_discounted_cost
+        table_discounted_cost,
+        model_input_str
         ):
 
     # Pick bits out of the dataframe for all mRS:
-    A_E_count_list = df['A_E_count']
-    NEL_count_list = df['NEL_count']
-    EL_count_list = df['EL_count']
+    ae_count_list = df['ae_count']
+    nel_count_list = df['nel_count']
+    el_count_list = df['el_count']
     care_years_list = df['care_years']
-    A_E_discounted_cost = df['A_E_discounted_cost']
-    NEL_discounted_cost = df['NEL_discounted_cost']
-    EL_discounted_cost = df['EL_discounted_cost']
+    ae_discounted_cost = df['ae_discounted_cost']
+    nel_discounted_cost = df['nel_discounted_cost']
+    el_discounted_cost = df['el_discounted_cost']
     care_years_discounted_cost = df['care_years_discounted_cost']
     total_discounted_cost = df['total_discounted_cost'].tolist()
 
@@ -72,15 +73,15 @@ def main(
             write_example_time_in_care(variables_dict)
 
     # Check which model we're using and draw a bespoke table:
-    if st.session_state['lifetime_model_type'] == 'mRS':
+    if model_input_str == 'mRS':
         write_table_resource_use(
-            A_E_count_list, NEL_count_list,
-            EL_count_list, care_years_list
+            ae_count_list, nel_count_list,
+            el_count_list, care_years_list
             )
     else:
         write_table_resource_use_dicho(
-            A_E_count_list, NEL_count_list,
-            EL_count_list, care_years_list
+            ae_count_list, nel_count_list,
+            el_count_list, care_years_list
             )
 
     st.write('### Discounted Cost of Resource use')
@@ -90,19 +91,19 @@ def main(
         write_example_discounted_resource_use(variables_dict)
 
     # Check which model we're using and draw a bespoke table:
-    if st.session_state['lifetime_model_type'] == 'mRS':
+    if model_input_str == 'mRS':
         write_table_discounted_resource_use(
-            A_E_discounted_cost,
-            NEL_discounted_cost,
-            EL_discounted_cost,
+            ae_discounted_cost,
+            nel_discounted_cost,
+            el_discounted_cost,
             care_years_discounted_cost,
             total_discounted_cost
             )
     else:
         write_table_discounted_resource_use_dicho(
-            A_E_discounted_cost,
-            NEL_discounted_cost,
-            EL_discounted_cost,
+            ae_discounted_cost,
+            nel_discounted_cost,
+            el_discounted_cost,
             care_years_discounted_cost,
             total_discounted_cost
             )
@@ -115,7 +116,7 @@ def main(
         'in the table above.'
     ]))
     # Check which model we're using and draw a bespoke table:
-    if st.session_state['lifetime_model_type'] == 'mRS':
+    if model_input_str == 'mRS':
         st.markdown(''.join([
             'For example, the change from ',
             'an outcome of mRS=1 to mRS=2 gives a difference of: ',
@@ -133,8 +134,8 @@ def main(
 
 
 def write_table_resource_use(
-        A_E_count_list, NEL_count_list,
-        EL_count_list, care_years_list
+        ae_count_list, nel_count_list,
+        el_count_list, care_years_list
         ):
     """
     Write a table of the resource use for each mRS.
@@ -143,9 +144,9 @@ def write_table_resource_use(
 
     Inputs:
     Each of these is a list of six floats, one for each mRS.
-    A_E_count_list  - Number of A&E admissions.
-    NEL_count_list  - Number of non-elective bed days.
-    EL_count_list   - Number of elective bed days.
+    ae_count_list  - Number of A&E admissions.
+    nel_count_list  - Number of non-elective bed days.
+    el_count_list   - Number of elective bed days.
     care_years_list - Number of years in residential care.
     """
     headings = [
@@ -157,9 +158,9 @@ def write_table_resource_use(
     ]
     # Combine lists into a grid
     table = np.transpose(np.vstack((
-        A_E_count_list,
-        NEL_count_list,
-        EL_count_list,
+        ae_count_list,
+        nel_count_list,
+        el_count_list,
         care_years_list
         )))
     # Change into a dataframe with column headings:
@@ -170,8 +171,8 @@ def write_table_resource_use(
 
 
 def write_table_resource_use_dicho(
-        A_E_count_list, NEL_count_list,
-        EL_count_list, care_years_list
+        ae_count_list, nel_count_list,
+        el_count_list, care_years_list
         ):
     """
     Write a table of the resource use for each outcome.
@@ -181,9 +182,9 @@ def write_table_resource_use_dicho(
 
     Inputs:
     Each of these is a list of six floats, one for each mRS.
-    A_E_count_list  - Number of A&E admissions.
-    NEL_count_list  - Number of non-elective bed days.
-    EL_count_list   - Number of elective bed days.
+    ae_count_list  - Number of A&E admissions.
+    nel_count_list  - Number of non-elective bed days.
+    el_count_list   - Number of elective bed days.
     care_years_list - Number of years in residential care.
     """
     headings = [
@@ -195,9 +196,9 @@ def write_table_resource_use_dicho(
     ]
     # Combine lists into a grid
     table = np.transpose(np.vstack((
-        A_E_count_list,
-        NEL_count_list,
-        EL_count_list,
+        ae_count_list,
+        nel_count_list,
+        el_count_list,
         care_years_list
         )))
     # Only keep the first and last rows:
@@ -222,9 +223,9 @@ def write_table_resource_use_dicho(
 
 
 def write_table_discounted_resource_use(
-        A_E_discounted_cost,
-        NEL_discounted_cost,
-        EL_discounted_cost,
+        ae_discounted_cost,
+        nel_discounted_cost,
+        el_discounted_cost,
         care_years_discounted_cost,
         total_discounted_cost
         ):
@@ -236,9 +237,9 @@ def write_table_discounted_resource_use(
     Inputs:
     Each of these is a np.array of six values, one for each mRS.
                                   cost x discounted number of...
-    A_E_discounted_cost        -  ... A&E admissions.
-    NEL_discounted_cost        -  ... non-elective bed days.
-    EL_discounted_cost         -  ... elective bed days.
+    ae_discounted_cost        -  ... A&E admissions.
+    nel_discounted_cost        -  ... non-elective bed days.
+    el_discounted_cost         -  ... elective bed days.
     care_years_discounted_cost -  ... years in care.
     total_discounted_cost      -  sum of these four ^ values.
     """
@@ -253,9 +254,9 @@ def write_table_discounted_resource_use(
 
     # Combine lists into a grid
     table = np.transpose(np.vstack((
-        A_E_discounted_cost,
-        NEL_discounted_cost,
-        EL_discounted_cost,
+        ae_discounted_cost,
+        nel_discounted_cost,
+        el_discounted_cost,
         care_years_discounted_cost,
         total_discounted_cost
         )))
@@ -277,9 +278,9 @@ def write_table_discounted_resource_use(
 
 
 def write_table_discounted_resource_use_dicho(
-        A_E_discounted_cost,
-        NEL_discounted_cost,
-        EL_discounted_cost,
+        ae_discounted_cost,
+        nel_discounted_cost,
+        el_discounted_cost,
         care_years_discounted_cost,
         total_discounted_cost
         ):
@@ -292,9 +293,9 @@ def write_table_discounted_resource_use_dicho(
     Inputs:
     Each of these is a np.array of six values, one for each mRS.
                                   cost x discounted number of...
-    A_E_discounted_cost        -  ... A&E admissions.
-    NEL_discounted_cost        -  ... non-elective bed days.
-    EL_discounted_cost         -  ... elective bed days.
+    ae_discounted_cost        -  ... A&E admissions.
+    nel_discounted_cost        -  ... non-elective bed days.
+    el_discounted_cost         -  ... elective bed days.
     care_years_discounted_cost -  ... years in care.
     total_discounted_cost      -  sum of these four ^ values.
     """
@@ -309,9 +310,9 @@ def write_table_discounted_resource_use_dicho(
 
     # Combine lists into a grid
     table = np.transpose(np.vstack((
-        A_E_discounted_cost,
-        NEL_discounted_cost,
-        EL_discounted_cost,
+        ae_discounted_cost,
+        nel_discounted_cost,
+        el_discounted_cost,
         care_years_discounted_cost,
         total_discounted_cost
         )))
@@ -350,9 +351,9 @@ def write_table_discounted_change(table_discounted_cost):
     Inputs:
     Each of these is a np.array of six values, one for each mRS.
                                   cost x discounted number of...
-    A_E_discounted_cost        -  ... A&E admissions.
-    NEL_discounted_cost        -  ... non-elective bed days.
-    EL_discounted_cost         -  ... elective bed days.
+    ae_discounted_cost        -  ... A&E admissions.
+    nel_discounted_cost        -  ... non-elective bed days.
+    el_discounted_cost         -  ... elective bed days.
     care_years_discounted_cost -  ... years in care.
     total_discounted_cost      -  sum of these four ^ values.
     """
@@ -419,9 +420,9 @@ def write_table_discounted_change_dicho(total_discounted_cost):
     Inputs:
     Each of these is a np.array of six values, one for each mRS.
                                   cost x discounted number of...
-    A_E_discounted_cost        -  ... A&E admissions.
-    NEL_discounted_cost        -  ... non-elective bed days.
-    EL_discounted_cost         -  ... elective bed days.
+    ae_discounted_cost        -  ... A&E admissions.
+    nel_discounted_cost        -  ... non-elective bed days.
+    el_discounted_cost         -  ... elective bed days.
     care_years_discounted_cost -  ... years in care.
     total_discounted_cost      -  sum of these four ^ values.
     """
@@ -910,8 +911,8 @@ def write_example_discounted_resource_use(vd):
             'and "Discounted use" is from Equation [24].'
             ])
         write_details_discounted_resource(
-            vd, "A_E_counts_by_year", "discounted_list_A_E",
-            "cost_ae_gbp", "A_E_discounted_cost", caption_str)
+            vd, "ae_counts_by_year", "discounted_list_ae",
+            "cost_ae_gbp", "ae_discounted_cost", caption_str)
     with tabs[1]:
         # NEL bed days:
         caption_str = ''.join([
@@ -919,8 +920,8 @@ def write_example_discounted_resource_use(vd):
             'and "Discounted use" is from Equation [24].'
             ])
         write_details_discounted_resource(
-            vd, "NEL_counts_by_year", "discounted_list_NEL",
-            "cost_non_elective_bed_day_gbp", "NEL_discounted_cost",
+            vd, "nel_counts_by_year", "discounted_list_nel",
+            "cost_non_elective_bed_day_gbp", "nel_discounted_cost",
             caption_str)
     with tabs[2]:
         # EL bed days:
@@ -929,8 +930,8 @@ def write_example_discounted_resource_use(vd):
             'and "Discounted use" is from Equation [24].'
             ])
         write_details_discounted_resource(
-            vd, "EL_counts_by_year", "discounted_list_EL",
-            "cost_elective_bed_day_gbp", "EL_discounted_cost",
+            vd, "el_counts_by_year", "discounted_list_el",
+            "cost_elective_bed_day_gbp", "el_discounted_cost",
             caption_str)
     with tabs[3]:
         # Time in care:

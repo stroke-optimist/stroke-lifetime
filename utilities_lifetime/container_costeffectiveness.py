@@ -13,7 +13,8 @@ def main(
         df,
         mRS_input,
         fixed_params,
-        table_cost_effectiveness
+        table_cost_effectiveness,
+        model_input_str
         ):
 
     # Pick bits out of the dataframe for all mRS:
@@ -33,12 +34,12 @@ def main(
     st.markdown(''.join([
         'Net Benefit is QALYs valued at Willingness to pay (WTP) ',
         'threshold, which is '
-        f'£{variables_dict["WTP_QALY_gpb"]:.2f}, '
+        f'£{variables_dict["wtp_qaly_gpb"]:.2f}, '
         'plus any cost savings.'
         ]))
 
     # Check which model we're using and draw a bespoke table:
-    if st.session_state['lifetime_model_type'] == 'mRS':
+    if model_input_str == 'mRS':
         write_example_cost_effectiveness(qalys_all_mrs, total_discounted_cost_list, variables_dict)
         write_table_cost_effectiveness(table_cost_effectiveness)
     else:
@@ -177,7 +178,7 @@ def write_example_cost_effectiveness(qalys_all_mrs, total_discounted_cost_list, 
     # Pick out some values for the example:
     qaly = qalys_all_mrs[1]-qalys_all_mrs[2]
     cost = total_discounted_cost_list[2]-total_discounted_cost_list[1]
-    total = vd["WTP_QALY_gpb"]*qaly + cost
+    total = vd["wtp_qaly_gpb"]*qaly + cost
 
     # Write the example:
     st.markdown(''.join([

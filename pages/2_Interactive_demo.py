@@ -12,7 +12,6 @@ named container_(something).py.
 """
 # ----- Imports -----
 import streamlit as st
-import numpy as np
 import pandas as pd
 
 # Add an extra bit to the path if we need to.
@@ -30,7 +29,7 @@ except ModuleNotFoundError:
     # The following should work now:
     from utilities_lifetime.fixed_params import page_setup
 
-# Container scripts (which will be called after the calculations):
+# Container scripts:
 import utilities_lifetime.container_inputs
 import utilities_lifetime.container_mortality
 import utilities_lifetime.container_qalys
@@ -56,9 +55,6 @@ def main():
         ':information_source: ' +  # emoji
         'For acronym reference, see the introduction page.'
         )
-    # # Intro text:
-    # write_text_from_file('pages/text_for_pages/2_Intro_for_demo.txt',
-    #                      head_lines_to_skip=2)
 
     # ###########################
     # ########## SETUP ##########
@@ -66,34 +62,32 @@ def main():
 
     # Place the user inputs in the sidebar:
     with st.sidebar:
-        st.markdown('## Select the patient details.')
-        # Place this container now and add stuff to it later:
+        # Place these container now and add stuff to them later:
         container_patient_detail_inputs = st.container()
-
-        st.markdown('## Model type')
-        st.markdown(''.join([
-            'Choose between showing results for each mRS band individually ',
-            '(mRS), or aggregating results into two categories (Dichotomous). '
-        ]))
-        # Place this container now and add stuff to it later:
         container_model_type_inputs = st.container()
-
         # Add an empty header for breathing room in the sidebar:
         st.markdown('# ')
 
     with container_model_type_inputs:
+        st.markdown(
+            '''
+            ## Model type
+            Choose between showing results for each mRS band individually
+            (mRS), or aggregating results into two categories (Dichotomous).
+            '''
+            )
         model_input_str = (
             utilities_lifetime.container_inputs.model_type_input())
         # model_input_str is a string, either "mRS" or "Dichotomous".
 
     with container_patient_detail_inputs:
+        st.markdown('## Select the patient details.')
         age, sex_str, sex, mRS_input = (
-            utilities_lifetime.container_inputs.
-            patient_detail_inputs(model_input_str))
+            utilities_lifetime.container_inputs.patient_detail_inputs(
+                model_input_str))
         # sex_str is a string, either "Female" or "Male".
         # sex is an integer,  0 for female and 1 for male.
         # age and mRS_input are both integers.
-
 
     # #####################################
     # ######### MAIN CALCULATIONS #########
@@ -105,24 +99,31 @@ def main():
     # model.
     fixed_params = get_fixed_params(model_input_str)
 
+    if model_input_str == 'mRS':
+        # Create results for all mRS scores [0, 1, ..., 5]:
+        mrs_to_run = range(6)
+    else:
+        # In the dichotomous model we give one set of parameters to
+        # mRS < 3 and a second set to mRS >=3. So just run two mRS
+        # values to save repeats.
+        mrs_to_run = [0, 5]
+
     # Store results dictionaries in here:
     results_dict_list = []
-    for mrs in range(6):
+    for mrs in mrs_to_run:
+        # For each mRS score, use the following function to calculate
+        # everything useful for displaying in the app. The function
+        # returns a dictionary.
         results_dict = calc.main_calculations(
             age,
             sex,
+            sex_str,
             mrs,
             fixed_params
             )
 
         # Store this dictionary in the list of dicts:
         results_dict_list.append(results_dict)
-
-        # if mrs == mRS_input:
-        #     # Pick out the results and fixed parameters dicts.
-        #     # These are used for printing all sorts of information
-        #     # in the various "Details:" and "Example:" containers.
-        #     variables_dict = dict(**results_dict, **fixed_params)
 
     # Turn all results dictionaries into a single data frame:
     df = pd.DataFrame(results_dict_list)
@@ -166,12 +167,18 @@ def main():
     # Put each section into its own tab.
     tabs = st.tabs(['Mortality', 'QALYs', 'Resources', 'Cost'])
 
+    # For each topic, run the main() function in the container script.
+    # That function pulls out all of the relevant data from "df" and
+    # draws all of the tables, plots, "details" and "example" boxes
+    # and everything else that is displayed on the app.
+
     with tabs[0]:
         st.header('Mortality')
         utilities_lifetime.container_mortality.main(
             df,
             mRS_input,
-            fixed_params
+            fixed_params,
+            model_input_str
             )
 
     with tabs[1]:
@@ -181,6 +188,7 @@ def main():
             mRS_input,
             fixed_params,
             qalys_table,
+            model_input_str
             )
 
     with tabs[2]:
@@ -189,7 +197,8 @@ def main():
             df,
             mRS_input,
             fixed_params,
-            table_discounted_cost
+            table_discounted_cost,
+            model_input_str
             )
 
     with tabs[3]:
@@ -198,7 +207,8 @@ def main():
             df,
             mRS_input,
             fixed_params,
-            table_cost_effectiveness
+            table_cost_effectiveness,
+            model_input_str
             )
 
     # ----- The end! -----

@@ -15,7 +15,8 @@ def main(
         df,
         mRS_input,
         fixed_params,
-        qalys_table
+        qalys_table,
+        model_input_str
         ):
     """
 
@@ -47,7 +48,7 @@ def main(
             )
 
     # Check which model we're using and draw a bespoke table:
-    if st.session_state['lifetime_model_type'] == 'mRS':
+    if model_input_str == 'mRS':
         write_table_discounted_qalys(all_survival_times, qalys_all_mrs, fixed_params)
     else:
         write_table_discounted_qalys_dicho(all_survival_times, qalys_all_mrs, fixed_params)
@@ -59,7 +60,7 @@ def main(
         'in the table above.'
     ]))
     # Check which model we're using and draw a bespoke table:
-    if st.session_state['lifetime_model_type'] == 'mRS':
+    if model_input_str == 'mRS':
         st.markdown(''.join([
             'For example, the change from ',
             'an outcome of mRS=1 to mRS=2 gives a difference of:'
