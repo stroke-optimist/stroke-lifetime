@@ -82,12 +82,12 @@ def main():
 
     with container_patient_detail_inputs:
         st.markdown('## Select the patient details.')
-        age, sex_str, sex, mRS_input = (
+        age, sex_str, sex, mrs_input = (
             utilities_lifetime.container_inputs.patient_detail_inputs(
                 model_input_str))
         # sex_str is a string, either "Female" or "Male".
         # sex is an integer,  0 for female and 1 for male.
-        # age and mRS_input are both integers.
+        # age and mrs_input are both integers.
 
     # #####################################
     # ######### MAIN CALCULATIONS #########
@@ -176,7 +176,7 @@ def main():
         st.header('Mortality')
         utilities_lifetime.container_mortality.main(
             df,
-            mRS_input,
+            mrs_input,
             fixed_params,
             model_input_str
             )
@@ -185,7 +185,7 @@ def main():
         st.header('QALYs')
         utilities_lifetime.container_qalys.main(
             df,
-            mRS_input,
+            mrs_input,
             fixed_params,
             qalys_table,
             model_input_str
@@ -195,7 +195,7 @@ def main():
         st.header('Resources and costs')
         utilities_lifetime.container_resources.main(
             df,
-            mRS_input,
+            mrs_input,
             fixed_params,
             table_discounted_cost,
             model_input_str
@@ -205,7 +205,7 @@ def main():
         st.header('Cost-effectiveness')
         utilities_lifetime.container_costeffectiveness.main(
             df,
-            mRS_input,
+            mrs_input,
             fixed_params,
             table_cost_effectiveness,
             model_input_str

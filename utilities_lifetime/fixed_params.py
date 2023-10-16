@@ -57,7 +57,7 @@ def get_fixed_params(model_input_str: str):
     Returns:
     --------
     fixed_params - dict. The dictionary of fixed parameters. Keys:
-        time_max_post_discharge_yr    - int.
+        time_max_post_discharge_year    - int.
         qaly_age_coeff                - float.
         qaly_age2_coeff               - float.
         qaly_sex_coeff                - float.
@@ -113,7 +113,7 @@ def make_fixed_params_shared():
     Returns:
     --------
     dict. The dictionary of fixed parameters. Keys:
-        time_max_post_discharge_yr    - int.
+        time_max_post_discharge_year    - int.
         qaly_age_coeff                - float.
         qaly_age2_coeff               - float.
         qaly_sex_coeff                - float.
@@ -133,7 +133,7 @@ def make_fixed_params_shared():
     """
 
     # Calculate survival and hazard up to and including this year:
-    time_max_post_discharge_yr = 50
+    time_max_post_discharge_year = 50
 
     # ----- QALYs -----
     qaly_age_coeff = 0.0002587
@@ -190,7 +190,7 @@ def make_fixed_params_shared():
 
     # Place into a dictionary:
     return dict(
-        time_max_post_discharge_yr=time_max_post_discharge_yr,
+        time_max_post_discharge_year=time_max_post_discharge_year,
         qaly_age_coeff=qaly_age_coeff,
         qaly_age2_coeff=qaly_age2_coeff,
         qaly_sex_coeff=qaly_sex_coeff,
@@ -266,7 +266,7 @@ def make_fixed_params_mrs_model(fixed_params):
     utility_list = [0.95, 0.93, 0.83, 0.62, 0.42, 0.11]
 
     # ----- Mortality -----
-    # From the Excel "stata_yr1" sheet
+    # From the Excel "stata_year1" sheet
     # File: Excel NHCT v7.4
 
     # -- Year one: --
@@ -474,7 +474,7 @@ def make_fixed_params_dicho_model(fixed_params):
     utility_list = [0.86, 0.86, 0.86, 0.43, 0.43, 0.43]
 
     # ----- Mortality -----
-    # From the Excel "stata_yr1" sheet
+    # From the Excel "stata_year1" sheet
     # File: Excel NHCT v7.4
 
     # -- Year one: --

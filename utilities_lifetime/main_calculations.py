@@ -19,9 +19,9 @@ def main_calculations(age, sex, sex_str, mrs, fixed_params):
 
     # Shared for all patients.
     # Times for hazard with time calculations:
-    # This list contains [0, 1, 2, ..., time_max_post_discharge_yr].
-    time_list_yr = np.arange(
-        0, fixed_params['time_max_post_discharge_yr'] + 1, 1)
+    # This list contains [0, 1, 2, ..., time_max_post_discharge_year].
+    time_list_year = np.arange(
+        0, fixed_params['time_max_post_discharge_year'] + 1, 1)
 
     # Choose which list of care home percentage rates to use
     # based on the age input.
@@ -38,14 +38,14 @@ def main_calculations(age, sex, sex_str, mrs, fixed_params):
     # ##### Mortality #####
 
     # Linear predictors:
-    lp_yr1 = model.find_lpDeath_yr1(
+    lp_year1 = model.find_lpDeath_year1(
         age,
         sex,
         mrs,
         fixed_params['lg_mean_ages'],
         fixed_params['lg_coeffs']
         )
-    lp_yrn = model.find_lpDeath_yrn(
+    lp_yearn = model.find_lpDeath_yearn(
         age,
         sex,
         mrs,
@@ -54,7 +54,7 @@ def main_calculations(age, sex, sex_str, mrs, fixed_params):
         )
 
     # Probability of death in year 1:
-    pDeath_yr1 = model.find_pDeath_yr1(lp_yr1)
+    pDeath_year1 = model.find_pDeath_year1(lp_year1)
 
     # Find hazard and survival:
     # The following arrays contain one value for each year in the
@@ -62,10 +62,10 @@ def main_calculations(age, sex, sex_str, mrs, fixed_params):
     # Cumulative hazard, cumulative survival, output from Gompertz.
     hazard_list, survival_list, fhazard_list = (
         find_cumhazard_with_time(
-            time_list_yr,
+            time_list_year,
             fixed_params['gz_gamma'],
-            pDeath_yr1,
-            lp_yrn
+            pDeath_year1,
+            lp_yearn
             ))
 
     # Find indices where survival is less than 0% and so the
@@ -77,27 +77,28 @@ def main_calculations(age, sex, sex_str, mrs, fixed_params):
     # Calculate pDeath, the probability of death in each year
     # from 1 to max year (fixed_params.py).
     pDeath_list = calculate_prob_death_per_year(
-        time_list_yr,
+        time_list_year,
         fixed_params['gz_gamma'],
-        pDeath_yr1,
-        lp_yrn
+        pDeath_year1,
+        lp_yearn
         )
 
     # Find when survival=0% for the survival vs. time chart:
-    # Years from discharge to when survival probability is zero.
-    time_of_zero_survival = model.find_t_zero_survival(
+    # Years from discharge to when survival probability is zero
+    # (i.e. hazard probability is 1.0).
+    time_of_zero_survival = model.find_time_for_this_hazard(
         fixed_params['gz_gamma'],
-        pDeath_yr1,
-        lp_yrn,
-        prob=1.0
+        pDeath_year1,
+        lp_yearn,
+        hazard_prob=1.0
         )
 
     # Survival times:
     survival_years_iqr = calculate_survival_iqr(
         age,
         fixed_params['gz_gamma'],
-        lp_yrn,
-        pDeath_yr1
+        lp_yearn,
+        pDeath_year1
         )
     # survival_years_iqr is a list containing
     # [median, lower IQR, upper IQR, life expectancy].
@@ -121,7 +122,7 @@ def main_calculations(age, sex, sex_str, mrs, fixed_params):
 
     # ##### Resource use #####
     # Linear predictors:
-    ae_lp = model.find_lp_AE_Count(
+    ae_lp = model.find_lp_ae_count(
         age,
         sex,
         mrs,
@@ -129,7 +130,7 @@ def main_calculations(age, sex, sex_str, mrs, fixed_params):
         fixed_params['ae_coeffs'],
         fixed_params['ae_mRS']
         )
-    nel_lp = model.find_lp_nel_Count(
+    nel_lp = model.find_lp_nel_count(
         age,
         sex,
         mrs,
@@ -137,7 +138,7 @@ def main_calculations(age, sex, sex_str, mrs, fixed_params):
         fixed_params['nel_coeffs'],
         fixed_params['nel_mRS']
         )
-    el_lp = model.find_lp_el_Count(
+    el_lp = model.find_lp_el_count(
         age,
         sex,
         mrs,
@@ -149,17 +150,17 @@ def main_calculations(age, sex, sex_str, mrs, fixed_params):
     average_care_year = average_care_year_per_mRS[mrs]
 
     # Resource use across the median survival time in years:
-    ae_count = model.find_ae_Count(
+    ae_count = model.find_ae_count(
         ae_lp,
         fixed_params['ae_coeffs'],
         median_survival_time
         )
-    nel_count = model.find_nel_Count(
+    nel_count = model.find_nel_count(
         nel_lp,
         fixed_params['nel_coeffs'],
         median_survival_time
         )
-    el_count = model.find_el_Count(
+    el_count = model.find_el_count(
         el_lp,
         fixed_params['el_coeffs'],
         median_survival_time
@@ -174,19 +175,19 @@ def main_calculations(age, sex, sex_str, mrs, fixed_params):
     # from year=1 to year=median_survival_year (rounded up).
     ae_count_by_year = find_resource_count_for_all_years(
         median_survival_time,
-        model.find_ae_Count,
+        model.find_ae_count,
         coeffs=fixed_params['ae_coeffs'],
         LP=ae_lp
         )
     nel_count_by_year = find_resource_count_for_all_years(
         median_survival_time,
-        model.find_nel_Count,
+        model.find_nel_count,
         coeffs=fixed_params['nel_coeffs'],
         LP=nel_lp
         )
     el_count_by_year = find_resource_count_for_all_years(
         median_survival_time,
-        model.find_el_Count,
+        model.find_el_count,
         coeffs=fixed_params['el_coeffs'],
         LP=el_lp
         )
@@ -263,17 +264,17 @@ def main_calculations(age, sex, sex_str, mrs, fixed_params):
         mrs=mrs,
         outcome_type=outcome_type,
         # ----- For mortality: -----
-        time_list_yr=time_list_yr,
-        P_yr1=pDeath_list[0],
-        lp_yr1=lp_yr1,
-        lp_yrn=lp_yrn,
+        time_list_year=time_list_year,
+        P_year1=pDeath_list[0],
+        lp_year1=lp_year1,
+        lp_yearn=lp_yearn,
         pDeath_list=pDeath_list,
         invalid_inds_for_pDeath=invalid_inds_for_pDeath,
         hazard_list=hazard_list,
         survival_list=survival_list,
         fhazard_list=fhazard_list,
         survival_meds_IQRs=survival_years_iqr,
-        survival_yr1=1.0-pDeath_list[0],
+        survival_year1=1.0-pDeath_list[0],
         time_of_zero_survival=time_of_zero_survival,
         # ----- For QALYs: -----
         qalys=qalys,
@@ -317,7 +318,7 @@ def main_calculations(age, sex, sex_str, mrs, fixed_params):
 # ############################ Mortality ##############################
 # #####################################################################
 
-def find_cumhazard_with_time(time_list_yr, gz_gamma, pDeath_yr1, lp_yrn):
+def find_cumhazard_with_time(time_list_year, gz_gamma, pDeath_year1, lp_yearn):
     """
     For each year in the input list, find the cumulative probability
     of death and the survival percentage.
@@ -328,23 +329,26 @@ def find_cumhazard_with_time(time_list_yr, gz_gamma, pDeath_yr1, lp_yrn):
     but not using it elsewhere in the code.
 
     Inputs:
+    -------
     time_list_year - list or array. List of integer years.
 
     Returns:
+    --------
     pDeath_list    - array. List of cumulative probability of death
                      in each year.
     survival_list  - array. List of survival for each year.
+    hazard_list  - array. List of hazard for each year.
     """
     # Store hazards in here. First value will be from year 2.
     hazard_list = [0.0, 0.0]
     # Start with prob in year 0, which is zero:
     pDeath_list = [0.0]
-    for year in time_list_yr[1:]:
+    for year in time_list_year[1:]:
         if year == 1:
-            pDeath = pDeath_yr1
+            pDeath = pDeath_year1
         else:
-            hazard, pDeath = model.find_FDeath_yrn(
-                year, gz_gamma, pDeath_yr1, lp_yrn
+            hazard, pDeath = model.find_FDeath_yearn(
+                year, gz_gamma, pDeath_year1, lp_yearn
                 )
             hazard_list.append(hazard)
         # Manual override if the value is too big:
@@ -361,18 +365,18 @@ def find_cumhazard_with_time(time_list_yr, gz_gamma, pDeath_yr1, lp_yrn):
 
 
 def calculate_prob_death_per_year(
-        time_list_yr,
+        time_list_year,
         gz_gamma,
-        pDeath_yr1,
-        lp_yrn
+        pDeath_year1,
+        lp_yearn
         ):
     """
     WRITE ME
     """
     pDeath_list = []
-    for year in time_list_yr[1:]:
+    for year in time_list_year[1:]:
         pDeath = model.find_iDeath(
-            year, gz_gamma, lp_yrn, pDeath_yr1)
+            year, gz_gamma, lp_yearn, pDeath_year1)
         pDeath_list.append(pDeath)
     pDeath_list = np.array(pDeath_list)
     return pDeath_list
@@ -381,8 +385,8 @@ def calculate_prob_death_per_year(
 def calculate_survival_iqr(
         age,
         gz_gamma,
-        lpDeath_yrn,
-        pDeath_yr1
+        lpDeath_yearn,
+        pDeath_year1
         ):
     """
     Find the median and IQR survival times in years and the life
@@ -399,9 +403,9 @@ def calculate_survival_iqr(
     for pDeath in [0.5, 0.25, 0.75]:
         # Calculate the time when survival is equal to input pDeath*
         # *(adjusted for year one death chance if necessary).
-        survival_time, survival_yrs, time_log, eqperc = \
+        survival_time, survival_years, time_log, eqperc = \
             model.find_survival_time_for_pDeath(
-                pDeath, pDeath_yr1, lpDeath_yrn, gz_gamma)
+                pDeath, pDeath_year1, lpDeath_yearn, gz_gamma)
         years_to_note.append(survival_time)
 
         if pDeath == 0.5:
@@ -434,8 +438,8 @@ def find_resource_count_for_all_years(
                                 for each mRS score.
     count_function            - function. The name of a function for
                                 calculating resource use in a given year.
-                                Intended options: find_ae_Count,
-                                find_nel_Count, find_el_Count.
+                                Intended options: find_ae_count,
+                                find_nel_count, find_el_count.
     average_care_year_per_mRS - list or array. For each mRS score, the
                                 average time per year spent in
                                 residential care (units of years).
