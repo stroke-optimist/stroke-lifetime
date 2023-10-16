@@ -6,23 +6,38 @@ import numpy as np
 import pandas as pd
 
 # For writing formulae in the "Details" sections:
-import utilities_lifetime.latex_equations
+import utilities_lifetime.latex_equations as eqn
 # Import constants:
 import utilities_lifetime.fixed_params
 
 
 def main(
-        df,
-        mRS_input,
-        fixed_params,
-        qalys_table,
-        model_input_str
+        df: pd.DataFrame,
+        mrs_input: int,
+        fixed_params: dict,
+        qalys_table: np.array,
+        model_input_str: str
         ):
     """
+    Main function for drawing everything under the "QALYs" tab.
 
-    qalys      - array or list. Contains six floats, one for each
-                 mRS, that are the QALY values. This is just used for
-                 printing the example val1 - val2 = diff in table.
+    This setup of picking bits out of dictionaries is inherited
+    from the older version of this container that had all results
+    stored in separate variable names. Maybe one day I'll tidy this.
+
+    Inputs:
+    -------
+    df              - pd.DataFrame. Contains all of the calculated
+                      results for all mRS scores.
+    mrs_input       - int. The mRS score to highlight in areas
+                      that only show one score's results.
+    fixed_params    - dict. Contains fixed parameters independent
+                      of the model results.
+    qalys_table     - np.array. The table of discounted QALYs by
+                      change in outcome, ready to print.
+    model_type_used - str. Whether this is the separate "mRS" or
+                      "Dichotomous" model. Used to change the
+                      formatting in the app for model type.
     """
 
     # Pick bits out of the dataframe for all mRS:
@@ -31,7 +46,7 @@ def main(
     qalys_all_mrs = df['qalys'].tolist()
 
     # Get the results for just the selected mRS:
-    results_dict = df.loc[mRS_input].to_dict()
+    results_dict = df.loc[mrs_input].to_dict()
     variables_dict = dict(**results_dict, **fixed_params)
 
     # Pick bits out of the results for just the selected mRS:
@@ -40,6 +55,24 @@ def main(
     qaly_list = variables_dict['qaly_list']
     qaly_raw_list = variables_dict['qaly_raw_list']
 
+    # Discounted QALYS
+    # +-------------------+
+    # | v Details:        |
+    # +-------------------+
+    # | v Example:        |
+    # +-------------------+
+    #
+    #     +---------+-----------------+-----------+-----------+-------+
+    #     | Utility | Median survival | Lower IQR | Upper IQR | QALYs |
+    # +---+---------+-----------------+-----------+-----------+-------+
+    # | 0 |         |                 |           |           |       |
+    # | 1 |         |                 |           |           |       |
+    # | 2 |         |                 |           |           |       |
+    # | 3 |         |                 |           |           |       |
+    # | 4 |         |                 |           |           |       |
+    # | 5 |         |                 |           |           |       |
+    # +---+---------+-----------------+-----------+-----------+-------+
+    #
     st.markdown('### Discounted QALYs')
     with st.expander('Details: Discounted QALYs'):
         write_details_discounted_qalys(variables_dict)
@@ -56,6 +89,18 @@ def main(
         write_table_discounted_qalys_dicho(
             all_survival_times, qalys_all_mrs, fixed_params)
 
+    # Discounted QALYS by change in outcome
+    #     +---+---+---+---+---+---+
+    #     | 0 | 1 | 2 | 3 | 4 | 5 |
+    # +---+---+---+---+---+---+---+
+    # | 0 |   |   |   |   |   |   |
+    # | 1 |   |   |   |   |   |   |
+    # | 2 |   |   |   |   |   |   |
+    # | 3 |   |   |   |   |   |   |
+    # | 4 |   |   |   |   |   |   |
+    # | 5 |   |   |   |   |   |   |
+    # +---+---+---+---+---+---+---+
+    #
     st.markdown('### Discounted QALYs by change in outcome')
     st.markdown(''.join([
         'The change in QALYs between two mRS scores ',
@@ -297,9 +342,7 @@ def write_details_discounted_qalys(vd):
         'the end of the median survival years $m$. ',
         'Each raw QALY is calculated as: '
     ]))
-    latex_discounted_raw_qalys_generic = utilities_lifetime.latex_equations.\
-        discounted_raw_qalys_generic()
-    st.latex(latex_discounted_raw_qalys_generic)
+    st.latex(eqn.discounted_raw_qalys_generic())
     st.markdown(''.join([
         'where $u$ is the utility score for the patient mRS, ',
         r'''$\beta_Q$''', ' are constants and ',
@@ -314,9 +357,7 @@ def write_details_discounted_qalys(vd):
         'These are converted to discounted QALYs $Q_{y}$ ',
         'for each year $y$ using the following: '
     ]))
-    latex_discounted_qalys_generic = utilities_lifetime.latex_equations.\
-        discounted_qalys_generic()
-    st.latex(latex_discounted_qalys_generic)
+    st.latex(eqn.discounted_qalys_generic())
     st.markdown(''.join([
         'where $d$ is the discount factor of ',
         f'{vd["discount_factor_QALYs_perc"]:.2f}' + '%. '
@@ -330,9 +371,7 @@ def write_details_discounted_qalys(vd):
         'The $Q_y$ values are summed up over all $y$ ',
         'to give the final QALY value, $Q$:'
     ]))
-    latex_discounted_qalys_total_generic = utilities_lifetime.\
-        latex_equations.discounted_qalys_total_generic()
-    st.latex(latex_discounted_qalys_total_generic)
+    st.latex(eqn.discounted_qalys_total_generic())
 
 
 def write_example_discounted_qalys(
@@ -362,12 +401,9 @@ def write_example_discounted_qalys(
     cols = st.columns([0.3, 0.7])
     with cols[0]:
         # ----- Write table with the values -----
-        table_qalys = utilities_lifetime.latex_equations.\
-            build_table_str_qalys(
-                qaly_raw_list, qaly_list, np.sum(qaly_list)
-                )
-        st.markdown(table_qalys)
-        # st.caption('caption_str')
+        st.markdown(eqn.build_table_str_qalys(
+            qaly_raw_list, qaly_list, np.sum(qaly_list)
+            ))
 
     with cols[1]:
         # ----- Example calculation of discounted resource -----
@@ -387,13 +423,11 @@ def write_example_discounted_qalys(
             key='TimeforQALYS'
             )
         for year in [time_input_yr]:
-            latex_discounted_raw_qalys = utilities_lifetime.latex_equations.\
-                discounted_raw_qalys(
+            st.latex(eqn.discounted_raw_qalys(
                     vd,
                     year,
                     qaly_raw_list[year-1]
-                    )
-            st.latex(latex_discounted_raw_qalys)
+                    ))
             st.markdown(''.join([
                 '$^{*}$ This value is 0 for female patients ',
                 'and 1 for male.'
@@ -410,15 +444,13 @@ def write_example_discounted_qalys(
             else:
                 frac = 0.0
 
-            latex_discounted_qaly = \
-                utilities_lifetime.latex_equations.discounted_qalys(
-                    vd,
-                    qaly_raw_list[year-1],
-                    year,
-                    qaly_list[year-1],
-                    frac
-                    )
-            st.latex(latex_discounted_qaly)
+            st.latex(eqn.discounted_qalys(
+                vd,
+                qaly_raw_list[year-1],
+                year,
+                qaly_list[year-1],
+                frac
+                ))
             if frac > 0:
                 # If the user-selected year is the final year,
                 # write an extra line to explain the scale factor.
@@ -447,9 +479,7 @@ def write_details_discounted_qalys_v7(vd):
         'The discounted QALYs, $Q$, are calculated as: '
     ]))
     # ----- Formula ----
-    latex_discounted_qalys_generic = utilities_lifetime.latex_equations.\
-        discounted_qalys_generic()
-    st.latex(latex_discounted_qalys_generic)
+    st.latex(eqn.discounted_qalys_generic())
     st.markdown(''.join([
         'where $u$ is the utility score for this mRS, ',
         '$d$ is the discount factor of ',
@@ -469,6 +499,4 @@ def write_details_discounted_qalys_v7(vd):
 
     # ----- Calculate QALYs -----
     st.markdown('For the median survival years: ')
-    latex_discounted_qalys = utilities_lifetime.latex_equations.\
-        discounted_qalys(vd)
-    st.latex(latex_discounted_qalys)
+    st.latex(eqn.discounted_qalys(vd))

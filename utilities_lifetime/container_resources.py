@@ -6,17 +6,37 @@ import numpy as np
 import pandas as pd
 
 # For writing formulae in the "Details" sections:
-import utilities_lifetime.latex_equations
+import utilities_lifetime.latex_equations as eqn
 
 
 def main(
-        df,
-        mRS_input,
-        fixed_params,
-        table_discounted_cost,
-        model_input_str
+        df: pd.DataFrame,
+        mRS_input: int,
+        fixed_params: dict,
+        table_discounted_cost: np.array,
+        model_input_str: str
         ):
+    """
+    Main function for drawing everything under the "Resources" tab.
 
+    This setup of picking bits out of dictionaries is inherited
+    from the older version of this container that had all results
+    stored in separate variable names. Maybe one day I'll tidy this.
+
+    Inputs:
+    -------
+    df                    - pd.DataFrame. Contains all of the calculated
+                            results for all mRS scores.
+    mrs_input             - int. The mRS score to highlight in areas
+                            that only show one score's results.
+    fixed_params          - dict. Contains fixed parameters independent
+                            of the model results.
+    table_discounted_cost - np.array. The table of discounted cost by
+                            change in outcome, ready to print.
+    model_type_used       - str. Whether this is the separate "mRS" or
+                            "Dichotomous" model. Used to change the
+                            formatting in the app for model type.
+    """
     # Pick bits out of the dataframe for all mRS:
     ae_count_list = df['ae_count']
     nel_count_list = df['nel_count']
@@ -31,6 +51,15 @@ def main(
     # Get the results for just the selected mRS:
     results_dict = df.loc[mRS_input].to_dict()
     variables_dict = dict(**results_dict, **fixed_params)
+
+    # Resource use
+    # |__Mortality__ |__QALYs__ |__Resources__ |__Cost__
+    #
+    # +-------------------+
+    # | v Details:        |
+    # +-------------------+
+    # | v Example:        |
+    # +-------------------+
 
     st.write('### Resource use')
     st.markdown(''.join([
@@ -50,47 +79,73 @@ def main(
     with tabs[0]:
         # A&E admissions:
         with st.expander('Details: A&E Resource use'):
-            write_details_ae_admissions(variables_dict)
+            write_details_ae_admissions(variables_dict, model_input_str)
         with st.expander('Example: A&E Resource use'):
             write_example_ae_admissions(variables_dict)
     with tabs[1]:
         # NEL admissions:
         with st.expander('Details: NEL Resource use'):
-            write_details_nel_admissions(variables_dict)
+            write_details_nel_admissions(variables_dict, model_input_str)
         with st.expander('Example: NEL Resource use'):
             write_example_nel_admissions(variables_dict)
     with tabs[2]:
         # EL admissions:
         with st.expander('Details: EL Resource use'):
-            write_details_el_admissions(variables_dict)
+            write_details_el_admissions(variables_dict, model_input_str)
         with st.expander('Example: EL Resource use'):
             write_example_el_admissions(variables_dict)
     with tabs[3]:
         # Time in care:
         with st.expander('Details: Time in care Resource use'):
-            write_details_time_in_care(variables_dict)
+            write_details_time_in_care(variables_dict, model_input_str)
         with st.expander('Example: Time in care Resource use'):
             write_example_time_in_care(variables_dict)
 
-    # Check which model we're using and draw a bespoke table:
+    # Table:
+    #     +-----+----------+---------+--------------+
+    #     | A&E | NEL days | EL days | Time in care |
+    # +---+-----+----------+---------+--------------+
+    # | 0 |     |          |         |              |
+    # | 1 |     |          |         |              |
+    # | 2 |     |          |         |              |
+    # | 3 |     |          |         |              |
+    # | 4 |     |          |         |              |
+    # | 5 |     |          |         |              |
+    # +---+-----+----------+---------+--------------+
+    #
+    # Check which model we're using and draw a table:
     if model_input_str == 'mRS':
         write_table_resource_use(
-            ae_count_list, nel_count_list,
-            el_count_list, care_years_list
-            )
+            ae_count_list, nel_count_list, el_count_list, care_years_list)
     else:
         write_table_resource_use_dicho(
-            ae_count_list, nel_count_list,
-            el_count_list, care_years_list
-            )
+            ae_count_list, nel_count_list, el_count_list, care_years_list)
 
+    # Discounted cost of resource use
+    # +-------------------+
+    # | v Details:        |
+    # +-------------------+
+    # | v Example:        |
+    # +-------------------+
+    #
+    #     +-----+----------+---------+--------------+------------+
+    #     | A&E | NEL days | EL days | Time in care | Total cost |
+    # +---+-----+----------+---------+--------------+------------+
+    # | 0 |     |          |         |              |            |
+    # | 1 |     |          |         |              |            |
+    # | 2 |     |          |         |              |            |
+    # | 3 |     |          |         |              |            |
+    # | 4 |     |          |         |              |            |
+    # | 5 |     |          |         |              |            |
+    # +---+-----+----------+---------+--------------+------------+
+    #
     st.write('### Discounted Cost of Resource use')
     with st.expander('Details: Discounted resource use'):
         write_details_discounted_resource_use(variables_dict)
     with st.expander('Example: Discounted resource use'):
         write_example_discounted_resource_use(variables_dict)
 
-    # Check which model we're using and draw a bespoke table:
+    # Check which model we're using and draw a table:
     if model_input_str == 'mRS':
         write_table_discounted_resource_use(
             ae_discounted_cost,
@@ -108,6 +163,18 @@ def main(
             total_discounted_cost
             )
 
+    # Discounted total costs by change in outcome
+    #     +---+---+---+---+---+---+
+    #     | 0 | 1 | 2 | 3 | 4 | 5 |
+    # +---+---+---+---+---+---+---+
+    # | 0 |   |   |   |   |   |   |
+    # | 1 |   |   |   |   |   |   |
+    # | 2 |   |   |   |   |   |   |
+    # | 3 |   |   |   |   |   |   |
+    # | 4 |   |   |   |   |   |   |
+    # | 5 |   |   |   |   |   |   |
+    # +---+---+---+---+---+---+---+
+    #
     st.write('### Discounted total costs by change in outcome')
 
     st.markdown(''.join([
@@ -469,7 +536,7 @@ def write_table_discounted_change_dicho(total_discounted_cost):
         ]))
 
 
-def write_details_ae_admissions(vd):
+def write_details_ae_admissions(vd, model_input_str):
     """
     Write method for calculating number of A&E admissions.
 
@@ -484,19 +551,14 @@ def write_details_ae_admissions(vd):
         ]))
     ae_coeff_cols = st.columns(2)
     with ae_coeff_cols[0]:
-        markdown_ae_coeffs = utilities_lifetime.latex_equations.\
-            table_ae_coeffs(vd)
-        st.markdown(markdown_ae_coeffs)
+        st.markdown(eqn.table_ae_coeffs(vd))
 
     with ae_coeff_cols[1]:
         # Check which model we're using and draw a bespoke table:
-        if st.session_state['lifetime_model_type'] == 'mRS':
-            markdown_ae_mrs_coeffs = utilities_lifetime.latex_equations.\
-                table_ae_mrs_coeffs(vd)
+        if model_input_str == 'mRS':
+            st.markdown(eqn.table_ae_mrs_coeffs(vd))
         else:
-            markdown_ae_mrs_coeffs = utilities_lifetime.latex_equations.\
-                table_ae_mrs_coeffs_dicho(vd)
-        st.markdown(markdown_ae_mrs_coeffs)
+            st.markdown(eqn.table_ae_mrs_coeffs_dicho(vd))
 
     # ----- Formula -----
     st.markdown(''.join([
@@ -504,15 +566,13 @@ def write_details_ae_admissions(vd):
         'The number of admissions over $\mathrm{yrs}$, ',
         'a number of years, is given by: '
         ]))
-    latex_ae_count_generic = utilities_lifetime.latex_equations.\
+    latex_ae_count_generic = eqn.\
         ae_count_generic()
     st.latex(latex_ae_count_generic)
 
     # ----- linear predictor -----
     st.markdown('and with linear predictor: ')
-    latex_ae_lp_generic = utilities_lifetime.latex_equations.\
-        ae_lp_generic()
-    st.latex(latex_ae_lp_generic)
+    st.latex(eqn.ae_lp_generic())
     st.markdown(''.join([
         r'''where $\alpha$ and $\beta$ are constants and ''',
         '$X$ are values of the patient details (e.g. age, sex, and mRS).'
@@ -538,23 +598,19 @@ def write_example_ae_admissions(vd):
 
     # ----- Calculation for linear predictor -----
     st.markdown('The linear predictor:')
-    latex_ae_lp = utilities_lifetime.latex_equations.ae_lp(vd)
-    st.latex(latex_ae_lp)
+    st.latex(eqn.ae_lp(vd))
     st.write('$^{*}$ This value is 0 for female patients and 1 for male.')
 
     # ----- Show median survival years for this patient -----
     st.markdown('For the median survival years: ')
-    latex_median_survival_display = utilities_lifetime.latex_equations.\
-        median_survival_display(vd)
-    st.latex(latex_median_survival_display)
+    st.latex(eqn.median_survival_display(vd))
 
     # ----- Calculation for count -----
     st.markdown('The final count:')
-    latex_ae_count = utilities_lifetime.latex_equations.ae_count(vd)
-    st.latex(latex_ae_count)
+    st.latex(eqn.ae_count(vd))
 
 
-def write_details_nel_admissions(vd):
+def write_details_nel_admissions(vd, model_input_str):
     """
     Write method for calculating number of NEL bed-days.
 
@@ -569,19 +625,14 @@ def write_details_nel_admissions(vd):
         ]))
     nel_coeff_cols = st.columns(2)
     with nel_coeff_cols[0]:
-        markdown_nel_coeffs = utilities_lifetime.latex_equations.\
-            table_nel_coeffs(vd)
-        st.markdown(markdown_nel_coeffs)
+        st.markdown(eqn.table_nel_coeffs(vd))
 
     with nel_coeff_cols[1]:
         # Check which model we're using and draw a bespoke table:
-        if st.session_state['lifetime_model_type'] == 'mRS':
-            markdown_nel_mrs_coeffs = utilities_lifetime.latex_equations.\
-                table_nel_mrs_coeffs(vd)
+        if model_input_str == 'mRS':
+            st.markdown(eqn.table_nel_mrs_coeffs(vd))
         else:
-            markdown_nel_mrs_coeffs = utilities_lifetime.latex_equations.\
-                table_nel_mrs_coeffs_dicho(vd)
-        st.markdown(markdown_nel_mrs_coeffs)
+            st.markdown(eqn.table_nel_mrs_coeffs_dicho(vd))
 
     # ----- Formula -----
     st.markdown(''.join([
@@ -589,15 +640,11 @@ def write_details_nel_admissions(vd):
         'The number of bed days over $\mathrm{yrs}$, ',
         'a number of years, is given by: '
         ]))
-    latex_nel_bed_days_generic = utilities_lifetime.latex_equations.\
-        nel_bed_days_generic()
-    st.latex(latex_nel_bed_days_generic)
+    st.latex(eqn.nel_bed_days_generic())
 
     # ----- linear predictor -----
     st.markdown('and with linear predictor: ')
-    latex_nel_lp_generic = utilities_lifetime.latex_equations.\
-        nel_lp_generic()
-    st.latex(latex_nel_lp_generic)
+    st.latex(eqn.nel_lp_generic())
     st.markdown(''.join([
         r'''where $\alpha$ and $\beta$ are constants and ''',
         '$X$ are values of the patient details (e.g. age, sex, and mRS).'
@@ -623,23 +670,19 @@ def write_example_nel_admissions(vd):
 
     # ----- Calculation for linear predictor -----
     st.markdown('The linear predictor:')
-    latex_nel_lp = utilities_lifetime.latex_equations.nel_lp(vd)
-    st.latex(latex_nel_lp)
+    st.latex(eqn.nel_lp(vd))
     st.write('$^{*}$ This value is 0 for female patients and 1 for male.')
 
     # ----- Show median survival years for this patient -----
     st.markdown('For the median survival years: ')
-    latex_median_survival_display = utilities_lifetime.latex_equations.\
-        median_survival_display(vd)
-    st.latex(latex_median_survival_display)
+    st.latex(eqn.median_survival_display(vd))
 
     # ----- Calculation for count -----
     st.markdown('The final count:')
-    latex_nel_bed_days = utilities_lifetime.latex_equations.nel_bed_days(vd)
-    st.latex(latex_nel_bed_days)
+    st.latex(eqn.nel_bed_days(vd))
 
 
-def write_details_el_admissions(vd):
+def write_details_el_admissions(vd, model_input_str):
     """
     Write method for calculating number of EL bed-days.
 
@@ -654,19 +697,14 @@ def write_details_el_admissions(vd):
         ]))
     el_coeff_cols = st.columns(2)
     with el_coeff_cols[0]:
-        markdown_el_coeffs = utilities_lifetime.latex_equations.\
-            table_el_coeffs(vd)
-        st.markdown(markdown_el_coeffs)
+        st.markdown(eqn.table_el_coeffs(vd))
 
     with el_coeff_cols[1]:
         # Check which model we're using and draw a bespoke table:
-        if st.session_state['lifetime_model_type'] == 'mRS':
-            markdown_el_mrs_coeffs = utilities_lifetime.latex_equations.\
-                table_el_mrs_coeffs(vd)
+        if model_input_str == 'mRS':
+            st.markdown(eqn.table_el_mrs_coeffs(vd))
         else:
-            markdown_el_mrs_coeffs = utilities_lifetime.latex_equations.\
-                table_el_mrs_coeffs_dicho(vd)
-        st.markdown(markdown_el_mrs_coeffs)
+            st.markdown(eqn.table_el_mrs_coeffs_dicho(vd))
 
     # ----- Formula -----
     st.markdown(''.join([
@@ -674,15 +712,11 @@ def write_details_el_admissions(vd):
         'The number of bed days over $\mathrm{yrs}$, ',
         'a number of years, is given by: '
         ]))
-    latex_el_bed_days_generic = utilities_lifetime.latex_equations.\
-        el_bed_days_generic()
-    st.latex(latex_el_bed_days_generic)
+    st.latex(eqn.el_bed_days_generic())
 
     # ----- linear predictor -----
     st.markdown('and with linear predictor: ')
-    latex_el_lp_generic = utilities_lifetime.latex_equations.\
-        el_lp_generic()
-    st.latex(latex_el_lp_generic)
+    st.latex(eqn.el_lp_generic())
     st.markdown(''.join([
         r'''where $\alpha$ and $\beta$ are constants and ''',
         '$X$ are values of the patient details (e.g. age, sex, and mRS).'
@@ -708,23 +742,19 @@ def write_example_el_admissions(vd):
 
     # ----- Calculation for linear predictor -----
     st.markdown('The linear predictor:')
-    latex_el_lp = utilities_lifetime.latex_equations.el_lp(vd)
-    st.latex(latex_el_lp)
+    st.latex(eqn.el_lp(vd))
     st.write('$^{*}$ This value is 0 for female patients and 1 for male.')
 
     # ----- Show median survival years for this patient -----
     st.markdown('For the median survival years: ')
-    latex_median_survival_display = utilities_lifetime.latex_equations.\
-        median_survival_display(vd)
-    st.latex(latex_median_survival_display)
+    st.latex(eqn.median_survival_display(vd))
 
     # ----- Calculation for count -----
     st.markdown('The final count:')
-    latex_el_bed_days = utilities_lifetime.latex_equations.el_bed_days(vd)
-    st.latex(latex_el_bed_days)
+    st.latex(eqn.el_bed_days(vd))
 
 
-def write_details_time_in_care(vd):
+def write_details_time_in_care(vd, model_input_str):
     """
     Write method for calculating time spent in care.
 
@@ -743,13 +773,10 @@ def write_details_time_in_care(vd):
         ]))
 
     # Check which model we're using and draw a bespoke table:
-    if st.session_state['lifetime_model_type'] == 'mRS':
-        markdown_tic_coeffs = utilities_lifetime.latex_equations.\
-            table_time_in_care_coeffs(vd)
+    if model_input_str == 'mRS':
+        st.markdown(eqn.table_time_in_care_coeffs(vd))
     else:
-        markdown_tic_coeffs = utilities_lifetime.latex_equations.\
-            table_time_in_care_coeffs_dicho(vd)
-    st.markdown(markdown_tic_coeffs)
+        st.markdown(eqn.table_time_in_care_coeffs_dicho(vd))
 
     st.markdown(''.join([
         'The number of years spent in residential care ',
@@ -761,9 +788,7 @@ def write_details_time_in_care(vd):
     ]))
     # ----- Formula -----
     st.markdown('The number of years spent in residential care is: ')
-    latex_tic_generic = utilities_lifetime.latex_equations.\
-        tic_generic()
-    st.latex(latex_tic_generic)
+    st.latex(eqn.tic_generic())
     st.markdown(''.join([
         'for $c$, the value from the table.'
     ]))
@@ -788,14 +813,11 @@ def write_example_time_in_care(vd):
 
     # ----- Show median survival years for this patient -----
     st.markdown('For the median survival years: ')
-    latex_median_survival_display = utilities_lifetime.latex_equations.\
-        median_survival_display(vd)
-    st.latex(latex_median_survival_display)
+    st.latex(eqn.median_survival_display(vd))
 
     # ----- Calculation for linear predictor -----
     st.markdown('The number of years spent in residential care is:')
-    latex_tic = utilities_lifetime.latex_equations.tic(vd)
-    st.latex(latex_tic)
+    st.latex(eqn.tic(vd))
 
 
 def write_details_discounted_resource_use(vd):
@@ -825,16 +847,12 @@ def write_details_discounted_resource_use(vd):
         'the entries up to and including year $i$ ',
         'and the entries up to and including year $i-1$:'
     ]))
-    latex_count_yeari_generic = utilities_lifetime.latex_equations.\
-        count_yeari_generic()
-    st.latex(latex_count_yeari_generic)
+    st.latex(eqn.count_yeari_generic())
     st.markdown(''.join([
         'For a resource that totals $\mathrm{Count}_i$ entries ',
         'in year $i$, the discounted resource $D_i$ is given as:'
     ]))
-    latex_discounted_resource_generic = utilities_lifetime.latex_equations.\
-        discounted_resource_generic(vd)
-    st.latex(latex_discounted_resource_generic)
+    st.latex(eqn.discounted_resource_generic(vd))
 
     # ----- Sum over all years -----
     st.markdown(''.join([
@@ -843,23 +861,17 @@ def write_details_discounted_resource_use(vd):
         'these values up to the median survival year, $m$, ',
         'multiplied by a cost factor $c$: '
     ]))
-    latex_discounted_resource_total_generic = \
-        utilities_lifetime.latex_equations.discounted_resource_total_generic()
-    st.latex(latex_discounted_resource_total_generic)
+    st.latex(eqn.discounted_resource_total_generic())
 
     # ----- Convert to costs -----
     st.markdown(''.join([
         'The following cost factors are used: '
     ]))
-    markdown_cost_factors_1 = utilities_lifetime.latex_equations.\
-        table_cost_factors_1(vd)
-    markdown_cost_factors_2 = utilities_lifetime.latex_equations.\
-        table_cost_factors_2(vd)
     cols_cost = st.columns(2)
     with cols_cost[0]:
-        st.markdown(markdown_cost_factors_1)
+        st.markdown(eqn.table_cost_factors_1(vd))
     with cols_cost[1]:
-        st.markdown(markdown_cost_factors_2)
+        st.markdown(eqn.table_cost_factors_2(vd))
 
     # ----- State where total costs column comes from -----
     st.markdown(''.join([
@@ -892,9 +904,7 @@ def write_example_discounted_resource_use(vd):
     # ----- Show median survival years for this patient -----
     # vd["survival_meds_IQRs"][vd["mrs"], 0]
     st.markdown('For the median survival years: ')
-    latex_median_survival_display = utilities_lifetime.latex_equations.\
-        median_survival_display(vd)
-    st.latex(latex_median_survival_display)
+    st.latex(eqn.median_survival_display(vd))
 
     # Tabs for each category:
     tabs = st.tabs([
@@ -985,10 +995,8 @@ def write_details_discounted_resource(
     cols = st.columns([0.45, 0.3])
     with cols[0]:
         # ----- Write table with the values -----
-        table_ae = utilities_lifetime.latex_equations.\
-            build_table_str_resource_count(
-                counts_yrs, counts_i, discounted_i, discounted_sum)
-        st.markdown(table_ae)
+        st.markdown(eqn.build_table_str_resource_count(
+                counts_yrs, counts_i, discounted_i, discounted_sum))
         st.caption(caption_str)
 
     with cols[-1]:
@@ -1009,16 +1017,12 @@ def write_details_discounted_resource(
             key='TimeForDiscountTable' + cost_str
             )
         for year in [time_input_yr]:
-            latex_example_di = utilities_lifetime.latex_equations.\
-                discounted_resource(
-                    vd, counts_i[year-1], year, discounted_i[year-1])
-            st.latex(latex_example_di)
+            st.latex(eqn.discounted_resource(
+                vd, counts_i[year-1], year, discounted_i[year-1]))
 
     # ----- Calculate discounted cost -----
     st.markdown(''.join([
         'The total discounted cost is then: '
     ]))
-    latex_discounted_cost = utilities_lifetime.latex_equations.\
-        discounted_cost(vd, discounted_sum, cost_str, discounted_cost_str,
-                        care)
-    st.latex(latex_discounted_cost)
+    st.latex(eqn.discounted_cost(
+        vd, discounted_sum, cost_str, discounted_cost_str, care))

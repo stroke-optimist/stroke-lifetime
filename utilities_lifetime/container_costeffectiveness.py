@@ -6,30 +6,57 @@ import numpy as np
 import pandas as pd
 
 # For writing formulae in the "Details" sections:
-import utilities_lifetime.latex_equations
+import utilities_lifetime.latex_equations as eqn
 
 
 def main(
-        df,
-        mRS_input,
-        fixed_params,
-        table_cost_effectiveness,
-        model_input_str
+        df: pd.DataFrame,
+        mrs_input: int,
+        fixed_params: dict,
+        table_cost_effectiveness: np.array,
+        model_input_str: str
         ):
+    """
+    Main function for drawing everything under the "Resources" tab.
 
+    This setup of picking bits out of dictionaries is inherited
+    from the older version of this container that had all results
+    stored in separate variable names. Maybe one day I'll tidy this.
+
+    Inputs:
+    -------
+    df                       - pd.DataFrame. Contains all of the
+                               calculated results for all mRS scores.
+    mrs_input                - int. The mRS score to highlight in areas
+                               that only show one score's results.
+    fixed_params             - dict. Contains fixed parameters
+                               independent of the model results.
+    table_cost_effectiveness - np.array. The table of net benefit by
+                               change in outcome, ready to print.
+    model_type_used          - str. Whether this is the separate "mRS"
+                               or "Dichotomous" model. Used to change
+                               formatting in the app for model type.
+    """
     # Pick bits out of the dataframe for all mRS:
     qalys_all_mrs = df['qalys'].to_list()
     total_discounted_cost_list = df['total_discounted_cost']
 
     # Get the results for just the selected mRS:
-    results_dict = df.loc[mRS_input].to_dict()
+    results_dict = df.loc[mrs_input].to_dict()
     variables_dict = dict(**results_dict, **fixed_params)
 
-    # Pick bits out of the results for just the selected mRS:
-    pDeath_list = variables_dict['pDeath_list']
-    invalid_inds_for_pDeath = variables_dict['invalid_inds_for_pDeath']
-    time_of_death = variables_dict['time_of_zero_survival']
-
+    # Discounted total net benefit by change in outcome
+    #     +---+---+---+---+---+---+
+    #     | 0 | 1 | 2 | 3 | 4 | 5 |
+    # +---+---+---+---+---+---+---+
+    # | 0 |   |   |   |   |   |   |
+    # | 1 |   |   |   |   |   |   |
+    # | 2 |   |   |   |   |   |   |
+    # | 3 |   |   |   |   |   |   |
+    # | 4 |   |   |   |   |   |   |
+    # | 5 |   |   |   |   |   |   |
+    # +---+---+---+---+---+---+---+
+    #
     st.markdown('### Discounted total Net Benefit by change in outcome')
     st.markdown(''.join([
         'Net Benefit is QALYs valued at Willingness to pay (WTP) ',
@@ -40,7 +67,11 @@ def main(
 
     # Check which model we're using and draw a bespoke table:
     if model_input_str == 'mRS':
-        write_example_cost_effectiveness(qalys_all_mrs, total_discounted_cost_list, variables_dict)
+        write_example_cost_effectiveness(
+            qalys_all_mrs,
+            total_discounted_cost_list,
+            variables_dict
+            )
         write_table_cost_effectiveness(table_cost_effectiveness)
     else:
         write_table_cost_effectiveness_dicho(table_cost_effectiveness)
@@ -190,6 +221,4 @@ def write_example_cost_effectiveness(qalys_all_mrs, total_discounted_cost_list, 
         f'£{cost:.0f}, ',
         'giving a net benefit of: '
     ]))
-    latex_cost_effectiveness = utilities_lifetime.latex_equations.\
-        cost_effectiveness(vd, qaly, cost, total)
-    st.latex(latex_cost_effectiveness)
+    st.latex(eqn.cost_effectiveness(vd, qaly, cost, total))

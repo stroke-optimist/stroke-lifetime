@@ -16,10 +16,10 @@ import utilities_lifetime.latex_equations as eqn
 
 
 def main(
-        df,
-        mrs_input,
-        fixed_params,
-        model_type_used
+        df: pd.DataFrame,
+        mrs_input: int,
+        fixed_params: dict,
+        model_type_used: str
         ):
     """
     Main function for drawing everything under the "Mortality" tab.
