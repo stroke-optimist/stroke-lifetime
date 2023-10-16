@@ -1,5 +1,8 @@
 """
 Set up the main calculations in this script.
+
+The function main_calculations() runs through everything important
+and stores the results in a dictionary.
 """
 # Imports:
 import numpy as np
@@ -12,7 +15,70 @@ import utilities_lifetime.models as model
 # ######################## Overall function ###########################
 # #####################################################################
 
-def main_calculations(age, sex, sex_str, mrs, fixed_params):
+def main_calculations(
+        age: float,
+        sex: int,
+        sex_str: str,
+        mrs: int,
+        fixed_params: dict
+        ):
+    """
+    Calculates everything useful for lifetime outcomes.
+
+    Inputs:
+    -------
+    age          - float or int. Patient's age.
+    sex          - int. Patient's sex, 0 for female and 1 for male.
+    sex_str      - str. Either "Male" or "Female".
+    mrs          - int. Patient's mRS score from 0 to 5.
+    fixed_params - dict. Contains fixed parameters independent
+                   of the model results.
+
+    Returns:
+    --------
+    results_dict - dict. All of the useful results. Keys:
+        age                        - float.
+        sex                        - int.
+        sex_label                  - str.
+        mrs                        - int.
+        outcome_type               - str.
+        time_list_year             - np.array.
+        P_year1                    - float.
+        lp_year1                   - float.
+        lp_yearn                   - float.
+        pDeath_list                - np.array.
+        invalid_inds_for_pDeath    - np.array.
+        hazard_list                - np.array.
+        survival_list              - np.array.
+        fhazard_list               - np.array.
+        survival_meds_IQRs         - np.array.
+        survival_year1             - float.
+        time_of_zero_survival      - float.
+        qalys                      - float.
+        qaly_list                  - np.array.
+        qaly_raw_list              - np.array.
+        total_discounted_cost      - float.
+        lp_ae                      - float.
+        ae_count                   - float.
+        lp_nel                     - float.
+        nel_count                  - float.
+        lp_el                      - float.
+        el_count                   - float.
+        care_years                 - float.
+        ae_counts_by_year          - np.array.
+        nel_counts_by_year         - np.array.
+        el_counts_by_year          - np.array.
+        care_years_by_year         - np.array.
+        discounted_list_ae         - np.array.
+        discounted_list_nel        - np.array.
+        discounted_list_el         - np.array.
+        discounted_list_care       - np.array.
+        ae_discounted_cost         - float.
+        nel_discounted_cost        - float.
+        el_discounted_cost         - float.
+        care_years_discounted_cost - float.
+        net_benefit                - float.
+    """
     # ##################################
     # ########## CALCULATIONS ##########
     # ##################################
@@ -331,6 +397,10 @@ def find_cumhazard_with_time(time_list_year, gz_gamma, pDeath_year1, lp_yearn):
     Inputs:
     -------
     time_list_year - list or array. List of integer years.
+    gz_gamma       - float. Gompertz gamma coefficient.
+    pDeath_year1   - float. Probability of death in year 1.
+    lp_yearn       - float. Linear predictor for probability of death
+                     after year 1.
 
     Returns:
     --------
@@ -371,7 +441,20 @@ def calculate_prob_death_per_year(
         lp_yearn
         ):
     """
-    WRITE ME
+    Calculate the probability of death during each year.
+
+    Inputs:
+    -------
+    time_list_year - list or array. List of integer years.
+    gz_gamma       - float. Gompertz gamma coefficient.
+    pDeath_year1   - float. Probability of death in year 1.
+    lp_yearn       - float. Linear predictor for probability of death
+                     after year 1.
+
+    Returns:
+    --------
+    pDeath_list - np.array. Probability of death during each year
+                  given in the input time list.
     """
     pDeath_list = []
     for year in time_list_year[1:]:
@@ -389,15 +472,20 @@ def calculate_survival_iqr(
         pDeath_year1
         ):
     """
-    Find the median and IQR survival times in years and the life
-    expectancy given this age, sex, and mRS.
+    Find the median and IQR survival times and life expectancy.
+
+    Inputs:
+    -------
+    age           - float. Patient's age.
+    gz_gamma      - Gompertz gamma coefficient.
+    lpDeath_yearn - float. Linear predictor for probability of death
+                    after year one.
+    pDeath_year1  - float. Probability of death in year one.
 
     Returns:
     years_to_note - list. Contains [median, lower IQR, upper IQR,
                     life expectancy] for this patient.
     """
-    # Probability of death in year one:
-
     years_to_note = []
     # Loop over three probabilities: median, lower IQR, then upper IQR.
     for pDeath in [0.5, 0.25, 0.75]:
@@ -440,16 +528,18 @@ def find_resource_count_for_all_years(
                                 calculating resource use in a given year.
                                 Intended options: find_ae_count,
                                 find_nel_count, find_el_count.
-    average_care_year_per_mRS - list or array. For each mRS score, the
-                                average time per year spent in
-                                residential care (units of years).
+    coeffs                    - list or array. Coefficients for this
+                                resource type model.
+    average_care_year         - float. The average time per year spent
+                                in residential care (units of years).
                                 Only needed if counting care years.
+    LP                        - float. The linear predictor for this
+                                resource type. Not needed for time in
+                                care.
 
     Returns:
-    counts_per_mRS - list. Contains six lists, one for each mRS,
-                     and each of which contains the resource use
-                     for each year from 1 to the median survival
-                     year (rounded up).
+    counts - list. Contains the resource use for each year from 1 to
+             the median survival year (rounded up).
     """
 
     # Split survival year into two parts:
@@ -464,17 +554,15 @@ def find_resource_count_for_all_years(
     for year in years_to_tabulate:
         if year < death_year:
             if LP is None:
-                count = (model.
-                         find_residential_care_average_time(
-                            average_care_year, year))
+                count = (model.find_residential_care_average_time(
+                    average_care_year, year))
             else:
                 count = count_function(LP, coeffs, year)
 
         elif year == death_year:
             if LP is None:
-                count = (model.
-                         find_residential_care_average_time(
-                            average_care_year, median_survival_years))
+                count = (model.find_residential_care_average_time(
+                    average_care_year, median_survival_years))
             else:
                 count = count_function(LP, coeffs, median_survival_years)
 
@@ -497,9 +585,10 @@ def find_discounted_resource_use_for_all_years(
     From Resource_Use sheet in Excel v7.
 
     Inputs:
-    resource                 - list or array. List of the resource use
-                               in each year of the remaining lifetime.
-                               (not cumulative).
+    resource_list              - list or array. List of resource use
+                                 in each year of the remaining
+                                 lifetime (not cumulative).
+    discount_factor_QALYs_perc - float. Discount factor for QALYs.
 
     Returns:
     discounted_resource_list - list. Contains the discounted resource
@@ -512,11 +601,9 @@ def find_discounted_resource_use_for_all_years(
         # resource_list.
         year = i + 1
         # Define this to fit on one line more easily:
-        c = (
-            1.0 +
-            discount_factor_QALYs_perc / 100.0
-            )
+        c = 1.0 + discount_factor_QALYs_perc / 100.0
         discounted_resource = val * (1.0 / ((c)**(year - 1.0)))
+        # Store in list:
         discounted_resource_list.append(discounted_resource)
     return discounted_resource_list
 
@@ -557,7 +644,7 @@ def build_table_qaly_by_change_in_outcome(qalys):
 
 def build_table_discounted_change(total_discounted_cost):
     """
-    Make a table of the change in QALYs with change in outcome.
+    Make a table of the change in cost with change in outcome.
 
     This builds a 2D np.array, 6 rows by 6 columns, that contains
     data for the "Discounted total costs by change in outcome" table,
@@ -621,8 +708,7 @@ def build_table_cost_effectiveness(net_benefit):
         row_vals = []
         for column in range(len(net_benefit)):
             if column < row:
-                diff_val = (net_benefit[column] -
-                            net_benefit[row])
+                diff_val = net_benefit[column] - net_benefit[row]
                 row_vals.append(diff_val)
             elif column == row:
                 row_vals.append('-')
