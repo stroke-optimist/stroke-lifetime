@@ -26,7 +26,8 @@ def main(
     """
 
     # Pick bits out of the dataframe for all mRS:
-    all_survival_times = np.array(df['survival_meds_IQRs'].tolist())  # To get 2d array
+    all_survival_times = np.array(
+        df['survival_meds_IQRs'].tolist())  # To get 2d array
     qalys_all_mrs = df['qalys'].tolist()
 
     # Get the results for just the selected mRS:
@@ -35,7 +36,7 @@ def main(
 
     # Pick bits out of the results for just the selected mRS:
     survival_times = variables_dict['survival_meds_IQRs']
-    qalys = variables_dict['qalys']
+    # qalys = variables_dict['qalys']
     qaly_list = variables_dict['qaly_list']
     qaly_raw_list = variables_dict['qaly_raw_list']
 
@@ -49,9 +50,11 @@ def main(
 
     # Check which model we're using and draw a bespoke table:
     if model_input_str == 'mRS':
-        write_table_discounted_qalys(all_survival_times, qalys_all_mrs, fixed_params)
+        write_table_discounted_qalys(
+            all_survival_times, qalys_all_mrs, fixed_params)
     else:
-        write_table_discounted_qalys_dicho(all_survival_times, qalys_all_mrs, fixed_params)
+        write_table_discounted_qalys_dicho(
+            all_survival_times, qalys_all_mrs, fixed_params)
 
     st.markdown('### Discounted QALYs by change in outcome')
     st.markdown(''.join([
@@ -65,7 +68,10 @@ def main(
             'For example, the change from ',
             'an outcome of mRS=1 to mRS=2 gives a difference of:'
         ]))
-        diff_str = f'{qalys_all_mrs[1]:.2f}-{qalys_all_mrs[2]:.2f}={qalys_all_mrs[1]-qalys_all_mrs[2]:.2f}'
+        diff_str = (
+            f'{qalys_all_mrs[1]:.2f}-{qalys_all_mrs[2]:.2f}=' +
+            f'{qalys_all_mrs[1]-qalys_all_mrs[2]:.2f}'
+            )
         st.latex(diff_str)
         write_table_discounted_qalys_outcome(qalys_table)
         st.caption('Change in outcome from column value to row value.')
