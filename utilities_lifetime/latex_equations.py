@@ -93,7 +93,7 @@ def table_lg_mrs_coeffs_dicho(vd):
     return str
 
 
-def pDeath_year1_generic():
+def death_in_year_1_prob_generic():
     """Probability of death in year one."""
     str = (
         r'''
@@ -116,14 +116,14 @@ def prob_year1(vd):
         P_{1} &= \frac{1}{1+e^{-
         \textcolor{red}{
         ''' +
-        f'{vd["lp_year1"]:.4f}' +
+        f'{vd["death_in_year_1_lp"]:.4f}' +
         r'''
         }
         }} \\
         &=
         \textcolor{red}{
         ''' +
-        f'{100.0*vd["P_year1"]:.2f}' +
+        f'{100.0*vd["death_in_year_1_prob"]:.2f}' +
         r'''
         \%}
         \end{align*}
@@ -132,7 +132,7 @@ def prob_year1(vd):
     return str
 
 
-def Pyear1_display(P_year1):
+def Pyear1_display(death_in_year_1_prob):
     """
     Shows the current value of probability of death in year one.
     """
@@ -140,7 +140,7 @@ def Pyear1_display(P_year1):
         r'''
         P_{1} = \textcolor{red}{
         ''' +
-        f'{100.0*P_year1:.2f}' +
+        f'{100.0*death_in_year_1_prob:.2f}' +
         r'''
         \%}
         '''
@@ -148,7 +148,7 @@ def Pyear1_display(P_year1):
     return str
 
 
-def lp_year1_generic():
+def death_in_year_1_lp_generic():
     """Linear predictor for probability of death in year one."""
     str = (
         r'''
@@ -165,7 +165,7 @@ def lp_year1_generic():
     return str
 
 
-def lp_year1(vd):
+def death_in_year_1_lp(vd):
     """
     Linear predictor for probability of death in year one, with symbols
     replaced with variables from the calculations.
@@ -218,7 +218,7 @@ def lp_year1(vd):
         r'''
         =& \textcolor{red}{
         ''' +
-        f'{vd["lp_year1"]:.4f}' +
+        f'{vd["death_in_year_1_lp"]:.4f}' +
         r'''
         }
         \end{align*}'''
@@ -243,7 +243,7 @@ def survival_year1(vd):
     Survival percentage in year one, with symbols
     replaced with variables from the calculations.
     """
-    if vd["survival_list"][1] < 0.0:
+    if vd["survival_by_year"][1] < 0.0:
         # Add an extra line showing an inequality.
         extra_str = r''' \\ S_1 &< \textcolor{red}{0\%} '''
     else:
@@ -254,12 +254,12 @@ def survival_year1(vd):
         S_1
         & = 1 - \textcolor{red}{
         ''' +
-        f'{vd["P_year1"]:.4f}' +
+        f'{vd["death_in_year_1_prob"]:.4f}' +
         r'''
         } \\
         & = \textcolor{red}{
         ''' +
-        f'{100.0*vd["survival_list"][1]:.2f}' +
+        f'{100.0*vd["survival_by_year"][1]:.2f}' +
         r'''
         \%}
         ''' +
@@ -361,7 +361,7 @@ def hazard_yearn(vd, time_input_year):
     Cumulative hazard by year n, with symbols
     replaced with variables from the calculations.
     """
-    if vd["fhazard_list"][time_input_year] > 1.0:
+    if vd["fhazard_by_year"][time_input_year] > 1.0:
         # Add an extra line showing an inequality.
         extra_str = (
             r'''
@@ -389,7 +389,7 @@ def hazard_yearn(vd, time_input_year):
         e^{
         \textcolor{red}{
         ''' +
-        f'{vd["lp_yearn"]:.4f}' +
+        f'{vd["death_in_year_n_lp"]:.4f}' +
         r'''
         }} \cdot \left(e^{\textcolor{red}{
         ''' +
@@ -401,7 +401,7 @@ def hazard_yearn(vd, time_input_year):
         }-1] \times 365} - 1 \right) \\
         &= \textcolor{red}{
         ''' +
-        f'{100.0*vd["fhazard_list"][time_input_year]:.2f}' +
+        f'{100.0*vd["fhazard_by_year"][time_input_year]:.2f}' +
         r'''
         \%}
         ''' +
@@ -413,7 +413,7 @@ def hazard_yearn(vd, time_input_year):
     return str
 
 
-def lp_yearn_generic():
+def death_in_year_n_lp_generic():
     """Linear predictor for cumulative hazard by year n."""
     str = (
         r'''
@@ -430,7 +430,7 @@ def lp_yearn_generic():
     return str
 
 
-def lp_yearn(vd):
+def death_in_year_n_lp(vd):
     """
     Linear predictor for cumulative hazard by year n, with symbols
     replaced with variables from the calculations.
@@ -479,7 +479,7 @@ def lp_yearn(vd):
         r'''}\right) & \mathrm{mRS} \\''' +
         # Next line, value equal to:
         r'''=& \textcolor{red}{''' +
-        f'{vd["lp_yearn"]:.4f}' +
+        f'{vd["death_in_year_n_lp"]:.4f}' +
         r'''}
         \end{align*}
         '''
@@ -487,7 +487,7 @@ def lp_yearn(vd):
     return str
 
 
-def LPyearn_display(lp_yearn):
+def LPyearn_display(death_in_year_n_lp):
     """
     Shows the current value of the linear predictor for death after
     year one.
@@ -495,7 +495,7 @@ def LPyearn_display(lp_yearn):
     str = (
         r'''
         LP_{H} =  \textcolor{red}{''' +
-        f'{lp_yearn:.4f}' + r'''}
+        f'{death_in_year_n_lp:.4f}' + r'''}
         '''
     )
     return str
@@ -518,7 +518,7 @@ def FDeath_yearn(vd, time_input_year):
     Cumulative probability of death by year n, with symbols
     replaced with variables from the calculations.
     """
-    if vd["hazard_list"][time_input_year] > 1.0:
+    if vd["hazard_by_year"][time_input_year] > 1.0:
         # Add an extra line showing an inequality.
         extra_str = (
             r''' \\
@@ -535,12 +535,12 @@ def FDeath_yearn(vd, time_input_year):
         F_{\textcolor{Fuchsia}{''' +
         f'{time_input_year}' +
         r'''}} &= 1 - (1-\textcolor{red}{''' +
-        f'{vd["P_year1"]:.4f}' +
+        f'{vd["death_in_year_1_prob"]:.4f}' +
         r'''})\times(1-\textcolor{red}{''' +
-        f'{vd["fhazard_list"][time_input_year]:.4f}' +
+        f'{vd["fhazard_by_year"][time_input_year]:.4f}' +
         r'''}) \\
         &= \textcolor{red}{''' +
-        f'{100.0*vd["hazard_list"][time_input_year]:.2f}' +
+        f'{100.0*vd["hazard_by_year"][time_input_year]:.2f}' +
         r'''\%}''' +
         extra_str +
         r'''
@@ -567,7 +567,7 @@ def survival(vd, time_input_year):
     Survival by year n, with symbols
     replaced with variables from the calculations.
     """
-    if vd["survival_list"][time_input_year] < 0.0:
+    if vd["survival_by_year"][time_input_year] < 0.0:
         # Add an extra line showing an inequality.
         extra_str = (
             r''' \\
@@ -583,10 +583,10 @@ def survival(vd, time_input_year):
         S_{\textcolor{Fuchsia}{''' +
         f'{time_input_year}' +
         r'''}} & = 1 - \textcolor{red}{''' +
-        f'{vd["hazard_list"][time_input_year]:.4f}' +
+        f'{vd["hazard_by_year"][time_input_year]:.4f}' +
         r'''} \\
         & = \textcolor{red}{''' +
-        f'{100.0*vd["survival_list"][time_input_year]:.2f}' +
+        f'{100.0*vd["survival_by_year"][time_input_year]:.2f}' +
         r'''\%}''' +
         extra_str +
         r'''
@@ -708,7 +708,7 @@ def median_survival_display(vd):
         r'''
         \begin{equation*}
         \mathrm{years} = \textcolor{red}{''' +
-        f'{vd["survival_time_median"]:.2f}' +
+        f'{vd["survival_median_years"]:.2f}' +
         r'''}
         \end{equation*}
         '''
@@ -732,7 +732,7 @@ def prob_prime_generic():
     return str
 
 
-def prob_prime(p, Pprime, P_year1):
+def prob_prime(p, Pprime, death_in_year_1_prob):
     """
     P`, prob prime, or time_log. Probability of death during year n,
     modified by the probability of death during year one. This version
@@ -744,7 +744,7 @@ def prob_prime(p, Pprime, P_year1):
         P^{\prime} &= \frac{1 + \textcolor{Fuchsia}{''' +
         f'{p:.4f}' +
         r'''}}{1 + \textcolor{red}{''' +
-        f'{P_year1:.4f}' +
+        f'{death_in_year_1_prob:.4f}' +
         r'''}} - 1 \\
         &= \textcolor{red}{''' +
         f'{100.0*Pprime:.2f}' +
@@ -790,7 +790,7 @@ def death_time_case2_generic():
     return str
 
 
-def death_time_case2(tDeath, p, P_year1):
+def death_time_case2(tDeath, p, death_in_year_1_prob):
     """
     Time of death for Case 2 (Pdeath by year n <= Pdeath in year one),
     with symbols replaced with variables from the calculations.
@@ -805,7 +805,7 @@ def death_time_case2(tDeath, p, P_year1):
         f'{p:.4f}' +
         r'''})}}
         {\ln{(1 - \textcolor{red}{''' +
-        f'{P_year1:.4f}' +
+        f'{death_in_year_1_prob:.4f}' +
         r'''})}}\times \frac{1}{365} \\
         &= \textcolor{red}{''' +
         f'{tDeath:.2f}' +
@@ -816,7 +816,7 @@ def death_time_case2(tDeath, p, P_year1):
     return str
 
 
-def death_time_case1(tDeath, prob_prime, lp_yearn, gamma, P):
+def death_time_case1(tDeath, prob_prime, death_in_year_n_lp, gamma, P):
     """
     Time of death for Case 1 (Pdeath by year n > Pdeath in year one),
     with symbols replaced with variables from the calculations.
@@ -833,7 +833,7 @@ def death_time_case1(tDeath, prob_prime, lp_yearn, gamma, P):
         r'''}\times ''' +
         f'{gamma}' +
         r'''}{\exp{(\textcolor{red}{''' +
-        f'{lp_yearn:.4f}' +
+        f'{death_in_year_n_lp:.4f}' +
         r'''})}} + 1.0 \right) \\
         &= \textcolor{red}{''' +
         f'{tDeath:.2f}' +
@@ -1166,7 +1166,7 @@ def discounted_qalys_v7(vd):
         r'''} \times \frac{1 - (1+''' +
         f'{vd["discount_factor_QALYs_perc"]/100.0:.4f}' +
         r''')^{-[\textcolor{red}{''' +
-        f'{vd["survival_time_median"]:.2f}' +
+        f'{vd["survival_median_years"]:.2f}' +
         r'''}-1]}}{1 - (1+''' +
         f'{vd["discount_factor_QALYs_perc"]/100.0:.4f}' +
         r''')^{-1}} \\
@@ -1218,7 +1218,7 @@ def discounted_qalys_v7(vd):
         r'''} \times \frac{1 - (1+''' +
         f'{vd["discount_factor_QALYs_perc"]/100.0:.4f}' +
         r''')^{-[\textcolor{red}{''' +
-        f'{vd["survival_time_median"]:.2f}' +
+        f'{vd["survival_median_years"]:.2f}' +
         r'''}-1]}}{1 - (1+''' +
         f'{vd["discount_factor_QALYs_perc"]/100.0:.4f}' +
         r''')^{-1}} \\
@@ -1364,7 +1364,7 @@ def ae_lp(vd):
         r'''}\right) & \mathrm{mRS} \\''' +
         # Next line, value equal to:
         r'''=& \textcolor{red}{''' +
-        f'{vd["lp_ae"]:.4f}' +
+        f'{vd["ae_lp"]:.4f}' +
         r'''}
         \end{align*}
         '''
@@ -1381,17 +1381,17 @@ def ae_count(vd):
         r'''
         \begin{align*}
         \mathrm{Count (years=\textcolor{red}{''' +
-        f'{vd["survival_time_median"]:.2f}' +
+        f'{vd["survival_median_years"]:.2f}' +
         r'''})} &=
         \exp{
             \left( ''' +
             f'{vd["ae_coeffs"][3]}' +
             r''' \times \textcolor{red}{''' +
-            f'{vd["lp_ae"]:.4f}' +
+            f'{vd["ae_lp"]:.4f}' +
             r'''} \right)
             }
         \times \textcolor{red}{''' +
-        f'{vd["survival_time_median"]:.2f}' +
+        f'{vd["survival_median_years"]:.2f}' +
         r'''}^{''' +
         f'{vd["ae_coeffs"][3]}' +
         r'''} \\
@@ -1533,7 +1533,7 @@ def nel_lp(vd):
         r'''} \right) & \mathrm{mRS} \\''' +
         # Next line, value equal to:
         r'''=& \textcolor{red}{''' +
-        f'{vd["lp_nel"]:.4f}' +
+        f'{vd["nel_lp"]:.4f}' +
         r'''}
         \end{align*}
         '''
@@ -1550,14 +1550,14 @@ def nel_bed_days(vd):
         r'''
         \begin{align*}
         \mathrm{Count (years=\textcolor{red}{''' +
-        f'{vd["survival_time_median"]:.2f}' +
+        f'{vd["survival_median_years"]:.2f}' +
         r'''})} &=
             -\ln{\left(
             \frac{1}{
                 1+ [\textcolor{red}{''' +
-                f'{vd["survival_time_median"]:.2f}' +
+                f'{vd["survival_median_years"]:.2f}' +
                 r'''} \times \exp{(-\textcolor{red}{''' +
-                f'{vd["lp_nel"]:.4f}' +
+                f'{vd["nel_lp"]:.4f}' +
                 r'''})} ]^{
                 1/ ''' +
                 f'{vd["nel_coeffs"][3]}' +
@@ -1700,7 +1700,7 @@ def el_lp(vd):
         r'''} \right) & \mathrm{mRS} \\''' +
         # Next line, value equal to:
         r'''=& \textcolor{red}{''' +
-        f'{vd["lp_el"]:.4f}' +
+        f'{vd["el_lp"]:.4f}' +
         r'''}
         \end{align*}
         '''
@@ -1717,14 +1717,14 @@ def el_bed_days(vd):
         r'''
         \begin{align*}
         \mathrm{Count (years=\textcolor{red}{''' +
-        f'{vd["survival_time_median"]:.2f}' +
+        f'{vd["survival_median_years"]:.2f}' +
         r'''})} &=
             -\ln{\left(
             \frac{1}{
                 1+ [\textcolor{red}{''' +
-                f'{vd["survival_time_median"]:.2f}' +
+                f'{vd["survival_median_years"]:.2f}' +
                 r'''} \times \exp{(-\textcolor{red}{''' +
-                f'{vd["lp_el"]:.4f}' +
+                f'{vd["el_lp"]:.4f}' +
                 r'''})} ]^{
                 1/ ''' +
                 f'{vd["el_coeffs"][3]}' +
@@ -1841,12 +1841,12 @@ def tic(vd):
         r'''
         \begin{align*}
         \mathrm{Count (years=\textcolor{red}{''' +
-        f'{vd["survival_time_median"]:.2f}' +
+        f'{vd["survival_median_years"]:.2f}' +
         r'''})} &=
         95\% \times \textcolor{Fuchsia}{''' +
         f'{100.0*perc:.4f}' +
         r'''\%} \times \textcolor{red}{''' +
-        f'{vd["survival_time_median"]:.2f}' +
+        f'{vd["survival_median_years"]:.2f}' +
         r'''} \\
         &= \textcolor{red}{''' +
         f'{vd["care_years"]:.4f}' +

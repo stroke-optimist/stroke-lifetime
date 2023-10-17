@@ -216,7 +216,8 @@ def find_iDeath(
         # Calculate the probability of death by this year...
         hazard0, p0 = find_FDeath_yearn(year, gz_gamma, pDeath_year1, lp_yearn)
         # ... and by the previous year...
-        hazard1, p1 = find_FDeath_yearn(year-1.0, gz_gamma, pDeath_year1, lp_yearn)
+        hazard1, p1 = find_FDeath_yearn(
+            year-1.0, gz_gamma, pDeath_year1, lp_yearn)
         # ... and combine to get the probability of death in this year.
         iDeath = 1.0 - np.exp(p1 - p0)
     return iDeath

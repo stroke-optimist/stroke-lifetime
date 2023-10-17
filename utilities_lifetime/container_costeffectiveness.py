@@ -38,7 +38,7 @@ def main(
                                formatting in the app for model type.
     """
     # Pick bits out of the dataframe for all mRS:
-    qalys_all_mrs = df['qalys'].to_list()
+    qalys_all_mrs = df['qalys_total'].to_list()
     total_discounted_cost_list = df['total_discounted_cost']
 
     # Get the results for just the selected mRS:
@@ -198,7 +198,11 @@ def write_table_cost_effectiveness_dicho(table_cost_effectiveness):
         ]))
 
 
-def write_example_cost_effectiveness(qalys_all_mrs, total_discounted_cost_list, vd):
+def write_example_cost_effectiveness(
+        qalys_all_mrs,
+        total_discounted_cost_list,
+        vd
+        ):
     """
     Write example for calculating net benefit for change in outcome.
 

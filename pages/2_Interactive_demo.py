@@ -138,7 +138,7 @@ def main():
 
     # ##### QALYs #####
     qalys_table = calc.build_table_qaly_by_change_in_outcome(
-        df['qalys']
+        df['qalys_total']
         )
     # qalys_table is a 2D np.array, 6 rows by 6 columns, that contains
     # the data for the "Discounted QALYs by change in outcome" table,

@@ -42,21 +42,21 @@ def main_calculations(
         sex_label                  - str.
         mrs                        - int.
         outcome_type               - str.
-        time_list_year             - np.array.
-        P_year1                    - float.
-        lp_year1                   - float.
-        lp_yearn                   - float.
-        pDeath_list                - np.array.
-        ind_first_invalid_pDeath   - float.
-        hazard_list                - np.array.
-        survival_list              - np.array.
-        fhazard_list               - np.array.
+        years             - np.array.
+        death_in_year_1_prob                    - float.
+        death_in_year_1_lp                   - float.
+        death_in_year_n_lp                   - float.
+        death_in_year_n_probs                - np.array.
+        death_in_year_n_probs_first_invalid_index   - float.
+        hazard_by_year                - np.array.
+        survival_by_year              - np.array.
+        fhazard_by_year               - np.array.
         survival_meds_IQRs         - np.array.
         survival_year1             - float.
-        time_of_zero_survival      - float.
+        year_when_zero_survival      - float.
         qalys                      - float.
-        qaly_list                  - np.array.
-        qaly_raw_list              - np.array.
+        qalys_by_year              - np.array.
+        raw_qalys_by_year          - np.array.
         total_discounted_cost      - float.
         lp_ae                      - float.
         ae_count                   - float.
@@ -69,10 +69,10 @@ def main_calculations(
         nel_counts_by_year         - np.array.
         el_counts_by_year          - np.array.
         care_years_by_year         - np.array.
-        ae_discounted_list         - np.array.
-        nel_discounted_list        - np.array.
-        el_discounted_list         - np.array.
-        care_years_discounted_list - np.array.
+        ae_discounted_by_year         - np.array.
+        nel_discounted_by_year        - np.array.
+        el_discounted_by_year         - np.array.
+        care_years_discounted_by_year - np.array.
         ae_discounted_cost         - float.
         nel_discounted_cost        - float.
         el_discounted_cost         - float.
@@ -86,7 +86,7 @@ def main_calculations(
     # Shared for all patients.
     # Times for hazard with time calculations:
     # This list contains [0, 1, 2, ..., time_max_post_discharge_year].
-    time_list_year = np.arange(
+    years = np.arange(
         0, fixed_params['time_max_post_discharge_year'] + 1, 1)
 
     # Choose which list of care home percentage rates to use
@@ -104,14 +104,14 @@ def main_calculations(
     # ##### Mortality #####
 
     # Linear predictors:
-    lp_year1 = model.find_lpDeath_year1(
+    death_in_year_1_lp = model.find_lpDeath_year1(
         age,
         sex,
         mrs,
         fixed_params['lg_mean_ages'],
         fixed_params['lg_coeffs']
         )
-    lp_yearn = model.find_lpDeath_yearn(
+    death_in_year_n_lp = model.find_lpDeath_yearn(
         age,
         sex,
         mrs,
@@ -120,69 +120,84 @@ def main_calculations(
         )
 
     # Probability of death in year 1:
-    pDeath_year1 = model.find_pDeath_year1(lp_year1)
+    death_in_year_1_prob = model.find_pDeath_year1(death_in_year_1_lp)
 
     # Find hazard and survival:
     # The following arrays contain one value for each year in the
     # range 1 to max year (defined in fixed_params.py).
     # Cumulative hazard, cumulative survival, output from Gompertz.
-    hazard_list, survival_list, fhazard_list = (
+    hazard_by_year, survival_by_year, fhazard_by_year = (
         find_cumhazard_with_time(
-            time_list_year,
+            years,
             fixed_params['gz_gamma'],
-            pDeath_year1,
-            lp_yearn
+            death_in_year_1_prob,
+            death_in_year_n_lp
             ))
 
     # Find indices where survival is less than 0% and so the
     # calculated probability of death is invalid.
-    inds_invalid_pDeath = np.where(hazard_list >= 1.0)[0] + 1
+    death_in_year_n_probs_invalid_inds = (
+        np.where(hazard_by_year >= 1.0)[0] + 1)
     try:
         # If there are invalid values, only store the first:
-        ind_first_invalid_pDeath = inds_invalid_pDeath[0]
+        death_in_year_n_probs_first_invalid_index = (
+            death_in_year_n_probs_invalid_inds[0])
     except IndexError:
         # If there are no invalid values, store Not A Number:
-        ind_first_invalid_pDeath = np.NaN
-    # Add one to the index because we start hazard_list from year 0
-    # but pDeath_list from year 1.
+        death_in_year_n_probs_first_invalid_index = np.NaN
+    # Add one to the index because we start hazard_by_year from year 0
+    # but death_in_year_n_probs from year 1.
 
     # Calculate pDeath, the probability of death in each year
     # from 1 to max year (fixed_params.py).
-    pDeath_list = calculate_prob_death_per_year(
-        time_list_year,
+    death_in_year_n_probs = calculate_prob_death_per_year(
+        years,
         fixed_params['gz_gamma'],
-        pDeath_year1,
-        lp_yearn
+        death_in_year_1_prob,
+        death_in_year_n_lp
         )
 
     # Find when survival=0% for the survival vs. time chart:
     # Years from discharge to when survival probability is zero
     # (i.e. hazard probability is 1.0).
-    time_of_zero_survival = model.find_time_for_this_hazard(
+    year_when_zero_survival = model.find_time_for_this_hazard(
         fixed_params['gz_gamma'],
-        pDeath_year1,
-        lp_yearn,
+        death_in_year_1_prob,
+        death_in_year_n_lp,
         hazard_prob=1.0
         )
 
     # Survival times:
-    survival_time_median, _, _, _ = (
+    survival_median_years, _, _, _ = model.find_survival_time_for_pDeath(
+        0.5,
+        death_in_year_1_prob,
+        death_in_year_n_lp,
+        fixed_params['gz_gamma']
+        )
+    survival_lower_quartile_years, _, _, _ = (
         model.find_survival_time_for_pDeath(
-            0.5, pDeath_year1, lp_yearn, fixed_params['gz_gamma']))
-    survival_time_lower_quartile, _, _, _ = (
+            0.25,
+            death_in_year_1_prob,
+            death_in_year_n_lp,
+            fixed_params['gz_gamma']
+            )
+        )
+    survival_upper_quartile_years, _, _, _ = (
         model.find_survival_time_for_pDeath(
-            0.25, pDeath_year1, lp_yearn, fixed_params['gz_gamma']))
-    survival_time_upper_quartile, _, _, _ = (
-        model.find_survival_time_for_pDeath(
-            0.75, pDeath_year1, lp_yearn, fixed_params['gz_gamma']))
-    life_expectancy = survival_time_median + age
+            0.75,
+            death_in_year_1_prob,
+            death_in_year_n_lp,
+            fixed_params['gz_gamma']
+            )
+        )
+    life_expectancy = survival_median_years + age
 
     # ##### QALYs #####
     # Pick out some fixed parameters:
 
-    qalys, qaly_list, qaly_raw_list = model.calculate_qaly(
+    qalys, qalys_by_year, raw_qalys_by_year = model.calculate_qaly(
         fixed_params['utility_list'][mrs],
-        survival_time_median,
+        survival_median_years,
         age,
         sex,
         fixed_params['lg_mean_ages'][mrs],
@@ -225,70 +240,70 @@ def main_calculations(
     ae_count = model.find_ae_count(
         ae_lp,
         fixed_params['ae_coeffs'],
-        survival_time_median
+        survival_median_years
         )
     nel_count = model.find_nel_count(
         nel_lp,
         fixed_params['nel_coeffs'],
-        survival_time_median
+        survival_median_years
         )
     el_count = model.find_el_count(
         el_lp,
         fixed_params['el_coeffs'],
-        survival_time_median
+        survival_median_years
         )
     care_years = model.find_residential_care_average_time(
         average_care_year,
-        survival_time_median
+        survival_median_years
         )
 
     # Calculate the non-discounted values:
     # Each list contains one float for each year in the range
     # from year=1 to year=median_survival_year (rounded up).
     ae_count_by_year = find_resource_count_for_all_years(
-        survival_time_median,
+        survival_median_years,
         model.find_ae_count,
         coeffs=fixed_params['ae_coeffs'],
         LP=ae_lp
         )
     nel_count_by_year = find_resource_count_for_all_years(
-        survival_time_median,
+        survival_median_years,
         model.find_nel_count,
         coeffs=fixed_params['nel_coeffs'],
         LP=nel_lp
         )
     el_count_by_year = find_resource_count_for_all_years(
-        survival_time_median,
+        survival_median_years,
         model.find_el_count,
         coeffs=fixed_params['el_coeffs'],
         LP=el_lp
         )
     care_years_by_year = find_resource_count_for_all_years(
-        survival_time_median,
+        survival_median_years,
         model.find_residential_care_average_time,
         average_care_year=average_care_year
         )
 
     # Find discounted lists:
-    ae_discounted_list = (
+    ae_discounted_by_year = (
         find_discounted_resource_use_for_all_years(
             ae_count_by_year,
             fixed_params['discount_factor_QALYs_perc']
             )
         )
-    nel_discounted_list = (
+    nel_discounted_by_year = (
         find_discounted_resource_use_for_all_years(
             nel_count_by_year,
             fixed_params['discount_factor_QALYs_perc']
             )
         )
-    el_discounted_list = (
+    el_discounted_by_year = (
         find_discounted_resource_use_for_all_years(
             el_count_by_year,
             fixed_params['discount_factor_QALYs_perc']
             )
         )
-    care_years_discounted_list = (
+    care_years_discounted_by_year = (
         find_discounted_resource_use_for_all_years(
             care_years_by_year,
             fixed_params['discount_factor_QALYs_perc']
@@ -298,19 +313,19 @@ def main_calculations(
     # Find discounted costs:
     ae_discounted_cost = (
         fixed_params['cost_ae_gbp'] *
-        np.sum(ae_discounted_list)
+        np.sum(ae_discounted_by_year)
         )
     nel_discounted_cost = (
         fixed_params['cost_non_elective_bed_day_gbp'] *
-        np.sum(nel_discounted_list)
+        np.sum(nel_discounted_by_year)
         )
     el_discounted_cost = (
         fixed_params['cost_elective_bed_day_gbp'] *
-        np.sum(el_discounted_list)
+        np.sum(el_discounted_by_year)
         )
     care_years_discounted_cost = (
         fixed_params['cost_residential_day_gbp'] * 365 *
-        np.sum(care_years_discounted_list)
+        np.sum(care_years_discounted_by_year)
         )
     # Sum for total costs:
     total_discounted_cost = np.sum([
@@ -336,48 +351,48 @@ def main_calculations(
         mrs=mrs,
         outcome_type=outcome_type,
         # ----- For mortality: -----
-        time_list_year=time_list_year,
-        P_year1=pDeath_list[0],
-        lp_year1=lp_year1,
-        lp_yearn=lp_yearn,
-        pDeath_list=pDeath_list,
-        ind_first_invalid_pDeath=ind_first_invalid_pDeath,
-        hazard_list=hazard_list,
-        survival_list=survival_list,
-        fhazard_list=fhazard_list,
-        survival_time_median=survival_time_median,
-        survival_time_lower_quartile=survival_time_lower_quartile,
-        survival_time_upper_quartile=survival_time_upper_quartile,
+        death_in_year_1_lp=death_in_year_1_lp,
+        death_in_year_1_prob=death_in_year_1_prob,
+        death_in_year_n_lp=death_in_year_n_lp,
+        years=years,
+        hazard_by_year=hazard_by_year,
+        survival_by_year=survival_by_year,
+        fhazard_by_year=fhazard_by_year,
+        death_in_year_n_probs=death_in_year_n_probs,
+        death_in_year_n_probs_first_invalid_index=(
+            death_in_year_n_probs_first_invalid_index),
+        survival_median_years=survival_median_years,
+        survival_lower_quartile_years=survival_lower_quartile_years,
+        survival_upper_quartile_years=survival_upper_quartile_years,
         life_expectancy=life_expectancy,
-        # survival_year1=1.0-pDeath_list[0],
-        time_of_zero_survival=time_of_zero_survival,
+        year_when_zero_survival=year_when_zero_survival,
         # ----- For QALYs: -----
-        qalys=qalys,
-        qaly_list=qaly_list,
-        qaly_raw_list=qaly_raw_list,
+        qalys_total=qalys,
+        qalys_by_year=qalys_by_year,
+        raw_qalys_by_year=raw_qalys_by_year,
         # ----- For resource use: -----
         # A&E:
-        lp_ae=ae_lp,
+        ae_lp=ae_lp,
         ae_count=ae_count,
         ae_counts_by_year=ae_count_by_year,
-        ae_discounted_list=ae_discounted_list,
+        ae_discounted_by_year=ae_discounted_by_year,
         ae_discounted_cost=ae_discounted_cost,
         # Non-elective bed days
-        lp_nel=nel_lp,
+        nel_lp=nel_lp,
         nel_count=nel_count,
         nel_counts_by_year=nel_count_by_year,
-        nel_discounted_list=nel_discounted_list,
+        nel_discounted_by_year=nel_discounted_by_year,
         nel_discounted_cost=nel_discounted_cost,
         # Elective bed days
-        lp_el=el_lp,
+        el_lp=el_lp,
         el_count=el_count,
         el_counts_by_year=el_count_by_year,
-        el_discounted_list=el_discounted_list,
+        el_discounted_by_year=el_discounted_by_year,
         el_discounted_cost=el_discounted_cost,
         # Care home
         care_years=care_years,
         care_years_by_year=care_years_by_year,
-        care_years_discounted_list=care_years_discounted_list,
+        care_years_discounted_by_year=care_years_discounted_by_year,
         care_years_discounted_cost=care_years_discounted_cost,
         # Total
         total_discounted_cost=total_discounted_cost,
@@ -392,7 +407,12 @@ def main_calculations(
 # ############################ Mortality ##############################
 # #####################################################################
 
-def find_cumhazard_with_time(time_list_year, gz_gamma, pDeath_year1, lp_yearn):
+def find_cumhazard_with_time(
+        years,
+        gz_gamma,
+        death_in_year_1_prob,
+        death_in_year_n_lp
+        ):
     """
     For each year in the input list, find the cumulative probability
     of death and the survival percentage.
@@ -404,80 +424,80 @@ def find_cumhazard_with_time(time_list_year, gz_gamma, pDeath_year1, lp_yearn):
 
     Inputs:
     -------
-    time_list_year - list or array. List of integer years.
+    years - list or array. List of integer years.
     gz_gamma       - float. Gompertz gamma coefficient.
-    pDeath_year1   - float. Probability of death in year 1.
-    lp_yearn       - float. Linear predictor for probability of death
+    death_in_year_1_prob   - float. Probability of death in year 1.
+    death_in_year_n_lp       - float. Linear predictor for probability of death
                      after year 1.
 
     Returns:
     --------
-    pDeath_list    - array. List of cumulative probability of death
+    death_in_year_n_probs    - array. List of cumulative probability of death
                      in each year.
-    survival_list  - array. List of survival for each year.
-    hazard_list  - array. List of hazard for each year.
+    survival_by_year  - array. List of survival for each year.
+    hazard_by_year  - array. List of hazard for each year.
     """
     # Store hazards in here. First value will be from year 2.
-    hazard_list = [0.0, 0.0]
+    hazard_by_year = [0.0, 0.0]
     # Start with prob in year 0, which is zero:
-    pDeath_list = [0.0]
-    for year in time_list_year[1:]:
+    death_in_year_n_probs = [0.0]
+    for year in years[1:]:
         if year == 1:
-            pDeath = pDeath_year1
+            pDeath = death_in_year_1_prob
         else:
             hazard, pDeath = model.find_FDeath_yearn(
-                year, gz_gamma, pDeath_year1, lp_yearn
+                year, gz_gamma, death_in_year_1_prob, death_in_year_n_lp
                 )
-            hazard_list.append(hazard)
+            hazard_by_year.append(hazard)
         # Manual override if the value is too big:
         # AL has changed this value from Excel's 1.5.
         pDeath = 1.0 if pDeath > 1.0 else pDeath
         # Add this value to list:
-        pDeath_list.append(pDeath)
+        death_in_year_n_probs.append(pDeath)
 
     # Convert to survival:
-    pDeath_list = np.array(pDeath_list)
-    survival_list = 1.0 - pDeath_list
+    death_in_year_n_probs = np.array(death_in_year_n_probs)
+    survival_by_year = 1.0 - death_in_year_n_probs
 
-    return pDeath_list, survival_list, hazard_list
+    return death_in_year_n_probs, survival_by_year, hazard_by_year
 
 
 def calculate_prob_death_per_year(
-        time_list_year,
+        years,
         gz_gamma,
-        pDeath_year1,
-        lp_yearn
+        death_in_year_1_prob,
+        death_in_year_n_lp
         ):
     """
     Calculate the probability of death during each year.
 
     Inputs:
     -------
-    time_list_year - list or array. List of integer years.
+    years - list or array. List of integer years.
     gz_gamma       - float. Gompertz gamma coefficient.
-    pDeath_year1   - float. Probability of death in year 1.
-    lp_yearn       - float. Linear predictor for probability of death
+    death_in_year_1_prob   - float. Probability of death in year 1.
+    death_in_year_n_lp       - float. Linear predictor for probability of death
                      after year 1.
 
     Returns:
     --------
-    pDeath_list - np.array. Probability of death during each year
+    death_in_year_n_probs - np.array. Probability of death during each year
                   given in the input time list.
     """
-    pDeath_list = []
-    for year in time_list_year[1:]:
+    death_in_year_n_probs = []
+    for year in years[1:]:
         pDeath = model.find_iDeath(
-            year, gz_gamma, lp_yearn, pDeath_year1)
-        pDeath_list.append(pDeath)
-    pDeath_list = np.array(pDeath_list)
-    return pDeath_list
+            year, gz_gamma, death_in_year_n_lp, death_in_year_1_prob)
+        death_in_year_n_probs.append(pDeath)
+    death_in_year_n_probs = np.array(death_in_year_n_probs)
+    return death_in_year_n_probs
 
 
 def calculate_survival_iqr(
         age,
         gz_gamma,
         lpDeath_yearn,
-        pDeath_year1
+        death_in_year_1_prob
         ):
     """
     Find the median and IQR survival times and life expectancy.
@@ -488,7 +508,7 @@ def calculate_survival_iqr(
     gz_gamma      - Gompertz gamma coefficient.
     lpDeath_yearn - float. Linear predictor for probability of death
                     after year one.
-    pDeath_year1  - float. Probability of death in year one.
+    death_in_year_1_prob  - float. Probability of death in year one.
 
     Returns:
     years_to_note - list. Contains [median, lower IQR, upper IQR,
@@ -501,7 +521,7 @@ def calculate_survival_iqr(
         # *(adjusted for year one death chance if necessary).
         survival_time, survival_years, time_log, eqperc = \
             model.find_survival_time_for_pDeath(
-                pDeath, pDeath_year1, lpDeath_yearn, gz_gamma)
+                pDeath, death_in_year_1_prob, lpDeath_yearn, gz_gamma)
         years_to_note.append(survival_time)
 
         if pDeath == 0.5:

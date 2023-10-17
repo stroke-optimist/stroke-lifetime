@@ -7,8 +7,6 @@ import pandas as pd
 
 # For writing formulae in the "Details" sections:
 import utilities_lifetime.latex_equations as eqn
-# Import constants:
-import utilities_lifetime.fixed_params
 
 
 def main(
@@ -42,18 +40,18 @@ def main(
 
     # Pick bits out of the dataframe for all mRS:
 
-    survival_time_median = df['survival_time_median']
-    survival_time_lower_quartile = df['survival_time_lower_quartile']
-    survival_time_upper_quartile = df['survival_time_upper_quartile']
+    survival_median_years = df['survival_median_years']
+    survival_lower_quartile_years = df['survival_lower_quartile_years']
+    survival_upper_quartile_years = df['survival_upper_quartile_years']
     life_expectancy = df['life_expectancy']
 
     all_survival_times = np.array([
-        survival_time_median,
-        survival_time_lower_quartile,
-        survival_time_upper_quartile,
+        survival_median_years,
+        survival_lower_quartile_years,
+        survival_upper_quartile_years,
         life_expectancy
     ]).T
-    qalys_all_mrs = df['qalys'].tolist()
+    qalys_all_mrs = df['qalys_total'].tolist()
 
     # Get the results for just the selected mRS:
     results_dict = df.loc[mrs_input].to_dict()
@@ -61,14 +59,14 @@ def main(
 
     # Pick bits out of the results for just the selected mRS:
     survival_times = [
-        variables_dict['survival_time_median'],
-        variables_dict['survival_time_lower_quartile'],
-        variables_dict['survival_time_upper_quartile'],
+        variables_dict['survival_median_years'],
+        variables_dict['survival_lower_quartile_years'],
+        variables_dict['survival_upper_quartile_years'],
         variables_dict['life_expectancy']
     ]
     # qalys = variables_dict['qalys']
-    qaly_list = variables_dict['qaly_list']
-    qaly_raw_list = variables_dict['qaly_raw_list']
+    qalys_by_year = variables_dict['qalys_by_year']
+    raw_qalys_by_year = variables_dict['raw_qalys_by_year']
 
     # Discounted QALYS
     # +-------------------+
@@ -93,7 +91,7 @@ def main(
         write_details_discounted_qalys(variables_dict, model_input_str)
     with st.expander('Example: Discounted QALYs'):
         write_example_discounted_qalys(
-            qaly_list, qaly_raw_list, variables_dict, survival_times[0]
+            qalys_by_year, raw_qalys_by_year, variables_dict, survival_times[0]
             )
 
     # Check which model we're using and draw a bespoke table:
@@ -384,8 +382,8 @@ def write_details_discounted_qalys(vd, model_input_str):
 
 
 def write_example_discounted_qalys(
-        qaly_list,
-        qaly_raw_list,
+        qalys_by_year,
+        raw_qalys_by_year,
         vd,
         med_survival_yrs
         ):
@@ -411,7 +409,7 @@ def write_example_discounted_qalys(
     with cols[0]:
         # ----- Write table with the values -----
         st.markdown(eqn.build_table_str_qalys(
-            qaly_raw_list, qaly_list, np.sum(qaly_list)
+            raw_qalys_by_year, qalys_by_year, np.sum(qalys_by_year)
             ))
 
     with cols[1]:
@@ -424,11 +422,11 @@ def write_example_discounted_qalys(
         # ----- Input number of years -----
         # Give this slider a key or streamlit throws warnings
         # about multiple identical sliders.
-        if len(qaly_list) > 1:
+        if len(qalys_by_year) > 1:
             time_input_yr = st.slider(
                 'Choose number of years for this example',
                 min_value=1,
-                max_value=len(qaly_list),
+                max_value=len(qalys_by_year),
                 value=1,
                 key='TimeforQALYS'
                 )
@@ -447,7 +445,7 @@ def write_example_discounted_qalys(
             st.latex(eqn.discounted_raw_qalys(
                     vd,
                     year,
-                    qaly_raw_list[year-1]
+                    raw_qalys_by_year[year-1]
                     ))
             st.markdown(''.join([
                 '$^{*}$ This value is 0 for female patients ',
@@ -472,9 +470,9 @@ def write_example_discounted_qalys(
 
             st.latex(eqn.discounted_qalys(
                 vd,
-                qaly_raw_list[year-1],
+                raw_qalys_by_year[year-1],
                 year,
-                qaly_list[year-1],
+                qalys_by_year[year-1],
                 frac
                 ))
             if frac > 0:

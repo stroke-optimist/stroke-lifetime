@@ -923,7 +923,7 @@ def write_example_discounted_resource_use(vd):
         write_details_discounted_resource(
             vd,
             "ae_counts_by_year",
-            "ae_discounted_list",
+            "ae_discounted_by_year",
             "cost_ae_gbp",
             "ae_discounted_cost",
             caption_str
@@ -937,7 +937,7 @@ def write_example_discounted_resource_use(vd):
         write_details_discounted_resource(
             vd,
             "nel_counts_by_year",
-            "nel_discounted_list",
+            "nel_discounted_by_year",
             "cost_non_elective_bed_day_gbp",
             "nel_discounted_cost",
             caption_str
@@ -951,7 +951,7 @@ def write_example_discounted_resource_use(vd):
         write_details_discounted_resource(
             vd,
             "el_counts_by_year",
-            "el_discounted_list",
+            "el_discounted_by_year",
             "cost_elective_bed_day_gbp",
             "el_discounted_cost",
             caption_str
@@ -965,7 +965,7 @@ def write_example_discounted_resource_use(vd):
         write_details_discounted_resource(
             vd,
             "care_years_by_year",
-            "care_years_discounted_list",
+            "care_years_discounted_by_year",
             "cost_residential_day_gbp",
             "care_years_discounted_cost",
             caption_str,
