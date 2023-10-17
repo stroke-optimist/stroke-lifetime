@@ -45,7 +45,11 @@ def main(
     time_list_year = df.loc[0]['time_list_year']
     all_survival_lists = df['survival_list']
     all_hazard_lists = df['hazard_list'].tolist()
-    survival_times = np.array(df['survival_meds_IQRs'].tolist())
+
+    survival_time_median = df['survival_time_median']
+    survival_time_lower_quartile = df['survival_time_lower_quartile']
+    survival_time_upper_quartile = df['survival_time_upper_quartile']
+    life_expectancy = df['life_expectancy']
 
     # Get the results for just the selected mRS:
     results_dict = df.loc[mrs_input].to_dict()
@@ -53,7 +57,7 @@ def main(
 
     # Pick bits out of the results for just the selected mRS:
     pDeath_list = variables_dict['pDeath_list']
-    invalid_inds_for_pDeath = variables_dict['invalid_inds_for_pDeath']
+    ind_first_invalid_pDeath = variables_dict['ind_first_invalid_pDeath']
     time_of_death = variables_dict['time_of_zero_survival']
 
     # Mortality during year one...
@@ -143,7 +147,7 @@ def main(
     with st.expander('Example: Mortality in a chosen year'):
         write_example_mortality_in_chosen_year(variables_dict)
     # Table:
-    write_table_of_pDeath(pDeath_list, invalid_inds_for_pDeath, n_columns=3)
+    write_table_of_pDeath(pDeath_list, ind_first_invalid_pDeath, n_columns=3)
 
     # Survival
     # +-------------------+
@@ -170,11 +174,21 @@ def main(
     with st.expander('Example: Median survival'):
         write_example_median_survival(variables_dict, fixed_params)
     # Table:
-    # Check which model we're using and draw a bespoke table:
+    # Check which model we're using and draw a table:
     if model_type_used == 'mRS':
-        write_table_of_median_survival(survival_times)
+        write_table_of_median_survival(np.array([
+            survival_time_median,
+            survival_time_lower_quartile,
+            survival_time_upper_quartile,
+            life_expectancy
+        ]).T)
     else:
-        write_table_of_median_survival_dicho(survival_times)
+        write_table_of_median_survival_dicho(np.array([
+            survival_time_median,
+            survival_time_lower_quartile,
+            survival_time_upper_quartile,
+            life_expectancy
+        ]).T)
 
 
 def plot_survival_vs_time_plotly(
@@ -435,7 +449,7 @@ def plot_hazard_vs_time_plotly(
     st.plotly_chart(fig, use_container_width=True, config=plotly_config)
 
 
-def write_table_of_pDeath(pDeath_list, invalid_inds_for_pDeath, n_columns=1):
+def write_table_of_pDeath(pDeath_list, ind_first_invalid_pDeath, n_columns=1):
     """
     Table: probability of death.
     In Excel, this is "Yr" vs "pDeath" table.
@@ -443,11 +457,11 @@ def write_table_of_pDeath(pDeath_list, invalid_inds_for_pDeath, n_columns=1):
     Is there a better way to do this? Probably.
 
     Inputs:
-    pDeath_list             - array. Stores floats of probs of death
-                              for all years (default up to 50 years).
-    invalid_inds_for_pDeath - array. Stores the indices where survival
-                              is below 0% and so pDeath is invalid.
-    n_columns               - int. How many columns to use in the table.
+    pDeath_list              - array. Stores floats of probs of death
+                               for all years (default up to 50 years).
+    ind_first_invalid_pDeath - float. The first index where survival
+                               is below 0% and so pDeath is invalid.
+    n_columns                - int. How many columns to use in the table.
     """
     # Display these years:
     years_for_prob_table = np.arange(1, 15, 1)
@@ -463,13 +477,13 @@ def write_table_of_pDeath(pDeath_list, invalid_inds_for_pDeath, n_columns=1):
         dtype=object)
     # ^ dtype=object keeps the floats instead of converting all to str.
     # Set invalid data to '-' with a few spaces in front:
-    pDeath_list_for_table[invalid_inds_for_pDeath[0]:] = invalid_str
+    pDeath_list_for_table[ind_first_invalid_pDeath:] = invalid_str
     # Cut off the list at the required number of years:
     pDeath_list_for_table = \
         pDeath_list_for_table[:len(years_for_prob_table)+1]
 
     # Switch to string formatting to ensure 2 decimal places are shown.
-    max_ind = np.min([invalid_inds_for_pDeath[0], len(pDeath_list_for_table)])
+    max_ind = np.min([ind_first_invalid_pDeath, len(pDeath_list_for_table)])
     for i in range(1, max_ind):
         str_here = f'{pDeath_list_for_table[i]:.2f}'
         # Whack a space on the front for aligning percentages under 10%:
@@ -995,13 +1009,13 @@ def write_example_median_survival(vd, fixed_params):
     # Use the function with the following values:
     # Median
     p_med = 0.5
-    tDeath_med = vd['survival_meds_IQRs'][0]
+    tDeath_med = vd['survival_time_median']
     # IQR lower
     p_iqr_low = 0.25
-    tDeath_iqr_low = vd['survival_meds_IQRs'][1]
+    tDeath_iqr_low = vd['survival_time_lower_quartile']
     # IQR higher
     p_iqr_high = 0.75
-    tDeath_iqr_high = vd['survival_meds_IQRs'][2]
+    tDeath_iqr_high = vd['survival_time_upper_quartile']
 
     tabs = st.tabs([
         'Median', 'IQR (lower)', 'IQR (higher)', 'Choose a probability'])

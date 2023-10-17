@@ -708,7 +708,7 @@ def median_survival_display(vd):
         r'''
         \begin{equation*}
         \mathrm{years} = \textcolor{red}{''' +
-        f'{vd["survival_meds_IQRs"][0]:.2f}' +
+        f'{vd["survival_time_median"]:.2f}' +
         r'''}
         \end{equation*}
         '''
@@ -1166,7 +1166,7 @@ def discounted_qalys_v7(vd):
         r'''} \times \frac{1 - (1+''' +
         f'{vd["discount_factor_QALYs_perc"]/100.0:.4f}' +
         r''')^{-[\textcolor{red}{''' +
-        f'{vd["survival_meds_IQRs"][0]:.2f}' +
+        f'{vd["survival_time_median"]:.2f}' +
         r'''}-1]}}{1 - (1+''' +
         f'{vd["discount_factor_QALYs_perc"]/100.0:.4f}' +
         r''')^{-1}} \\
@@ -1218,7 +1218,7 @@ def discounted_qalys_v7(vd):
         r'''} \times \frac{1 - (1+''' +
         f'{vd["discount_factor_QALYs_perc"]/100.0:.4f}' +
         r''')^{-[\textcolor{red}{''' +
-        f'{vd["survival_meds_IQRs"][0]:.2f}' +
+        f'{vd["survival_time_median"]:.2f}' +
         r'''}-1]}}{1 - (1+''' +
         f'{vd["discount_factor_QALYs_perc"]/100.0:.4f}' +
         r''')^{-1}} \\
@@ -1381,7 +1381,7 @@ def ae_count(vd):
         r'''
         \begin{align*}
         \mathrm{Count (years=\textcolor{red}{''' +
-        f'{vd["survival_meds_IQRs"][0]:.2f}' +
+        f'{vd["survival_time_median"]:.2f}' +
         r'''})} &=
         \exp{
             \left( ''' +
@@ -1391,7 +1391,7 @@ def ae_count(vd):
             r'''} \right)
             }
         \times \textcolor{red}{''' +
-        f'{vd["survival_meds_IQRs"][0]:.2f}' +
+        f'{vd["survival_time_median"]:.2f}' +
         r'''}^{''' +
         f'{vd["ae_coeffs"][3]}' +
         r'''} \\
@@ -1550,12 +1550,12 @@ def nel_bed_days(vd):
         r'''
         \begin{align*}
         \mathrm{Count (years=\textcolor{red}{''' +
-        f'{vd["survival_meds_IQRs"][0]:.2f}' +
+        f'{vd["survival_time_median"]:.2f}' +
         r'''})} &=
             -\ln{\left(
             \frac{1}{
                 1+ [\textcolor{red}{''' +
-                f'{vd["survival_meds_IQRs"][0]:.2f}' +
+                f'{vd["survival_time_median"]:.2f}' +
                 r'''} \times \exp{(-\textcolor{red}{''' +
                 f'{vd["lp_nel"]:.4f}' +
                 r'''})} ]^{
@@ -1717,12 +1717,12 @@ def el_bed_days(vd):
         r'''
         \begin{align*}
         \mathrm{Count (years=\textcolor{red}{''' +
-        f'{vd["survival_meds_IQRs"][0]:.2f}' +
+        f'{vd["survival_time_median"]:.2f}' +
         r'''})} &=
             -\ln{\left(
             \frac{1}{
                 1+ [\textcolor{red}{''' +
-                f'{vd["survival_meds_IQRs"][0]:.2f}' +
+                f'{vd["survival_time_median"]:.2f}' +
                 r'''} \times \exp{(-\textcolor{red}{''' +
                 f'{vd["lp_el"]:.4f}' +
                 r'''})} ]^{
@@ -1841,12 +1841,12 @@ def tic(vd):
         r'''
         \begin{align*}
         \mathrm{Count (years=\textcolor{red}{''' +
-        f'{vd["survival_meds_IQRs"][0]:.2f}' +
+        f'{vd["survival_time_median"]:.2f}' +
         r'''})} &=
         95\% \times \textcolor{Fuchsia}{''' +
         f'{100.0*perc:.4f}' +
         r'''\%} \times \textcolor{red}{''' +
-        f'{vd["survival_meds_IQRs"][0]:.2f}' +
+        f'{vd["survival_time_median"]:.2f}' +
         r'''} \\
         &= \textcolor{red}{''' +
         f'{vd["care_years"]:.4f}' +

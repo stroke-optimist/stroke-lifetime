@@ -41,8 +41,18 @@ def main(
     """
 
     # Pick bits out of the dataframe for all mRS:
-    all_survival_times = np.array(
-        df['survival_meds_IQRs'].tolist())  # To get 2d array
+
+    survival_time_median = df['survival_time_median']
+    survival_time_lower_quartile = df['survival_time_lower_quartile']
+    survival_time_upper_quartile = df['survival_time_upper_quartile']
+    life_expectancy = df['life_expectancy']
+
+    all_survival_times = np.array([
+        survival_time_median,
+        survival_time_lower_quartile,
+        survival_time_upper_quartile,
+        life_expectancy
+    ]).T
     qalys_all_mrs = df['qalys'].tolist()
 
     # Get the results for just the selected mRS:
@@ -50,7 +60,12 @@ def main(
     variables_dict = dict(**results_dict, **fixed_params)
 
     # Pick bits out of the results for just the selected mRS:
-    survival_times = variables_dict['survival_meds_IQRs']
+    survival_times = [
+        variables_dict['survival_time_median'],
+        variables_dict['survival_time_lower_quartile'],
+        variables_dict['survival_time_upper_quartile'],
+        variables_dict['life_expectancy']
+    ]
     # qalys = variables_dict['qalys']
     qaly_list = variables_dict['qaly_list']
     qaly_raw_list = variables_dict['qaly_raw_list']

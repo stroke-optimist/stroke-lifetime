@@ -47,7 +47,7 @@ def main_calculations(
         lp_year1                   - float.
         lp_yearn                   - float.
         pDeath_list                - np.array.
-        invalid_inds_for_pDeath    - np.array.
+        ind_first_invalid_pDeath   - float.
         hazard_list                - np.array.
         survival_list              - np.array.
         fhazard_list               - np.array.
@@ -136,7 +136,13 @@ def main_calculations(
 
     # Find indices where survival is less than 0% and so the
     # calculated probability of death is invalid.
-    invalid_inds_for_pDeath = np.where(hazard_list >= 1.0)[0] + 1
+    inds_invalid_pDeath = np.where(hazard_list >= 1.0)[0] + 1
+    try:
+        # If there are invalid values, only store the first:
+        ind_first_invalid_pDeath = inds_invalid_pDeath[0]
+    except IndexError:
+        # If there are no invalid values, store Not A Number:
+        ind_first_invalid_pDeath = np.NaN
     # Add one to the index because we start hazard_list from year 0
     # but pDeath_list from year 1.
 
@@ -160,23 +166,23 @@ def main_calculations(
         )
 
     # Survival times:
-    survival_years_iqr = calculate_survival_iqr(
-        age,
-        fixed_params['gz_gamma'],
-        lp_yearn,
-        pDeath_year1
-        )
-    # survival_years_iqr is a list containing
-    # [median, lower IQR, upper IQR, life expectancy].
-    # Pull out just the median time:
-    median_survival_time = survival_years_iqr[0]
+    survival_time_median, _, _, _ = (
+        model.find_survival_time_for_pDeath(
+            0.5, pDeath_year1, lp_yearn, fixed_params['gz_gamma']))
+    survival_time_lower_quartile, _, _, _ = (
+        model.find_survival_time_for_pDeath(
+            0.25, pDeath_year1, lp_yearn, fixed_params['gz_gamma']))
+    survival_time_upper_quartile, _, _, _ = (
+        model.find_survival_time_for_pDeath(
+            0.75, pDeath_year1, lp_yearn, fixed_params['gz_gamma']))
+    life_expectancy = survival_time_median + age
 
     # ##### QALYs #####
     # Pick out some fixed parameters:
 
     qalys, qaly_list, qaly_raw_list = model.calculate_qaly(
         fixed_params['utility_list'][mrs],
-        median_survival_time,
+        survival_time_median,
         age,
         sex,
         fixed_params['lg_mean_ages'][mrs],
@@ -219,46 +225,46 @@ def main_calculations(
     ae_count = model.find_ae_count(
         ae_lp,
         fixed_params['ae_coeffs'],
-        median_survival_time
+        survival_time_median
         )
     nel_count = model.find_nel_count(
         nel_lp,
         fixed_params['nel_coeffs'],
-        median_survival_time
+        survival_time_median
         )
     el_count = model.find_el_count(
         el_lp,
         fixed_params['el_coeffs'],
-        median_survival_time
+        survival_time_median
         )
     care_years = model.find_residential_care_average_time(
         average_care_year,
-        median_survival_time
+        survival_time_median
         )
 
     # Calculate the non-discounted values:
     # Each list contains one float for each year in the range
     # from year=1 to year=median_survival_year (rounded up).
     ae_count_by_year = find_resource_count_for_all_years(
-        median_survival_time,
+        survival_time_median,
         model.find_ae_count,
         coeffs=fixed_params['ae_coeffs'],
         LP=ae_lp
         )
     nel_count_by_year = find_resource_count_for_all_years(
-        median_survival_time,
+        survival_time_median,
         model.find_nel_count,
         coeffs=fixed_params['nel_coeffs'],
         LP=nel_lp
         )
     el_count_by_year = find_resource_count_for_all_years(
-        median_survival_time,
+        survival_time_median,
         model.find_el_count,
         coeffs=fixed_params['el_coeffs'],
         LP=el_lp
         )
     care_years_by_year = find_resource_count_for_all_years(
-        median_survival_time,
+        survival_time_median,
         model.find_residential_care_average_time,
         average_care_year=average_care_year
         )
@@ -335,11 +341,14 @@ def main_calculations(
         lp_year1=lp_year1,
         lp_yearn=lp_yearn,
         pDeath_list=pDeath_list,
-        invalid_inds_for_pDeath=invalid_inds_for_pDeath,
+        ind_first_invalid_pDeath=ind_first_invalid_pDeath,
         hazard_list=hazard_list,
         survival_list=survival_list,
         fhazard_list=fhazard_list,
-        survival_meds_IQRs=survival_years_iqr,
+        survival_time_median=survival_time_median,
+        survival_time_lower_quartile=survival_time_lower_quartile,
+        survival_time_upper_quartile=survival_time_upper_quartile,
+        life_expectancy=life_expectancy,
         survival_year1=1.0-pDeath_list[0],
         time_of_zero_survival=time_of_zero_survival,
         # ----- For QALYs: -----
