@@ -424,13 +424,25 @@ def write_example_discounted_qalys(
         # ----- Input number of years -----
         # Give this slider a key or streamlit throws warnings
         # about multiple identical sliders.
-        time_input_yr = st.slider(
-            'Choose number of years for this example',
-            min_value=1,
-            max_value=len(qaly_list),
-            value=2,
-            key='TimeforQALYS'
-            )
+        if len(qaly_list) > 1:
+            time_input_yr = st.slider(
+                'Choose number of years for this example',
+                min_value=1,
+                max_value=len(qaly_list),
+                value=1,
+                key='TimeforQALYS'
+                )
+        else:
+            st.markdown(
+                '''
+                The median survival is below one year so only the
+                first year can be shown.
+
+                Number of years for this example: 1
+                '''
+                )
+            time_input_yr = 1
+            
         for year in [time_input_yr]:
             st.latex(eqn.discounted_raw_qalys(
                     vd,
@@ -446,8 +458,13 @@ def write_example_discounted_qalys(
             # If it is, add an extra string to explain that we reduce
             # the value to match the fraction of the year that is lived in.
             if year > med_survival_yrs:
-                # Get just the bit after the decimal place:
-                frac = med_survival_yrs % int(med_survival_yrs)
+                if med_survival_yrs >= 1:
+                    # Get just the bit after the decimal place:
+                    frac = med_survival_yrs % int(med_survival_yrs)
+                else:
+                    # Can't take modulus of zero, so just use the
+                    # existing number which is 0.something:
+                    frac = med_survival_yrs
                 if frac == 0.0:
                     frac = 1.0
             else:

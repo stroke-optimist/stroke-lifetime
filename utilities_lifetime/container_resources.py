@@ -921,8 +921,13 @@ def write_example_discounted_resource_use(vd):
             'and "Discounted use" is from Equation [24].'
             ])
         write_details_discounted_resource(
-            vd, "ae_counts_by_year", "discounted_list_ae",
-            "cost_ae_gbp", "ae_discounted_cost", caption_str)
+            vd,
+            "ae_counts_by_year",
+            "ae_discounted_list",
+            "cost_ae_gbp",
+            "ae_discounted_cost",
+            caption_str
+            )
     with tabs[1]:
         # NEL bed days:
         caption_str = ''.join([
@@ -930,9 +935,13 @@ def write_example_discounted_resource_use(vd):
             'and "Discounted use" is from Equation [24].'
             ])
         write_details_discounted_resource(
-            vd, "nel_counts_by_year", "discounted_list_nel",
-            "cost_non_elective_bed_day_gbp", "nel_discounted_cost",
-            caption_str)
+            vd,
+            "nel_counts_by_year",
+            "nel_discounted_list",
+            "cost_non_elective_bed_day_gbp",
+            "nel_discounted_cost",
+            caption_str
+            )
     with tabs[2]:
         # EL bed days:
         caption_str = ''.join([
@@ -940,9 +949,13 @@ def write_example_discounted_resource_use(vd):
             'and "Discounted use" is from Equation [24].'
             ])
         write_details_discounted_resource(
-            vd, "el_counts_by_year", "discounted_list_el",
-            "cost_elective_bed_day_gbp", "el_discounted_cost",
-            caption_str)
+            vd,
+            "el_counts_by_year",
+            "el_discounted_list",
+            "cost_elective_bed_day_gbp",
+            "el_discounted_cost",
+            caption_str
+            )
     with tabs[3]:
         # Time in care:
         caption_str = ''.join([
@@ -950,9 +963,14 @@ def write_example_discounted_resource_use(vd):
             'and "Discounted use" is from Equation [24].'
             ])
         write_details_discounted_resource(
-            vd, "care_years_by_year", "discounted_list_care",
-            "cost_residential_day_gbp", "care_years_discounted_cost",
-            caption_str, care=1)
+            vd,
+            "care_years_by_year",
+            "care_years_discounted_list",
+            "cost_residential_day_gbp",
+            "care_years_discounted_cost",
+            caption_str,
+            care=1
+            )
 
 
 def write_details_discounted_resource(
@@ -1009,13 +1027,24 @@ def write_details_discounted_resource(
         # ----- Input number of years -----
         # Give this slider a key or streamlit throws warnings
         # about multiple identical sliders.
-        time_input_yr = st.slider(
-            'Choose number of years for this example',
-            min_value=1,
-            max_value=len(counts_i),
-            value=2,
-            key='TimeForDiscountTable' + cost_str
-            )
+        if len(counts_i) > 1:
+            time_input_yr = st.slider(
+                'Choose number of years for this example',
+                min_value=1,
+                max_value=len(counts_i),
+                value=2,
+                key='TimeForDiscountTable' + cost_str
+                )
+        else:
+            st.markdown(
+                '''
+                The median survival is below one year so only the
+                first year can be shown.
+
+                Number of years for this example: 1
+                '''
+                )
+            time_input_yr = 1
         for year in [time_input_yr]:
             st.latex(eqn.discounted_resource(
                 vd, counts_i[year-1], year, discounted_i[year-1]))

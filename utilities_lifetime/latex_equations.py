@@ -243,7 +243,7 @@ def survival_year1(vd):
     Survival percentage in year one, with symbols
     replaced with variables from the calculations.
     """
-    if vd["survival_year1"] < 0.0:
+    if vd["survival_list"][1] < 0.0:
         # Add an extra line showing an inequality.
         extra_str = r''' \\ S_1 &< \textcolor{red}{0\%} '''
     else:
@@ -259,7 +259,7 @@ def survival_year1(vd):
         } \\
         & = \textcolor{red}{
         ''' +
-        f'{100.0*vd["survival_year1"]:.2f}' +
+        f'{100.0*vd["survival_list"][1]:.2f}' +
         r'''
         \%}
         ''' +
