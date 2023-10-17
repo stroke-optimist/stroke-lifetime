@@ -347,32 +347,31 @@ def main_calculations(
         qaly_list=qaly_list,
         qaly_raw_list=qaly_raw_list,
         # ----- For resource use: -----
-        total_discounted_cost=total_discounted_cost,
         # A&E:
         lp_ae=ae_lp,
         ae_count=ae_count,
+        ae_counts_by_year=ae_count_by_year,
+        discounted_list_ae=ae_discounted_list,
+        ae_discounted_cost=ae_discounted_cost,
         # Non-elective bed days
         lp_nel=nel_lp,
         nel_count=nel_count,
+        nel_counts_by_year=nel_count_by_year,
+        discounted_list_nel=nel_discounted_list,
+        nel_discounted_cost=nel_discounted_cost,
         # Elective bed days
         lp_el=el_lp,
         el_count=el_count,
+        el_counts_by_year=el_count_by_year,
+        discounted_list_el=el_discounted_list,
+        el_discounted_cost=el_discounted_cost,
         # Care home
         care_years=care_years,
-        # For cost conversions:
-        # For details in discounted cost calculations:
-        ae_counts_by_year=ae_count_by_year,
-        nel_counts_by_year=nel_count_by_year,
-        el_counts_by_year=el_count_by_year,
         care_years_by_year=care_years_by_year,
-        discounted_list_ae=ae_discounted_list,
-        discounted_list_nel=nel_discounted_list,
-        discounted_list_el=el_discounted_list,
         discounted_list_care=care_years_discounted_list,
-        ae_discounted_cost=ae_discounted_cost,
-        nel_discounted_cost=nel_discounted_cost,
-        el_discounted_cost=el_discounted_cost,
         care_years_discounted_cost=care_years_discounted_cost,
+        # Total
+        total_discounted_cost=total_discounted_cost,
         # ----- For cost-effectiveness -----
         net_benefit=net_benefit
         )

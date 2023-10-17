@@ -67,7 +67,7 @@ def main(
         'a logistic model.'
         ]))
     with st.expander('Details: Mortality during year one'):
-        write_details_mortality_in_year_one(variables_dict)
+        write_details_mortality_in_year_one(variables_dict, model_type_used)
     with st.expander('Example: Mortality during year one'):
         write_example_mortality_in_year_one(variables_dict)
 
@@ -82,7 +82,7 @@ def main(
         'a Gompertz model.'
         ]))
     with st.expander('Details: Mortality after year one'):
-        write_details_mortality_after_year_one(variables_dict)
+        write_details_mortality_after_year_one(variables_dict, model_type_used)
     with st.expander('Example: Mortality after year one'):
         write_example_mortality_after_year_one(variables_dict)
 
@@ -586,7 +586,7 @@ def write_table_of_median_survival_dicho(survival_times):
     st.table(df_table.style.format(format_dict))
 
 
-def write_details_mortality_in_year_one(vd):
+def write_details_mortality_in_year_one(vd, model_type_used):
     """
     Write the method for calculating mortality in year one.
 
@@ -605,7 +605,7 @@ def write_details_mortality_in_year_one(vd):
 
     with table_cols[1]:
         # Check the model type to decide which table to draw.
-        if st.session_state['lifetime_model_type'] == 'mRS':
+        if model_type_used == 'mRS':
             # Individual mRS table:
             st.markdown(eqn.table_lg_mrs_coeffs(vd))
         else:
@@ -668,7 +668,7 @@ def write_example_mortality_in_year_one(vd):
     st.latex(eqn.survival_year1(vd))
 
 
-def write_details_mortality_after_year_one(vd):
+def write_details_mortality_after_year_one(vd, model_type_used):
     """
     Write the method for calculating mortality after year one.
 
@@ -687,7 +687,7 @@ def write_details_mortality_after_year_one(vd):
 
     with table_cols[1]:
         # Check the model type to decide which table to draw.
-        if st.session_state['lifetime_model_type'] == 'mRS':
+        if model_type_used == 'mRS':
             st.markdown(eqn.table_gz_mRS_coeffs(vd))
         else:
             st.markdown(eqn.table_gz_mRS_coeffs_dicho(vd))

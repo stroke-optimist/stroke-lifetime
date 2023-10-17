@@ -35,7 +35,7 @@ def main(
                       of the model results.
     qalys_table     - np.array. The table of discounted QALYs by
                       change in outcome, ready to print.
-    model_type_used - str. Whether this is the separate "mRS" or
+    model_input_str - str. Whether this is the separate "mRS" or
                       "Dichotomous" model. Used to change the
                       formatting in the app for model type.
     """
@@ -75,7 +75,7 @@ def main(
     #
     st.markdown('### Discounted QALYs')
     with st.expander('Details: Discounted QALYs'):
-        write_details_discounted_qalys(variables_dict)
+        write_details_discounted_qalys(variables_dict, model_input_str)
     with st.expander('Example: Discounted QALYs'):
         write_example_discounted_qalys(
             qaly_list, qaly_raw_list, variables_dict, survival_times[0]
@@ -304,7 +304,7 @@ def write_table_discounted_qalys_outcome_dicho(qalys):
     st.table(df_table)
 
 
-def write_details_discounted_qalys(vd):
+def write_details_discounted_qalys(vd, model_input_str):
     """
     Write method for calculating QALYs from utility, years,
     patient details, and fixed coefficients.
@@ -320,20 +320,14 @@ def write_details_discounted_qalys(vd):
     cols_coeffs = st.columns(2)
     with cols_coeffs[0]:
         # QALY coefficients.
-        markdown_table_qaly_coeffs = utilities_lifetime.\
-            latex_equations.table_qaly_coeffs(vd)
-        st.markdown(markdown_table_qaly_coeffs)
+        st.markdown(eqn.table_qaly_coeffs(vd))
     with cols_coeffs[1]:
         # Mean age coefficients.
         # Check the model type to decide which table to show.
-        model_type_used = st.session_state['lifetime_model_type']
-        if model_type_used == 'mRS':
-            markdown_table_mean_age_coeffs = utilities_lifetime.\
-                latex_equations.table_mean_age_coeffs(vd)
+        if model_input_str == 'mRS':
+            st.markdown(eqn.table_mean_age_coeffs(vd))
         else:
-            markdown_table_mean_age_coeffs = utilities_lifetime.\
-                latex_equations.table_mean_age_coeffs_dicho(vd)
-        st.markdown(markdown_table_mean_age_coeffs)
+            st.markdown(eqn.table_mean_age_coeffs_dicho(vd))
 
     # ----- Raw qalys -----
     st.markdown(''.join([
