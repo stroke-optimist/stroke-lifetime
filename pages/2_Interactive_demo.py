@@ -119,7 +119,8 @@ def main():
             sex,
             sex_str,
             mrs,
-            fixed_params
+            fixed_params,
+            model_input_str
             )
 
         # Store this dictionary in the list of dicts:

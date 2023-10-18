@@ -20,19 +20,21 @@ def main_calculations(
         sex: int,
         sex_str: str,
         mrs: int,
-        fixed_params: dict
+        fixed_params: dict,
+        model_type_str: str
         ):
     """
     Calculates everything useful for lifetime outcomes.
 
     Inputs:
     -------
-    age          - float or int. Patient's age.
-    sex          - int. Patient's sex, 0 for female and 1 for male.
-    sex_str      - str. Either "Male" or "Female".
-    mrs          - int. Patient's mRS score from 0 to 5.
-    fixed_params - dict. Contains fixed parameters independent
-                   of the model results.
+    age            - float or int. Patient's age.
+    sex            - int. Patient's sex, 0 for female and 1 for male.
+    sex_str        - str. Either "Male" or "Female".
+    mrs            - int. Patient's mRS score from 0 to 5.
+    fixed_params   - dict. Contains fixed parameters independent
+                     of the model results.
+    model_type_str - str. Separate "mRS" or "Dichotomous" model.
 
     Returns:
     --------
@@ -40,6 +42,7 @@ def main_calculations(
         age                        - float.
         sex                        - int.
         sex_label                  - str.
+        model_type_str             - str.
         mrs                        - int.
         outcome_type               - str.
         years             - np.array.
@@ -348,6 +351,7 @@ def main_calculations(
         age=age,
         sex=sex,
         sex_label=sex_str,
+        model_type=model_type_str,
         mrs=mrs,
         outcome_type=outcome_type,
         # ----- For mortality: -----
