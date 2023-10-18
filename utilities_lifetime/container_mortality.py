@@ -12,46 +12,135 @@ from utilities_lifetime.fixed_params import colours_excel
 # Import this function for use with user input probability:
 from utilities_lifetime.models import find_survival_time_for_pDeath
 # For writing formulae in the "Details" sections:
-import utilities_lifetime.latex_equations
+import utilities_lifetime.latex_equations as eqn
 
 
 def main(
-        time_list_yr, all_survival_lists,
-        mRS_input, all_hazard_lists,
-        pDeath_list, invalid_inds_for_pDeath, survival_times,
-        time_of_death, variables_dict
+        df: pd.DataFrame,
+        mrs_input: int,
+        fixed_params: dict,
+        model_type_used: str
         ):
-    # Details on probability with time
-    # Year one:
+    """
+    Main function for drawing everything under the "Mortality" tab.
+
+    This setup of picking bits out of dictionaries is inherited
+    from the older version of this container that had all results
+    stored in separate variable names. Maybe one day I'll tidy this.
+
+    Inputs:
+    -------
+    df              - pd.DataFrame. Contains all of the calculated
+                      results for all mRS scores.
+    mrs_input       - int. The mRS score to highlight in areas
+                      that only show one score's results.
+    fixed_params    - dict. Contains fixed parameters independent
+                      of the model results.
+    model_type_used - str. Whether this is the separate "mRS" or
+                      "Dichotomous" model. Used to change the
+                      formatting in the app for model type.
+    """
+
+    # Pick bits out of the dataframe for all mRS:
+    years = df.loc[0]['years']
+    all_survival_by_years = df['survival_by_year']
+    all_hazard_by_years = df['hazard_by_year'].tolist()
+
+    survival_median_years = df['survival_median_years']
+    survival_lower_quartile_years = df['survival_lower_quartile_years']
+    survival_upper_quartile_years = df['survival_upper_quartile_years']
+    life_expectancy = df['life_expectancy']
+
+    # Get the results for just the selected mRS:
+    results_dict = df.loc[mrs_input].to_dict()
+    variables_dict = dict(**results_dict, **fixed_params)
+
+    # Pick bits out of the results for just the selected mRS:
+    death_in_year_n_probs = variables_dict['death_in_year_n_probs']
+    death_in_year_n_probs_first_invalid_index = variables_dict[
+        'death_in_year_n_probs_first_invalid_index']
+    time_of_death = variables_dict['year_when_zero_survival']
+
+    # Mortality during year one...
+    # +-------------------+
+    # | v Details:        |
+    # +-------------------+
+    # | v Example:        |
+    # +-------------------+
     st.markdown(''.join([
         'Mortality during year one is calculated using ',
         'a logistic model.'
         ]))
     with st.expander('Details: Mortality during year one'):
-        write_details_mortality_in_year_one(variables_dict)
+        write_details_mortality_in_year_one(variables_dict, model_type_used)
     with st.expander('Example: Mortality during year one'):
         write_example_mortality_in_year_one(variables_dict)
 
-    # After year one:
+    # Mortality after year one...
+    # +-------------------+
+    # | v Details:        |
+    # +-------------------+
+    # | v Example:        |
+    # +-------------------+
     st.markdown(''.join([
         'Mortality after year one is calculated using ',
         'a Gompertz model.'
         ]))
     with st.expander('Details: Mortality after year one'):
-        write_details_mortality_after_year_one(variables_dict)
+        write_details_mortality_after_year_one(variables_dict, model_type_used)
     with st.expander('Example: Mortality after year one'):
         write_example_mortality_after_year_one(variables_dict)
+
     # Plot:
+    #           ^
+    #           |--_
+    #           |   --_
+    #  Survival |      --_
+    #           |         -_
+    #           +---------------------->
+    #                    Years
     plot_survival_vs_time_plotly(
-        time_list_yr, all_survival_lists[mRS_input], time_of_death)
+        years,
+        all_survival_by_years[mrs_input],
+        time_of_death
+        )
     # Write a sentence to state the 0% survival time.
     year_of_zero_survival = time_of_death // 1
     months_of_zero_survival = (time_of_death % 1)*12.0
     st.write(f'Survival falls to 0% at {year_of_zero_survival:.0f} years ',
              f'{months_of_zero_survival:.0f} months.')
-    # Plot:
-    plot_hazard_vs_time_plotly(time_list_yr, all_hazard_lists)
 
+    # Plot:
+    #             ^    __________________   [] mRS 0
+    #             |   | / /  _/             [] mRS 1
+    #  Cumulative |  | | / _/               [] mRS 2
+    #    hazard   |  |/_/_/                 [] mRS 3
+    #             | |//                     [] mRS 4
+    #             +---------------------->  [] mRS 5
+    #                        Years
+    plot_hazard_vs_time_plotly(
+        years,
+        all_hazard_by_years,
+        model_type_used
+        )
+
+    # Probability of death
+    # +-------------------+
+    # | v Details:        |
+    # +-------------------+
+    # | v Example:        |
+    # +-------------------+
+    #
+    # +-------------+  +-------------+  +-------------+
+    # | Probability |  | Probability |  | Probability |
+    # +-------------+  +-------------+  +-------------+
+    # | 0           |  | 5           |  | 10          |
+    # | 1           |  | 6           |  | 11          |
+    # | 2           |  | 7           |  | 12          |
+    # | 3           |  | 8           |  | 13          |
+    # | 4           |  | 9           |  +-------------+
+    # +-------------+  +-------------+
+    #
     st.markdown('### Probability of death')
     # Details on probability of death table values
     with st.expander('Details: Mortality in a chosen year'):
@@ -59,52 +148,84 @@ def main(
     with st.expander('Example: Mortality in a chosen year'):
         write_example_mortality_in_chosen_year(variables_dict)
     # Table:
-    write_table_of_pDeath(pDeath_list, invalid_inds_for_pDeath, n_columns=3)
+    write_table_of_pDeath(
+        death_in_year_n_probs,
+        death_in_year_n_probs_first_invalid_index,
+        n_columns=3
+        )
 
+    # Survival
+    # +-------------------+
+    # | v Details:        |
+    # +-------------------+
+    # | v Example:        |
+    # +-------------------+
+    #
+    #     +-----------------+-----------+-----------+-----------------+
+    #     | Median survival | Lower IQR | Upper IQR | Life expectancy |
+    # +---+-----------------+-----------+-----------+-----------------+
+    # | 0 |                 |           |           |                 |
+    # | 1 |                 |           |           |                 |
+    # | 2 |                 |           |           |                 |
+    # | 3 |                 |           |           |                 |
+    # | 4 |                 |           |           |                 |
+    # | 5 |                 |           |           |                 |
+    # +---+-----------------+-----------+-----------+-----------------+
+    #
     st.markdown('### Survival')
     # Details on median survival table values
     with st.expander('Details: Median survival'):
         write_details_median_survival(variables_dict)
     with st.expander('Example: Median survival'):
-        write_example_median_survival(variables_dict)
+        write_example_median_survival(variables_dict, fixed_params)
     # Table:
-    # Check which model we're using and draw a bespoke table:
-    if st.session_state['lifetime_model_type'] == 'mRS':
-        write_table_of_median_survival(survival_times)
+    # Check which model we're using and draw a table:
+    if model_type_used == 'mRS':
+        write_table_of_median_survival(np.array([
+            survival_median_years,
+            survival_lower_quartile_years,
+            survival_upper_quartile_years,
+            life_expectancy
+        ]).T)
     else:
-        write_table_of_median_survival_dicho(survival_times)
+        write_table_of_median_survival_dicho(np.array([
+            survival_median_years,
+            survival_lower_quartile_years,
+            survival_upper_quartile_years,
+            life_expectancy
+        ]).T)
 
 
 def plot_survival_vs_time_plotly(
-        time_list_yr, survival_list, time_of_zero_survival
+        years, survival_by_year, year_when_zero_survival
         ):
     """
     Draw a line graph of survival (y) with time (x).
 
     Inputs:
-    time_list_yr          - list or array. List of years for x-axis.
-    survival_list         - list or array. List of survival rates in
+    years          - list or array. List of years for x-axis.
+    survival_by_year         - list or array. List of survival rates in
                             each year. Values lie between 0 and 1.
-    time_of_zero_survival - float. Year when survival=0.0.
+    year_when_zero_survival - float. Year when survival=0.0.
     """
     # Don't plot values with negative survival rates.
     # Find v, the index where we want to cut off the plotted values:
     try:
-        v = np.where(survival_list <= 0.0)[0][0]
+        v = np.where(survival_by_year <= 0.0)[0][0]
     except IndexError:
-        v = len(survival_list)
+        v = len(survival_by_year)
 
     # Merge the time of death into these lists:
-    time_list_yr_to_plot = np.append(time_list_yr[:v], time_of_zero_survival)
-    survival_list_to_plot = np.append(survival_list[:v], 0.0)
+    years_to_plot = np.append(years[:v], year_when_zero_survival)
+    survival_by_year_to_plot = np.append(survival_by_year[:v], 0.0)
 
     # Combine both lists into a table.
     # Also include a column of survival x 100 to have the values in
     # percentages, as this data will appear on the hover bubble.
     table = np.transpose(np.vstack((
-        time_list_yr_to_plot,
-        survival_list_to_plot*100,
-        survival_list_to_plot
+        years_to_plot,
+        survival_by_year_to_plot*100,
+        survival_by_year_to_plot
     )))
     # Convert to dataframe for easier use of plotly:
     df = pd.DataFrame(table, columns=('year', 'survival', 'survival_frac'))
@@ -123,7 +244,7 @@ def plot_survival_vs_time_plotly(
     fig.update_layout(title_text='Survival', title_x=0.5)
     # Change axis:
     fig.update_yaxes(range=[0, 100])
-    fig.update_xaxes(range=[0, time_list_yr[-1]],
+    fig.update_xaxes(range=[0, years[-1]],
                      constrain='domain')  # For aspect ratio.
     # Update ticks:
     fig.update_xaxes(tick0=0, dtick=5)
@@ -184,37 +305,42 @@ def plot_survival_vs_time_plotly(
     st.plotly_chart(fig, use_container_width=True, config=plotly_config)
 
 
-def plot_hazard_vs_time_plotly(time_list_yr, all_hazard_lists):
+def plot_hazard_vs_time_plotly(
+        years: np.array,
+        all_hazard_by_years: np.array,
+        model_type_used: str
+        ):
     """
     Plot filled area of cumulative hazard (y) vs time (x).
 
     Inputs:
-    time_list_yr     - list or array. List of years for x-axis.
-    all_hazard_lists - list of arrays, one for each mRS. Each list has
+    years   - list or array. List of years for x-axis.
+    all_hazard_by_years - list of arrays, one for each mRS. Each list has
                        floats of cumulative hazard for each year in
-                       time_list_yr.
+                       years.
+    model_type_used  - str. "mRS" or "Dichotomous" model type. Affects
+                       how many lines get plotted.
     """
     # Convert cumulative hazard lists into non-cumulative
     # for easier plotting with plotly.
-    sub_hazard_lists = [all_hazard_lists[0]]
-    # Check which model type we're using.
-    model_type_used = st.session_state['lifetime_model_type']
+    sub_hazard_by_years = [all_hazard_by_years[0]]
     if model_type_used == 'mRS':
         for mRS in np.arange(1, 6):
             # For each mRS, subtract the values that came before it.
-            diff_list = np.array(all_hazard_lists[mRS]-all_hazard_lists[mRS-1])
-            sub_hazard_lists.append(diff_list)
+            diff_list = np.array(
+                all_hazard_by_years[mRS] - all_hazard_by_years[mRS-1])
+            sub_hazard_by_years.append(diff_list)
     else:
         # For second outcome, subtract the values that came before it.
-        diff_list = np.array(all_hazard_lists[-1]-all_hazard_lists[0])
-        sub_hazard_lists.append(diff_list)
-        # Reduce the length of all_hazard_lists. Only keep the first
+        diff_list = np.array(all_hazard_by_years[-1]-all_hazard_by_years[0])
+        sub_hazard_by_years.append(diff_list)
+        # Reduce the length of all_hazard_by_years. Only keep the first
         # and final rows of data.
-        all_hazard_lists = np.array(all_hazard_lists)[[0, -1], :]
+        all_hazard_by_years = np.array(all_hazard_by_years)[[0, -1], :]
 
     if model_type_used == 'mRS':
-        names = [f'{i}' for i in range(len(all_hazard_lists))]
-        labels = [f'mRS≤{i}' for i in range(len(all_hazard_lists))]
+        names = [f'{i}' for i in range(len(all_hazard_by_years))]
+        labels = [f'mRS≤{i}' for i in range(len(all_hazard_by_years))]
         legend_title = 'mRS'
         colours = colours_excel
     else:
@@ -225,16 +351,16 @@ def plot_hazard_vs_time_plotly(time_list_yr, all_hazard_lists):
 
     # # Plot the data:
     fig = go.Figure()
-    for i in range(len(all_hazard_lists)):
+    for i in range(len(all_hazard_by_years)):
         # Extra bits for setting the hover label data:
         customdata = np.stack((
-            100.0*all_hazard_lists[i],     # Cumulative probs mRS<=i
-            [labels[i]]*len(all_hazard_lists[i]),  # mRS values
+            100.0*all_hazard_by_years[i],     # Cumulative probs mRS<=i
+            [labels[i]]*len(all_hazard_by_years[i]),  # mRS values
             ), axis=-1)
         # Line and fill:
         fig.add_trace(go.Scatter(
-            x=time_list_yr,
-            y=100.0*sub_hazard_lists[i],   # probabilities mRS=i
+            x=years,
+            y=100.0*sub_hazard_by_years[i],   # probabilities mRS=i
             mode='lines',
             line=dict(color=colours[i]),
             stackgroup='one',              # Makes the bands stack
@@ -282,13 +408,13 @@ def plot_hazard_vs_time_plotly(time_list_yr, all_hazard_lists):
     # it can only be removed by hovering (touching) a part of the plot
     # that does not generate a hover message. So add extra space for
     # clicking in this case.
-    fig.update_xaxes(range=[-6, time_list_yr[-1]],
+    fig.update_xaxes(range=[-6, years[-1]],
                      constrain='domain')  # For aspect ratio.
     # Update ticks:
     fig.update_xaxes(
         tickmode='array',
-        tickvals=np.arange(0, time_list_yr[-1]+1e-5, 5),
-        ticktext=np.arange(0, time_list_yr[-1]+1e-5, 5)
+        tickvals=np.arange(0, years[-1]+1e-5, 5),
+        ticktext=np.arange(0, years[-1]+1e-5, 5)
         # tick0=0, dtick=5
         )
     fig.update_yaxes(tick0=0, dtick=10)
@@ -328,7 +454,11 @@ def plot_hazard_vs_time_plotly(time_list_yr, all_hazard_lists):
     st.plotly_chart(fig, use_container_width=True, config=plotly_config)
 
 
-def write_table_of_pDeath(pDeath_list, invalid_inds_for_pDeath, n_columns=1):
+def write_table_of_pDeath(
+        death_in_year_n_probs,
+        death_in_year_n_probs_first_invalid_index,
+        n_columns=1
+        ):
     """
     Table: probability of death.
     In Excel, this is "Yr" vs "pDeath" table.
@@ -336,38 +466,43 @@ def write_table_of_pDeath(pDeath_list, invalid_inds_for_pDeath, n_columns=1):
     Is there a better way to do this? Probably.
 
     Inputs:
-    pDeath_list             - array. Stores floats of probs of death
-                              for all years (default up to 50 years).
-    invalid_inds_for_pDeath - array. Stores the indices where survival
-                              is below 0% and so pDeath is invalid.
-    n_columns               - int. How many columns to use in the table.
+    death_in_year_n_probs - array. Stores floats of probs of death
+                            for all years (default up to 50 years).
+    death_in_year_n_probs_first_invalid_index -
+                            float. The first index where survival
+                            is below 0% and so pDeath is invalid.
+    n_columns             - int. How many columns to use in the table.
     """
     # Display these years:
     years_for_prob_table = np.arange(1, 15, 1)
     # Multiply pDeath by 100 for percentage.
-    pDeath_list_for_table = 100.0*pDeath_list
+    death_in_year_n_probs_for_table = 100.0*death_in_year_n_probs
     # Streamlit always writes an index column. To fudge a year
     # column, add a '-' to the pDeath list for the year 0 value.
     # The unicode characters add some spaces in front of '-' to fake
     # the right-alignment.
     invalid_str = 3*'\U00002002' + '\U00002006' + '-'
-    pDeath_list_for_table = np.concatenate(
-        ([invalid_str], pDeath_list_for_table),
+    death_in_year_n_probs_for_table = np.concatenate(
+        ([invalid_str], death_in_year_n_probs_for_table),
         dtype=object)
     # ^ dtype=object keeps the floats instead of converting all to str.
     # Set invalid data to '-' with a few spaces in front:
-    pDeath_list_for_table[invalid_inds_for_pDeath[0]:] = invalid_str
+    death_in_year_n_probs_for_table[
+        death_in_year_n_probs_first_invalid_index:] = invalid_str
     # Cut off the list at the required number of years:
-    pDeath_list_for_table = \
-        pDeath_list_for_table[:len(years_for_prob_table)+1]
+    death_in_year_n_probs_for_table = \
+        death_in_year_n_probs_for_table[:len(years_for_prob_table)+1]
 
     # Switch to string formatting to ensure 2 decimal places are shown.
-    max_ind = np.min([invalid_inds_for_pDeath[0], len(pDeath_list_for_table)])
+    max_ind = np.min([
+        death_in_year_n_probs_first_invalid_index,
+        len(death_in_year_n_probs_for_table)
+        ])
     for i in range(1, max_ind):
-        str_here = f'{pDeath_list_for_table[i]:.2f}'
+        str_here = f'{death_in_year_n_probs_for_table[i]:.2f}'
         # Whack a space on the front for aligning percentages under 10%:
         str_here = '\U00002002'*(5-len(str_here)) + str_here
-        pDeath_list_for_table[i] = str_here
+        death_in_year_n_probs_for_table[i] = str_here
 
     # Describe the table, otherwise there's no way of explaining what
     # the first row means.
@@ -376,13 +511,13 @@ def write_table_of_pDeath(pDeath_list, invalid_inds_for_pDeath, n_columns=1):
         # Split the data across the specified number of columns.
         cols = st.columns(n_columns)
 
-        n_rows = len(pDeath_list_for_table) // n_columns
+        n_rows = len(death_in_year_n_probs_for_table) // n_columns
         first_row = 0
         last_row = n_rows
         for c, col in enumerate(cols):
             # Convert to a pandas series so we can give it a title:
             df_pDeath = pd.Series(
-                pDeath_list_for_table[first_row:last_row],
+                death_in_year_n_probs_for_table[first_row:last_row],
                 name=('Probability of death (%)')
             )
             # Update the index column on the left
@@ -397,13 +532,13 @@ def write_table_of_pDeath(pDeath_list, invalid_inds_for_pDeath, n_columns=1):
             # Update values for the next go round the loop:
             first_row += n_rows
             last_row += n_rows
-            if last_row >= len(pDeath_list_for_table):
+            if last_row >= len(death_in_year_n_probs_for_table):
                 last_row = -1
     else:
         # One column.
         # Convert to a pandas series so we can give it a title:
         df_pDeath = pd.Series(
-            pDeath_list_for_table,
+            death_in_year_n_probs_for_table,
             name=('Probability of death (%)')
         )
         # Write to streamlit:
@@ -454,11 +589,11 @@ def write_table_of_median_survival_dicho(survival_times):
         ))
 
     columns = [
-            ' ',  # Outcome name row
-            'Median survival (years)',
-            'Lower IQR (years)',
-            'Upper IQR (years)',
-            'Life expectancy (age)'
+        ' ',  # Outcome name row
+        'Median survival (years)',
+        'Lower IQR (years)',
+        'Upper IQR (years)',
+        'Life expectancy (age)'
     ]
 
     # Convert to a pandas dataframe so we can label the columns:
@@ -479,7 +614,7 @@ def write_table_of_median_survival_dicho(survival_times):
     st.table(df_table.style.format(format_dict))
 
 
-def write_details_mortality_in_year_one(vd):
+def write_details_mortality_in_year_one(vd, model_type_used):
     """
     Write the method for calculating mortality in year one.
 
@@ -494,35 +629,27 @@ def write_details_mortality_in_year_one(vd):
         ]))
     table_cols = st.columns(2)
     with table_cols[0]:
-        markdown_lg_coeffs = utilities_lifetime.latex_equations.\
-            table_lg_coeffs(vd)
-        st.markdown(markdown_lg_coeffs)
+        st.markdown(eqn.table_lg_coeffs(vd))
 
     with table_cols[1]:
         # Check the model type to decide which table to draw.
-        if st.session_state['lifetime_model_type'] == 'mRS':
+        if model_type_used == 'mRS':
             # Individual mRS table:
-            markdown_lg_mrs_coeffs = utilities_lifetime.latex_equations.\
-                table_lg_mrs_coeffs(vd)
+            st.markdown(eqn.table_lg_mrs_coeffs(vd))
         else:
             # Dichotomous table:
-            markdown_lg_mrs_coeffs = utilities_lifetime.latex_equations.\
-                table_lg_mrs_coeffs_dicho(vd)
-        st.markdown(markdown_lg_mrs_coeffs)
+            st.markdown(eqn.table_lg_mrs_coeffs_dicho(vd))
 
     # ----- Equation for probability -----
     st.markdown(''.join([
         'The probability of death during year one, ',
         '$P_{1}$, is calculated as:'
         ]))
-    latex_pDeath_yr1_generic = utilities_lifetime.latex_equations.\
-        pDeath_yr1_generic()
-    st.latex(latex_pDeath_yr1_generic)
+    st.latex(eqn.death_in_year_1_prob_generic())
 
     # ----- Equation for linear predictor -----
     st.markdown('with linear predictor $LP_{1}$ where:')
-    latex_lp_yr1_generic = utilities_lifetime.latex_equations.lp_yr1_generic()
-    st.latex(latex_lp_yr1_generic)
+    st.latex(eqn.death_in_year_1_lp_generic())
     st.markdown(''.join([
         r'''where $\alpha$ and $\beta$ are constants and ''',
         '$X$ are values of the patient details (i.e. age, sex, and mRS).'
@@ -532,9 +659,7 @@ def write_details_mortality_in_year_one(vd):
     st.markdown(''.join([
         'The opposite of this value is survival in year one, $S_1$:'
         ]))
-    latex_survival_yr1_generic = utilities_lifetime.latex_equations.\
-        survival_yr1_generic()
-    st.latex(latex_survival_yr1_generic)
+    st.latex(eqn.survival_year1_generic())
     st.markdown(''.join([
         'This is the quantity plotted in the survival vs. time chart.'
     ]))
@@ -559,22 +684,19 @@ def write_example_mortality_in_year_one(vd):
 
     # ----- Calculation for linear predictor -----
     st.markdown('The linear predictor:')
-    latex_lp_yr1 = utilities_lifetime.latex_equations.lp_yr1(vd)
-    st.latex(latex_lp_yr1)
+    st.latex(eqn.death_in_year_1_lp(vd))
     st.write('$^{*}$ This value is 0 for female patients and 1 for male.')
 
     # ----- Calculation for probability -----
     st.markdown('Probability:')
-    latex_prob_yr1 = utilities_lifetime.latex_equations.prob_yr1(vd)
-    st.latex(latex_prob_yr1)
+    st.latex(eqn.prob_year1(vd))
 
     # ----- Calculation for survival -----
     st.markdown('Survival:')
-    latex_survival_yr1 = utilities_lifetime.latex_equations.survival_yr1(vd)
-    st.latex(latex_survival_yr1)
+    st.latex(eqn.survival_year1(vd))
 
 
-def write_details_mortality_after_year_one(vd):
+def write_details_mortality_after_year_one(vd, model_type_used):
     """
     Write the method for calculating mortality after year one.
 
@@ -589,19 +711,14 @@ def write_details_mortality_after_year_one(vd):
         ]))
     table_cols = st.columns(2)
     with table_cols[0]:
-        markdown_table_gz_coeffs = utilities_lifetime.latex_equations\
-            .table_gz_coeffs(vd)
-        st.markdown(markdown_table_gz_coeffs)
+        st.markdown(eqn.table_gz_coeffs(vd))
 
     with table_cols[1]:
         # Check the model type to decide which table to draw.
-        if st.session_state['lifetime_model_type'] == 'mRS':
-            markdown_table_gz_mRS_coeffs = utilities_lifetime.latex_equations\
-                .table_gz_mRS_coeffs(vd)
+        if model_type_used == 'mRS':
+            st.markdown(eqn.table_gz_mRS_coeffs(vd))
         else:
-            markdown_table_gz_mRS_coeffs = utilities_lifetime.latex_equations\
-                .table_gz_mRS_coeffs_dicho(vd)
-        st.markdown(markdown_table_gz_mRS_coeffs)
+            st.markdown(eqn.table_gz_mRS_coeffs_dicho(vd))
 
     # ----- Equation for hazard -----
     st.markdown(''.join([
@@ -610,14 +727,11 @@ def write_details_mortality_after_year_one(vd):
         'after year one), ',
         '$H_t$, is calculated as:'
         ]))
-    latex_hazard_yrn_generic = utilities_lifetime.latex_equations\
-        .hazard_yrn_generic()
-    st.latex(latex_hazard_yrn_generic)
+    st.latex(eqn.hazard_yearn_generic())
 
     # ----- Equation for linear predictor -----
     st.markdown('with linear predictor $LP_{\mathrm{H}}$ where:')
-    latex_lp_yrn_generic = utilities_lifetime.latex_equations.lp_yrn_generic()
-    st.latex(latex_lp_yrn_generic)
+    st.latex(eqn.death_in_year_n_lp_generic())
 
     st.markdown(''.join([
         r'''where $\alpha$ and $\beta$ are constants and ''',
@@ -630,9 +744,7 @@ def write_details_mortality_after_year_one(vd):
         'death in year one, $P_{1}$ (Equation [1]), to give the '
         'cumulative probability of death by time $t$, $F_t$:'
         ]))
-    latex_FDeath_yrn_generic = utilities_lifetime.latex_equations.\
-        FDeath_yrn_generic()
-    st.latex(latex_FDeath_yrn_generic)
+    st.latex(eqn.FDeath_yearn_generic())
     st.markdown(''.join([
         'This quantity $F_t$ is plotted in the cumulative hazard ',
         'vs. time plot. '
@@ -642,9 +754,7 @@ def write_details_mortality_after_year_one(vd):
     st.markdown(''.join([
         'The opposite of this value is survival, $S_t$:'
         ]))
-    latex_survival_generic = utilities_lifetime.latex_equations.\
-        survival_generic()
-    st.latex(latex_survival_generic)
+    st.latex(eqn.survival_generic())
     st.markdown(''.join([
         'This is the quantity plotted in the survival vs. time chart.'
     ]))
@@ -669,12 +779,11 @@ def write_example_mortality_after_year_one(vd):
 
     # ----- Calculation for linear predictor -----
     st.markdown('The linear predictor:')
-    latex_lp_yrn = utilities_lifetime.latex_equations.lp_yrn(vd)
-    st.latex(latex_lp_yrn)
+    st.latex(eqn.death_in_year_n_lp(vd))
     st.markdown('$^{*}$ This value is 0 for female patients and 1 for male.')
 
     # ----- Input number of years -----
-    time_input_yr = st.slider(
+    time_input_year = st.slider(
         'Choose a number of years for this example',
         min_value=2,
         max_value=25,
@@ -687,26 +796,20 @@ def write_example_mortality_after_year_one(vd):
 
     # ----- Calculation for hazard -----
     st.markdown('Cumulative hazard $H_t$ at the chosen time $t$:')
-    latex_hazard_yrn = utilities_lifetime.latex_equations.hazard_yrn(
-        vd, time_input_yr)
-    st.latex(latex_hazard_yrn)
+    st.latex(eqn.hazard_yearn(vd, time_input_year))
 
     # ----- Calculation for probability -----
     st.markdown(''.join([
         'Cumulative probability of death by time $t$ ',
         '(using the previously-calculated $P_{1}$):',
     ]))
-    latex_FDeath_yrn = utilities_lifetime.latex_equations.FDeath_yrn(
-        vd, time_input_yr)
-    st.latex(latex_FDeath_yrn)
+    st.latex(eqn.FDeath_yearn(vd, time_input_year))
 
     # ----- Calculation for survival -----
     st.markdown(''.join([
         'Survival at time $t$:'
     ]))
-    latex_survival = utilities_lifetime.latex_equations.survival(
-        vd, time_input_yr)
-    st.latex(latex_survival)
+    st.latex(eqn.survival(vd, time_input_year))
 
 
 def write_details_mortality_in_chosen_year(vd):
@@ -727,15 +830,11 @@ def write_details_mortality_in_chosen_year(vd):
 
     # ----- Equation for probability of death in year two -----
     st.markdown('In year 2,')
-    latex_pDeath_yr2_generic = utilities_lifetime.latex_equations.\
-        pDeath_yr2_generic()
-    st.latex(latex_pDeath_yr2_generic)
+    st.latex(eqn.pDeath_year2_generic())
 
     # ----- Equation for probability of death after year two -----
     st.markdown('In years where $t>2$,')
-    latex_pDeath_yrn_generic = utilities_lifetime.latex_equations.\
-        pDeath_yrn_generic()
-    st.latex(latex_pDeath_yrn_generic)
+    st.latex(eqn.pDeath_yearn_generic())
     st.markdown(''.join([
         'where $F_t$ is from Equation [6] ',
         'and $P_1$ is from Equation [1].'
@@ -768,7 +867,7 @@ def write_example_mortality_in_chosen_year(vd):
     # Put slider between two empty columns to make it skinnier.
     # cols = st.columns(3)
     # with cols[1]:
-    time_input_yr = st.slider(
+    time_input_year = st.slider(
         'Choose t in years for this example',
         min_value=2,
         max_value=25,
@@ -776,31 +875,27 @@ def write_example_mortality_in_chosen_year(vd):
         )
     # ----- Gather some data -----
     # Probability of death in this year:
-    P1 = vd["pDeath_list"][time_input_yr-1]
+    P1 = vd["death_in_year_n_probs"][time_input_year-1]
     # Survival in previous year:
-    S0 = vd["survival_list"][time_input_yr-1]
+    S0 = vd["survival_by_year"][time_input_year-1]
     # Survival in this year:
-    # S1 = vd["survival_list"][time_input_yr]
+    # S1 = vd["survival_by_year"][time_input_year]
     # (cumulative) probabilities in the other two years:
     # Earlier year:
-    if time_input_yr == 2:
-        F0 = vd["P_yr1"]
+    if time_input_year == 2:
+        F0 = vd["death_in_year_1_prob"]
     else:
-        F0 = vd["hazard_list"][time_input_yr-1]
+        F0 = vd["hazard_by_year"][time_input_year-1]
     # Later year:
-    F1 = vd["hazard_list"][time_input_yr]
+    F1 = vd["hazard_by_year"][time_input_year]
 
     # ----- Show survival -----
     st.markdown('Survival in the previous year (from Equation [3] or [7]): ')
-    latex_survival_display = utilities_lifetime.latex_equations.\
-        survival_display(time_input_yr-1, S0)
-    st.latex(latex_survival_display)
+    st.latex(eqn.survival_display(time_input_year-1, S0))
 
     # ----- Calculate probability -----
     st.markdown('Probability:')
-    latex_pDeath_yrn = utilities_lifetime.latex_equations.\
-        pDeath_yrn(P1, F0, F1, time_input_yr, S0)
-    st.latex(latex_pDeath_yrn)
+    st.latex(eqn.pDeath_yearn(P1, F0, F1, time_input_year, S0))
     if S0 <= 0.0:
         st.markdown(''.join([
             'The probability is zero because the survival rate ',
@@ -844,18 +939,14 @@ def write_details_median_survival(vd):
         'Instead of $P$, we consider $P^{\prime}$ where:'
         ]))
     # ----- Prob prime -----
-    latex_prob_prime_generic = utilities_lifetime.latex_equations.\
-        prob_prime_generic()
-    st.latex(latex_prob_prime_generic)
+    st.latex(eqn.prob_prime_generic())
 
     # ----- Time to death (case 1) -----
     st.markdown(''.join([
         'The time of death is derived from Equation [4] ',
         'and has the form:'
         ]))
-    latex_death_time_case1_generic = utilities_lifetime.latex_equations.\
-        death_time_case1_generic()
-    st.latex(latex_death_time_case1_generic)
+    st.latex(eqn.death_time_case1_generic())
 
     # ----- Case 2 -----
     st.markdown('### Case 2')
@@ -864,16 +955,14 @@ def write_details_median_survival(vd):
         'of death in year one (Equation 1). '
         ]))
     # ----- Time to death (case 2) -----
-    latex_death_time_case2_generic = utilities_lifetime.latex_equations.\
-        death_time_case2_generic()
-    st.latex(latex_death_time_case2_generic)
+    st.latex(eqn.death_time_case2_generic())
     st.markdown(''.join([
         'This method is taken from _Decision Modelling for Health ',
         'Economic Evaluations_.'
     ]))
 
 
-def write_example_median_survival(vd):
+def write_example_median_survival(vd, fixed_params):
     """
     Write the example for calculating the survival time
     for a given probability, e.g. median is P=0.5.
@@ -890,24 +979,14 @@ def write_example_median_survival(vd):
         'and values in pink change with the chosen probability of death.'
         ]))
     # ----- Show constants -----
-    # Probability in year one:
-    latex_Pyr1_display = utilities_lifetime.latex_equations.\
-        Pyr1_display(vd['P_yr1'])
-    # LP in year n:
-    latex_LPyrn_display = utilities_lifetime.latex_equations.\
-        LPyrn_display(vd['LP_yrn'])
-    # gamma:
-    latex_gammaH_display = utilities_lifetime.latex_equations.\
-        gammaH_display(vd['gz_gamma'])
-
     st.markdown(''.join([
         'The following values from before are used ',
         '(from Equations [1] and [5]): '
         ]))
     st.latex(
-        latex_Pyr1_display + ',\ ' +
-        latex_LPyrn_display + ',\ ' +
-        latex_gammaH_display
+        eqn.Pyear1_display(vd['death_in_year_1_prob']) + ',\ ' +
+        eqn.LPyearn_display(vd['death_in_year_n_lp']) + ',\ ' +
+        eqn.gammaH_display(vd['gz_gamma'])
         )
 
     # To save repeating code, define a function here for printing
@@ -915,7 +994,7 @@ def write_example_median_survival(vd):
     # and time of death:
     def print_survival_time_calcs(p, tDeath, vd):
         # ----- Select case -----
-        if p < vd['P_yr1']:
+        if p < vd['death_in_year_1_prob']:
             # Case 2
             st.markdown(''.join([
                 '$P = '+f'{100.0*p:.0f}'+'$%, so '
@@ -923,9 +1002,11 @@ def write_example_median_survival(vd):
                 'The time of death is:'
                 ]))
             # ----- Calculate time -----
-            latex_death_time_case2 = utilities_lifetime.latex_equations.\
-                death_time_case2(tDeath, p, vd['P_yr1'])
-            st.latex(latex_death_time_case2)
+            st.latex(eqn.death_time_case2(
+                tDeath,
+                p,
+                vd['death_in_year_1_prob'])
+                )
 
         else:
             # Case 1
@@ -935,28 +1016,29 @@ def write_example_median_survival(vd):
                 'First, calculate $P^{\prime}$:'
                 ]))
             # ----- Calculate P` -----
-            prob_prime = ((1.0 + p)/(1.0 + vd['P_yr1'])) - 1.0
-            latex_prob_prime = utilities_lifetime.latex_equations.\
-                prob_prime(p, prob_prime, vd['P_yr1'])
-            st.latex(latex_prob_prime)
+            prob_prime = ((1.0 + p)/(1.0 + vd['death_in_year_1_prob'])) - 1.0
+            st.latex(eqn.prob_prime(p, prob_prime, vd['death_in_year_1_prob']))
             # ----- Calculate time -----
             st.markdown('Then the time of death is: ')
-            latex_death_time_case1 = utilities_lifetime.latex_equations.\
-                death_time_case1(tDeath, prob_prime,
-                                 vd['LP_yrn'], vd['gz_gamma'], p)
-            st.latex(latex_death_time_case1)
+            st.latex(eqn.death_time_case1(
+                tDeath,
+                prob_prime,
+                vd['death_in_year_n_lp'],
+                vd['gz_gamma'],
+                p
+                ))
     # --- end of function.
 
     # Use the function with the following values:
     # Median
     p_med = 0.5
-    tDeath_med = vd['survival_meds_IQRs'][vd['mrs'], 0]
+    tDeath_med = vd['survival_median_years']
     # IQR lower
     p_iqr_low = 0.25
-    tDeath_iqr_low = vd['survival_meds_IQRs'][vd['mrs'], 1]
+    tDeath_iqr_low = vd['survival_lower_quartile_years']
     # IQR higher
     p_iqr_high = 0.75
-    tDeath_iqr_high = vd['survival_meds_IQRs'][vd['mrs'], 2]
+    tDeath_iqr_high = vd['survival_upper_quartile_years']
 
     tabs = st.tabs([
         'Median', 'IQR (lower)', 'IQR (higher)', 'Choose a probability'])
@@ -971,9 +1053,7 @@ def write_example_median_survival(vd):
             'median survival value:'
         ]))
         life_expectancy = vd['age'] + tDeath_med
-        latex_life_expectancy = utilities_lifetime.latex_equations.\
-            life_expectancy(life_expectancy, tDeath_med, vd['age'])
-        st.latex(latex_life_expectancy)
+        st.latex(eqn.life_expectancy(life_expectancy, tDeath_med, vd['age']))
 
     with tabs[1]:
         st.markdown('__IQR lower value:__')
@@ -995,7 +1075,11 @@ def write_example_median_survival(vd):
             )
         prob_input_frac = prob_input_perc / 100.0
         # Calculate the survival time:
-        survival_time, survival_yrs, time_log, eqperc = \
+        survival_time, survival_years, time_log, eqperc = (
             find_survival_time_for_pDeath(
-                prob_input_frac, vd['P_yr1'], vd['LP_yrn'])
+                prob_input_frac,
+                vd['death_in_year_1_prob'],
+                vd['death_in_year_n_lp'],
+                fixed_params['gz_gamma']
+                ))
         print_survival_time_calcs(prob_input_frac, survival_time, vd)

@@ -93,7 +93,7 @@ def table_lg_mrs_coeffs_dicho(vd):
     return str
 
 
-def pDeath_yr1_generic():
+def death_in_year_1_prob_generic():
     """Probability of death in year one."""
     str = (
         r'''
@@ -105,7 +105,7 @@ def pDeath_yr1_generic():
     return str
 
 
-def prob_yr1(vd):
+def prob_year1(vd):
     """
     Probability of death in year one, with symbols
     replaced with variables from the calculations.
@@ -116,14 +116,14 @@ def prob_yr1(vd):
         P_{1} &= \frac{1}{1+e^{-
         \textcolor{red}{
         ''' +
-        f'{vd["LP_yr1"]:.4f}' +
+        f'{vd["death_in_year_1_lp"]:.4f}' +
         r'''
         }
         }} \\
         &=
         \textcolor{red}{
         ''' +
-        f'{100.0*vd["P_yr1"]:.2f}' +
+        f'{100.0*vd["death_in_year_1_prob"]:.2f}' +
         r'''
         \%}
         \end{align*}
@@ -132,7 +132,7 @@ def prob_yr1(vd):
     return str
 
 
-def Pyr1_display(P_yr1):
+def Pyear1_display(death_in_year_1_prob):
     """
     Shows the current value of probability of death in year one.
     """
@@ -140,7 +140,7 @@ def Pyr1_display(P_yr1):
         r'''
         P_{1} = \textcolor{red}{
         ''' +
-        f'{100.0*P_yr1:.2f}' +
+        f'{100.0*death_in_year_1_prob:.2f}' +
         r'''
         \%}
         '''
@@ -148,7 +148,7 @@ def Pyr1_display(P_yr1):
     return str
 
 
-def lp_yr1_generic():
+def death_in_year_1_lp_generic():
     """Linear predictor for probability of death in year one."""
     str = (
         r'''
@@ -165,7 +165,7 @@ def lp_yr1_generic():
     return str
 
 
-def lp_yr1(vd):
+def death_in_year_1_lp(vd):
     """
     Linear predictor for probability of death in year one, with symbols
     replaced with variables from the calculations.
@@ -218,7 +218,7 @@ def lp_yr1(vd):
         r'''
         =& \textcolor{red}{
         ''' +
-        f'{vd["LP_yr1"]:.4f}' +
+        f'{vd["death_in_year_1_lp"]:.4f}' +
         r'''
         }
         \end{align*}'''
@@ -226,7 +226,7 @@ def lp_yr1(vd):
     return str
 
 
-def survival_yr1_generic():
+def survival_year1_generic():
     """Survival in year one."""
     str = (
         r'''
@@ -238,12 +238,12 @@ def survival_yr1_generic():
     return str
 
 
-def survival_yr1(vd):
+def survival_year1(vd):
     """
     Survival percentage in year one, with symbols
     replaced with variables from the calculations.
     """
-    if vd["survival_yr1"] < 0.0:
+    if vd["survival_by_year"][1] < 0.0:
         # Add an extra line showing an inequality.
         extra_str = r''' \\ S_1 &< \textcolor{red}{0\%} '''
     else:
@@ -254,12 +254,12 @@ def survival_yr1(vd):
         S_1
         & = 1 - \textcolor{red}{
         ''' +
-        f'{vd["P_yr1"]:.4f}' +
+        f'{vd["death_in_year_1_prob"]:.4f}' +
         r'''
         } \\
         & = \textcolor{red}{
         ''' +
-        f'{100.0*vd["survival_yr1"]:.2f}' +
+        f'{100.0*vd["survival_by_year"][1]:.2f}' +
         r'''
         \%}
         ''' +
@@ -344,7 +344,7 @@ def gammaH_display(gamma):
     return str
 
 
-def hazard_yrn_generic():
+def hazard_yearn_generic():
     """Cumulative hazard by year n."""
     str = (
         r'''
@@ -356,19 +356,19 @@ def hazard_yrn_generic():
     return str
 
 
-def hazard_yrn(vd, time_input_yr):
+def hazard_yearn(vd, time_input_year):
     """
     Cumulative hazard by year n, with symbols
     replaced with variables from the calculations.
     """
-    if vd["fhazard_list"][time_input_yr] > 1.0:
+    if vd["fhazard_by_year"][time_input_year] > 1.0:
         # Add an extra line showing an inequality.
         extra_str = (
             r'''
             \\
             H_{\textcolor{Fuchsia}{
             ''' +
-            f'{time_input_yr}' +
+            f'{time_input_year}' +
             r'''
             }} &> \textcolor{red}{100\%}
             '''
@@ -380,7 +380,7 @@ def hazard_yrn(vd, time_input_yr):
         \begin{align*}
         H_{\textcolor{Fuchsia}{
         ''' +
-        f'{time_input_yr}' +
+        f'{time_input_year}' +
         r'''
         }} &= \frac{1}{\textcolor{red}{
         ''' +
@@ -389,19 +389,19 @@ def hazard_yrn(vd, time_input_yr):
         e^{
         \textcolor{red}{
         ''' +
-        f'{vd["LP_yrn"]:.4f}' +
+        f'{vd["death_in_year_n_lp"]:.4f}' +
         r'''
         }} \cdot \left(e^{\textcolor{red}{
         ''' +
         f'{vd["gz_gamma"]}' +
         r'''} \times [\textcolor{Fuchsia}{
         ''' +
-        f'{time_input_yr}' +
+        f'{time_input_year}' +
         r'''
         }-1] \times 365} - 1 \right) \\
         &= \textcolor{red}{
         ''' +
-        f'{100.0*vd["fhazard_list"][time_input_yr]:.2f}' +
+        f'{100.0*vd["fhazard_by_year"][time_input_year]:.2f}' +
         r'''
         \%}
         ''' +
@@ -413,12 +413,12 @@ def hazard_yrn(vd, time_input_yr):
     return str
 
 
-def lp_yrn_generic():
+def death_in_year_n_lp_generic():
     """Linear predictor for cumulative hazard by year n."""
     str = (
         r'''
         \begin{equation}\tag{5}
-        LP_{\mathrm{H}} =
+    LP_{\mathrm{H}} =
             \alpha_{\mathrm{H}} +
             \displaystyle\sum_{i=1}^{n}
             \beta_{\mathrm{H},\ i}
@@ -430,7 +430,7 @@ def lp_yrn_generic():
     return str
 
 
-def lp_yrn(vd):
+def death_in_year_n_lp(vd):
     """
     Linear predictor for cumulative hazard by year n, with symbols
     replaced with variables from the calculations.
@@ -479,7 +479,7 @@ def lp_yrn(vd):
         r'''}\right) & \mathrm{mRS} \\''' +
         # Next line, value equal to:
         r'''=& \textcolor{red}{''' +
-        f'{vd["LP_yrn"]:.4f}' +
+        f'{vd["death_in_year_n_lp"]:.4f}' +
         r'''}
         \end{align*}
         '''
@@ -487,7 +487,7 @@ def lp_yrn(vd):
     return str
 
 
-def LPyrn_display(LP_yrn):
+def LPyearn_display(death_in_year_n_lp):
     """
     Shows the current value of the linear predictor for death after
     year one.
@@ -495,13 +495,13 @@ def LPyrn_display(LP_yrn):
     str = (
         r'''
         LP_{H} =  \textcolor{red}{''' +
-        f'{LP_yrn:.4f}' + r'''}
+        f'{death_in_year_n_lp:.4f}' + r'''}
         '''
     )
     return str
 
 
-def FDeath_yrn_generic():
+def FDeath_yearn_generic():
     """Cumulative probability of death by year n."""
     str = (
         r'''
@@ -513,17 +513,17 @@ def FDeath_yrn_generic():
     return str
 
 
-def FDeath_yrn(vd, time_input_yr):
+def FDeath_yearn(vd, time_input_year):
     """
     Cumulative probability of death by year n, with symbols
     replaced with variables from the calculations.
     """
-    if vd["hazard_list"][time_input_yr] > 1.0:
+    if vd["hazard_by_year"][time_input_year] > 1.0:
         # Add an extra line showing an inequality.
         extra_str = (
             r''' \\
             F_{\textcolor{Fuchsia}{''' +
-            f'{time_input_yr}' +
+            f'{time_input_year}' +
             r'''}} &> \textcolor{red}{100\%}
             '''
             )
@@ -533,14 +533,14 @@ def FDeath_yrn(vd, time_input_yr):
         r'''
         \begin{align*}
         F_{\textcolor{Fuchsia}{''' +
-        f'{time_input_yr}' +
+        f'{time_input_year}' +
         r'''}} &= 1 - (1-\textcolor{red}{''' +
-        f'{vd["P_yr1"]:.4f}' +
+        f'{vd["death_in_year_1_prob"]:.4f}' +
         r'''})\times(1-\textcolor{red}{''' +
-        f'{vd["fhazard_list"][time_input_yr]:.4f}' +
+        f'{vd["fhazard_by_year"][time_input_year]:.4f}' +
         r'''}) \\
         &= \textcolor{red}{''' +
-        f'{100.0*vd["hazard_list"][time_input_yr]:.2f}' +
+        f'{100.0*vd["hazard_by_year"][time_input_year]:.2f}' +
         r'''\%}''' +
         extra_str +
         r'''
@@ -562,17 +562,17 @@ def survival_generic():
     return str
 
 
-def survival(vd, time_input_yr):
+def survival(vd, time_input_year):
     """
     Survival by year n, with symbols
     replaced with variables from the calculations.
     """
-    if vd["survival_list"][time_input_yr] < 0.0:
+    if vd["survival_by_year"][time_input_year] < 0.0:
         # Add an extra line showing an inequality.
         extra_str = (
             r''' \\
             S_{\textcolor{Fuchsia}{''' +
-            f'{time_input_yr}' +
+            f'{time_input_year}' +
             r'''}} &< \textcolor{red}{0\%} '''
             )
     else:
@@ -581,12 +581,12 @@ def survival(vd, time_input_yr):
         r'''
         \begin{align*}
         S_{\textcolor{Fuchsia}{''' +
-        f'{time_input_yr}' +
+        f'{time_input_year}' +
         r'''}} & = 1 - \textcolor{red}{''' +
-        f'{vd["hazard_list"][time_input_yr]:.4f}' +
+        f'{vd["hazard_by_year"][time_input_year]:.4f}' +
         r'''} \\
         & = \textcolor{red}{''' +
-        f'{100.0*vd["survival_list"][time_input_yr]:.2f}' +
+        f'{100.0*vd["survival_by_year"][time_input_year]:.2f}' +
         r'''\%}''' +
         extra_str +
         r'''
@@ -596,7 +596,7 @@ def survival(vd, time_input_yr):
     return str
 
 
-def pDeath_yr2_generic():
+def pDeath_year2_generic():
     """
     Probability of death during year 2.
 
@@ -612,7 +612,7 @@ def pDeath_yr2_generic():
     return str
 
 
-def pDeath_yrn_generic():
+def pDeath_yearn_generic():
     """
     Probability of death during year n.
     """
@@ -626,7 +626,7 @@ def pDeath_yrn_generic():
     return str
 
 
-def pDeath_yrn(P1, F0, F1, time, S1):
+def pDeath_yearn(P1, F0, F1, time, S1):
     """
     Probability of death during year n, with symbols
     replaced with variables from the calculations.
@@ -707,8 +707,8 @@ def median_survival_display(vd):
     str = (
         r'''
         \begin{equation*}
-        \mathrm{yrs} = \textcolor{red}{''' +
-        f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
+        \mathrm{years} = \textcolor{red}{''' +
+        f'{vd["survival_median_years"]:.2f}' +
         r'''}
         \end{equation*}
         '''
@@ -732,7 +732,7 @@ def prob_prime_generic():
     return str
 
 
-def prob_prime(p, Pprime, P_yr1):
+def prob_prime(p, Pprime, death_in_year_1_prob):
     """
     P`, prob prime, or time_log. Probability of death during year n,
     modified by the probability of death during year one. This version
@@ -744,7 +744,7 @@ def prob_prime(p, Pprime, P_yr1):
         P^{\prime} &= \frac{1 + \textcolor{Fuchsia}{''' +
         f'{p:.4f}' +
         r'''}}{1 + \textcolor{red}{''' +
-        f'{P_yr1:.4f}' +
+        f'{death_in_year_1_prob:.4f}' +
         r'''}} - 1 \\
         &= \textcolor{red}{''' +
         f'{100.0*Pprime:.2f}' +
@@ -790,7 +790,7 @@ def death_time_case2_generic():
     return str
 
 
-def death_time_case2(tDeath, p, P_yr1):
+def death_time_case2(tDeath, p, death_in_year_1_prob):
     """
     Time of death for Case 2 (Pdeath by year n <= Pdeath in year one),
     with symbols replaced with variables from the calculations.
@@ -805,7 +805,7 @@ def death_time_case2(tDeath, p, P_yr1):
         f'{p:.4f}' +
         r'''})}}
         {\ln{(1 - \textcolor{red}{''' +
-        f'{P_yr1:.4f}' +
+        f'{death_in_year_1_prob:.4f}' +
         r'''})}}\times \frac{1}{365} \\
         &= \textcolor{red}{''' +
         f'{tDeath:.2f}' +
@@ -816,7 +816,7 @@ def death_time_case2(tDeath, p, P_yr1):
     return str
 
 
-def death_time_case1(tDeath, prob_prime, LP_yrn, gamma, P):
+def death_time_case1(tDeath, prob_prime, death_in_year_n_lp, gamma, P):
     """
     Time of death for Case 1 (Pdeath by year n > Pdeath in year one),
     with symbols replaced with variables from the calculations.
@@ -833,7 +833,7 @@ def death_time_case1(tDeath, prob_prime, LP_yrn, gamma, P):
         r'''}\times ''' +
         f'{gamma}' +
         r'''}{\exp{(\textcolor{red}{''' +
-        f'{LP_yrn:.4f}' +
+        f'{death_in_year_n_lp:.4f}' +
         r'''})}} + 1.0 \right) \\
         &= \textcolor{red}{''' +
         f'{tDeath:.2f}' +
@@ -1093,7 +1093,7 @@ def discounted_qalys(vd, qaly_raw, year, qaly, frac):
 
 
 def build_table_str_qalys(
-        qalys_yraw, qalys_y, discounted_sum
+        qalys_yearaw, qalys_y, discounted_sum
         ):
     """
     Table of raw and discounted QALYs in each year 
@@ -1130,7 +1130,7 @@ def build_table_str_qalys(
         if year < skip_min or year > skip_max:
             # Valid entry, so add a row of values to the table:
             row = r'''| ''' + f'{year}' + r''' |  ''' + \
-                f'{qalys_yraw[i]:.4f}' + r''' | ''' +\
+                f'{qalys_yearaw[i]:.4f}' + r''' | ''' +\
                 f'{qalys_y[i]:.4f}' + r''' |
         '''
             # ^ don't move these quote marks!!!
@@ -1166,12 +1166,12 @@ def discounted_qalys_v7(vd):
         r'''} \times \frac{1 - (1+''' +
         f'{vd["discount_factor_QALYs_perc"]/100.0:.4f}' +
         r''')^{-[\textcolor{red}{''' +
-        f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
+        f'{vd["survival_median_years"]:.2f}' +
         r'''}-1]}}{1 - (1+''' +
         f'{vd["discount_factor_QALYs_perc"]/100.0:.4f}' +
         r''')^{-1}} \\
         &= \textcolor{red}{''' +
-        f'{vd["qalys"][vd["mrs"]]:.4f}' +
+        f'{vd["qalys"]:.4f}' +
         r'''}
         \end{align*}
         '''
@@ -1191,7 +1191,7 @@ def discounted_qalys_generic_v7():
         \begin{equation*}#\tag{13}
         Q = u +
         \frac{u}{1+d} \times
-        \frac{1 - (1+d)^{-[\mathrm{yrs}-1]}}{1 - (1+d)^{-1}}
+        \frac{1 - (1+d)^{-[\mathrm{years}-1]}}{1 - (1+d)^{-1}}
         \end{equation*}
         '''
     )
@@ -1218,12 +1218,12 @@ def discounted_qalys_v7(vd):
         r'''} \times \frac{1 - (1+''' +
         f'{vd["discount_factor_QALYs_perc"]/100.0:.4f}' +
         r''')^{-[\textcolor{red}{''' +
-        f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
+        f'{vd["survival_median_years"]:.2f}' +
         r'''}-1]}}{1 - (1+''' +
         f'{vd["discount_factor_QALYs_perc"]/100.0:.4f}' +
         r''')^{-1}} \\
         &= \textcolor{red}{''' +
-        f'{vd["qalys"][vd["mrs"]]:.4f}' +
+        f'{vd["qalys"]:.4f}' +
         r'''}
         \end{align*}
         '''
@@ -1243,11 +1243,11 @@ def table_ae_coeffs(vd):
         | Description | Coefficient |
         | --- | --- |
         | Constant $\alpha_{\mathrm{AE}}$ | ''' + \
-            f'{vd["A_E_coeffs"][0]}' + r'''|
-        | Adjusted age | ''' + f'{vd["A_E_coeffs"][1]}' + r'''|
-        | Sex | ''' + f'{vd["A_E_coeffs"][2]}' + r'''|
+            f'{vd["ae_coeffs"][0]}' + r'''|
+        | Adjusted age | ''' + f'{vd["ae_coeffs"][1]}' + r'''|
+        | Sex | ''' + f'{vd["ae_coeffs"][2]}' + r'''|
         | $\gamma_{\mathrm{AE}}$ (gamma) | ''' + \
-            f'{vd["A_E_coeffs"][3]}' + r'''|
+            f'{vd["ae_coeffs"][3]}' + r'''|
         '''
         )
     return str
@@ -1259,17 +1259,17 @@ def table_ae_mrs_coeffs(vd):
         r'''
         | mRS | mRS coefficient | Mean age coefficient |
         | --- | --- | --- |
-        | 0 | ''' + f'{vd["A_E_mRS"][0]}' + r'''| ''' + \
+        | 0 | ''' + f'{vd["ae_mRS"][0]}' + r'''| ''' + \
             f'{vd["lg_mean_ages"][0]}' + r'''|
-        | 1 | ''' + f'{vd["A_E_mRS"][1]}' + r'''| ''' + \
+        | 1 | ''' + f'{vd["ae_mRS"][1]}' + r'''| ''' + \
             f'{vd["lg_mean_ages"][1]}' + r'''|
-        | 2 | ''' + f'{vd["A_E_mRS"][2]}' + r'''| ''' + \
+        | 2 | ''' + f'{vd["ae_mRS"][2]}' + r'''| ''' + \
             f'{vd["lg_mean_ages"][2]}' + r'''|
-        | 3 | ''' + f'{vd["A_E_mRS"][3]}' + r'''| ''' + \
+        | 3 | ''' + f'{vd["ae_mRS"][3]}' + r'''| ''' + \
             f'{vd["lg_mean_ages"][3]}' + r'''|
-        | 4 | ''' + f'{vd["A_E_mRS"][4]}' + r'''| ''' + \
+        | 4 | ''' + f'{vd["ae_mRS"][4]}' + r'''| ''' + \
             f'{vd["lg_mean_ages"][4]}' + r'''|
-        | 5 | ''' + f'{vd["A_E_mRS"][5]}'  + r'''| ''' + \
+        | 5 | ''' + f'{vd["ae_mRS"][5]}'  + r'''| ''' + \
             f'{vd["lg_mean_ages"][5]}' + r'''|
         '''
         )
@@ -1287,9 +1287,9 @@ def table_ae_mrs_coeffs_dicho(vd):
         r'''
         | Outcome | Outcome coefficient | Mean age coefficient |
         | --- | --- | --- |
-        | Independent | ''' + f'{vd["A_E_mRS"][0]}' + r'''| ''' + \
+        | Independent | ''' + f'{vd["ae_mRS"][0]}' + r'''| ''' + \
             f'{vd["lg_mean_ages"][0]}' + r'''|
-        | Dependent | ''' + f'{vd["A_E_mRS"][5]}'  + r'''| ''' + \
+        | Dependent | ''' + f'{vd["ae_mRS"][5]}'  + r'''| ''' + \
             f'{vd["lg_mean_ages"][5]}' + r'''|
         '''
         )
@@ -1301,14 +1301,14 @@ def ae_count_generic():
     str = (
         r'''
         \begin{equation}\tag{16}
-        \mathrm{Count (yrs)} =
+        \mathrm{Count (years)} =
         \exp{
             \left(\gamma_\mathrm{AE}
             \times
             LP_{\mathrm{AE}}\right)
             }
         \times
-        \mathrm{yrs}^{\gamma_{\mathrm{AE}}}
+        \mathrm{years}^{\gamma_{\mathrm{AE}}}
         \end{equation}
         '''
     )
@@ -1342,11 +1342,11 @@ def ae_lp(vd):
         \begin{align*}
         LP_{\mathrm{AE}} =&''' +
         # alpha
-        f'{vd["A_E_coeffs"][0]}' +
+        f'{vd["ae_coeffs"][0]}' +
         r''' + & \mathrm{constant} \\''' +
         # 1st coeff
         r'''& \left(''' +
-        f'{vd["A_E_coeffs"][1]}' +
+        f'{vd["ae_coeffs"][1]}' +
         r'''\times [\textcolor{red}{''' +
         f'{vd["age"]}' +
         r'''}-\textcolor{Fuchsia}{''' +
@@ -1354,17 +1354,17 @@ def ae_lp(vd):
         r'''}]\right) + & \mathrm{age} \\''' +
         # 2nd coeff
         r'''& \left(''' +
-        f'{vd["A_E_coeffs"][2]}' +
+        f'{vd["ae_coeffs"][2]}' +
         r'''\times \textcolor{red}{''' +
         f'{vd["sex"]}' +
         r'''}\right) + & \mathrm{sex}^{*} \\''' +
         # 3rd coeff
         r'''& \left(\textcolor{Fuchsia}{''' +
-        f'{vd["A_E_mRS"][vd["mrs"]]}' +
+        f'{vd["ae_mRS"][vd["mrs"]]}' +
         r'''}\right) & \mathrm{mRS} \\''' +
         # Next line, value equal to:
         r'''=& \textcolor{red}{''' +
-        f'{vd["LP_A_E"]:.4f}' +
+        f'{vd["ae_lp"]:.4f}' +
         r'''}
         \end{align*}
         '''
@@ -1380,23 +1380,23 @@ def ae_count(vd):
     str = (
         r'''
         \begin{align*}
-        \mathrm{Count (yrs=\textcolor{red}{''' +
-        f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
+        \mathrm{Count (years=\textcolor{red}{''' +
+        f'{vd["survival_median_years"]:.2f}' +
         r'''})} &=
         \exp{
             \left( ''' +
-            f'{vd["A_E_coeffs"][3]}' +
+            f'{vd["ae_coeffs"][3]}' +
             r''' \times \textcolor{red}{''' +
-            f'{vd["LP_A_E"]:.4f}' +
+            f'{vd["ae_lp"]:.4f}' +
             r'''} \right)
             }
         \times \textcolor{red}{''' +
-        f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
+        f'{vd["survival_median_years"]:.2f}' +
         r'''}^{''' +
-        f'{vd["A_E_coeffs"][3]}' +
+        f'{vd["ae_coeffs"][3]}' +
         r'''} \\
         &= \textcolor{red}{''' +
-        f'{vd["A_E_count_list"][vd["mrs"]]:.4f}' +
+        f'{vd["ae_count"]:.4f}' +
         r'''}
         \mathrm{\ admissions}
         \end{align*}
@@ -1413,11 +1413,11 @@ def table_nel_coeffs(vd):
         | Description | Coefficient |
         | --- | --- |
         | Constant $\alpha_{\mathrm{NEL}}$ | ''' + \
-            f'{vd["NEL_coeffs"][0]}' + r'''|
-        | Adjusted age | ''' + f'{vd["NEL_coeffs"][1]}' + r'''|
-        | Sex | ''' + f'{vd["NEL_coeffs"][2]}' + r'''|
+            f'{vd["nel_coeffs"][0]}' + r'''|
+        | Adjusted age | ''' + f'{vd["nel_coeffs"][1]}' + r'''|
+        | Sex | ''' + f'{vd["nel_coeffs"][2]}' + r'''|
         | $\gamma_{\mathrm{NEL}}$ (gamma) | ''' + \
-            f'{vd["NEL_coeffs"][3]}' + r'''|
+            f'{vd["nel_coeffs"][3]}' + r'''|
         '''
         )
     return str
@@ -1429,17 +1429,17 @@ def table_nel_mrs_coeffs(vd):
         r'''
         | mRS | mRS coefficient | Mean age coefficient |
         | --- | --- | --- |
-        | 0 | ''' + f'{vd["NEL_mRS"][0]}' + r'''| ''' + \
+        | 0 | ''' + f'{vd["nel_mRS"][0]}' + r'''| ''' + \
             f'{vd["lg_mean_ages"][0]}' + r'''|
-        | 1 | ''' + f'{vd["NEL_mRS"][1]}' + r'''| ''' + \
+        | 1 | ''' + f'{vd["nel_mRS"][1]}' + r'''| ''' + \
             f'{vd["lg_mean_ages"][1]}' + r'''|
-        | 2 | ''' + f'{vd["NEL_mRS"][2]}' + r'''| ''' + \
+        | 2 | ''' + f'{vd["nel_mRS"][2]}' + r'''| ''' + \
             f'{vd["lg_mean_ages"][2]}' + r'''|
-        | 3 | ''' + f'{vd["NEL_mRS"][3]}' + r'''| ''' + \
+        | 3 | ''' + f'{vd["nel_mRS"][3]}' + r'''| ''' + \
             f'{vd["lg_mean_ages"][3]}' + r'''|
-        | 4 | ''' + f'{vd["NEL_mRS"][4]}' + r'''| ''' + \
+        | 4 | ''' + f'{vd["nel_mRS"][4]}' + r'''| ''' + \
             f'{vd["lg_mean_ages"][4]}' + r'''|
-        | 5 | ''' + f'{vd["NEL_mRS"][5]}'  + r'''| ''' + \
+        | 5 | ''' + f'{vd["nel_mRS"][5]}'  + r'''| ''' + \
             f'{vd["lg_mean_ages"][5]}' + r'''|
         '''
         )
@@ -1457,9 +1457,9 @@ def table_nel_mrs_coeffs_dicho(vd):
         r'''
         | Outcome | Outcome coefficient | Mean age coefficient |
         | --- | --- | --- |
-        | Independent | ''' + f'{vd["NEL_mRS"][0]}' + r'''| ''' + \
+        | Independent | ''' + f'{vd["nel_mRS"][0]}' + r'''| ''' + \
             f'{vd["lg_mean_ages"][0]}' + r'''|
-        | Dependent | ''' + f'{vd["NEL_mRS"][5]}'  + r'''| ''' + \
+        | Dependent | ''' + f'{vd["nel_mRS"][5]}'  + r'''| ''' + \
             f'{vd["lg_mean_ages"][5]}' + r'''|
         '''
         )
@@ -1471,10 +1471,10 @@ def nel_bed_days_generic():
     str = (
         r'''
         \begin{equation}\tag{18}
-        \mathrm{Count (yrs)} =
+        \mathrm{Count (years)} =
             -\ln{\left(
             \frac{1}{
-                1+ [\mathrm{yrs}\times\exp{(-LP_\mathrm{NEL})} ] ^{
+                1+ [\mathrm{years}\times\exp{(-LP_\mathrm{NEL})} ] ^{
                     1/ \gamma_{\mathrm{NEL}}}
             }
             \right)}
@@ -1511,11 +1511,11 @@ def nel_lp(vd):
         \begin{align*}
         LP_{\mathrm{NEL}} =&''' +
         # alpha
-        f'{vd["NEL_coeffs"][0]}' +
+        f'{vd["nel_coeffs"][0]}' +
         r''' + & \mathrm{constant} \\''' +
         # 1st coeff
         r'''& \left(''' +
-        f'{vd["NEL_coeffs"][1]}' +
+        f'{vd["nel_coeffs"][1]}' +
         r'''\times [\textcolor{red}{''' +
         f'{vd["age"]}' +
         r'''}-\textcolor{Fuchsia}{''' +
@@ -1523,17 +1523,17 @@ def nel_lp(vd):
         r'''}]\right) + & \mathrm{age} \\''' +
         # 2nd coeff
         r'''& \left(''' +
-        f'{vd["NEL_coeffs"][2]}' +
+        f'{vd["nel_coeffs"][2]}' +
         r'''\times \textcolor{red}{''' +
         f'{vd["sex"]}' +
         r'''}\right) + & \mathrm{sex}^{*} \\''' +
         # 3rd coeff
         r'''& \left(\textcolor{Fuchsia}{''' +
-        f'{vd["NEL_mRS"][vd["mrs"]]}' +
+        f'{vd["nel_mRS"][vd["mrs"]]}' +
         r'''} \right) & \mathrm{mRS} \\''' +
         # Next line, value equal to:
         r'''=& \textcolor{red}{''' +
-        f'{vd["LP_NEL"]:.4f}' +
+        f'{vd["nel_lp"]:.4f}' +
         r'''}
         \end{align*}
         '''
@@ -1549,22 +1549,22 @@ def nel_bed_days(vd):
     str = (
         r'''
         \begin{align*}
-        \mathrm{Count (yrs=\textcolor{red}{''' +
-        f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
+        \mathrm{Count (years=\textcolor{red}{''' +
+        f'{vd["survival_median_years"]:.2f}' +
         r'''})} &=
             -\ln{\left(
             \frac{1}{
                 1+ [\textcolor{red}{''' +
-                f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
+                f'{vd["survival_median_years"]:.2f}' +
                 r'''} \times \exp{(-\textcolor{red}{''' +
-                f'{vd["LP_NEL"]:.4f}' +
+                f'{vd["nel_lp"]:.4f}' +
                 r'''})} ]^{
                 1/ ''' +
-                f'{vd["NEL_coeffs"][3]}' +
+                f'{vd["nel_coeffs"][3]}' +
                 r'''}}
             \right)} \\
             & = \textcolor{red}{''' +
-            f'{vd["NEL_count_list"][vd["mrs"]]:.4f}' +
+            f'{vd["nel_count"]:.4f}' +
             r'''} \mathrm{\ days}
         \end{align*}
         '''
@@ -1580,11 +1580,11 @@ def table_el_coeffs(vd):
         | Description | Coefficient |
         | --- | --- |
         | Constant $\alpha_{\mathrm{EL}}$ | ''' + \
-            f'{vd["EL_coeffs"][0]}' + r'''|
-        | Adjusted age | ''' + f'{vd["EL_coeffs"][1]}' + r'''|
-        | Sex | ''' + f'{vd["EL_coeffs"][2]}' + r'''|
+            f'{vd["el_coeffs"][0]}' + r'''|
+        | Adjusted age | ''' + f'{vd["el_coeffs"][1]}' + r'''|
+        | Sex | ''' + f'{vd["el_coeffs"][2]}' + r'''|
         | $\gamma_{\mathrm{EL}}$ (gamma) | ''' + \
-            f'{vd["EL_coeffs"][3]}' + r'''|
+            f'{vd["el_coeffs"][3]}' + r'''|
         '''
         )
     return str
@@ -1596,17 +1596,17 @@ def table_el_mrs_coeffs(vd):
         r'''
         | mRS | mRS coefficient | Mean age coefficient |
         | --- | --- | --- |
-        | 0 | ''' + f'{vd["EL_mRS"][0]}' + r'''| ''' + \
+        | 0 | ''' + f'{vd["el_mRS"][0]}' + r'''| ''' + \
             f'{vd["lg_mean_ages"][0]}' + r'''|
-        | 1 | ''' + f'{vd["EL_mRS"][1]}' + r'''| ''' + \
+        | 1 | ''' + f'{vd["el_mRS"][1]}' + r'''| ''' + \
             f'{vd["lg_mean_ages"][1]}' + r'''|
-        | 2 | ''' + f'{vd["EL_mRS"][2]}' + r'''| ''' + \
+        | 2 | ''' + f'{vd["el_mRS"][2]}' + r'''| ''' + \
             f'{vd["lg_mean_ages"][2]}' + r'''|
-        | 3 | ''' + f'{vd["EL_mRS"][3]}' + r'''| ''' + \
+        | 3 | ''' + f'{vd["el_mRS"][3]}' + r'''| ''' + \
             f'{vd["lg_mean_ages"][3]}' + r'''|
-        | 4 | ''' + f'{vd["EL_mRS"][4]}' + r'''| ''' + \
+        | 4 | ''' + f'{vd["el_mRS"][4]}' + r'''| ''' + \
             f'{vd["lg_mean_ages"][4]}' + r'''|
-        | 5 | ''' + f'{vd["EL_mRS"][5]}'  + r'''| ''' + \
+        | 5 | ''' + f'{vd["el_mRS"][5]}'  + r'''| ''' + \
             f'{vd["lg_mean_ages"][5]}' + r'''|
         '''
         )
@@ -1624,9 +1624,9 @@ def table_el_mrs_coeffs_dicho(vd):
         r'''
         | Outcome | Outcome coefficient | Mean age coefficient |
         | --- | --- | --- |
-        | Independent | ''' + f'{vd["EL_mRS"][0]}' + r'''| ''' + \
+        | Independent | ''' + f'{vd["el_mRS"][0]}' + r'''| ''' + \
             f'{vd["lg_mean_ages"][0]}' + r'''|
-        | Dependent | ''' + f'{vd["EL_mRS"][5]}'  + r'''| ''' + \
+        | Dependent | ''' + f'{vd["el_mRS"][5]}'  + r'''| ''' + \
             f'{vd["lg_mean_ages"][5]}' + r'''|
         '''
         )
@@ -1638,10 +1638,10 @@ def el_bed_days_generic():
     str = (
         r'''
         \begin{equation}\tag{20}
-        \mathrm{Count (yrs)} =
+        \mathrm{Count (years)} =
             -\ln{\left(
             \frac{1}{
-                1+ [\mathrm{yrs} \times \exp{(-LP_\mathrm{EL})} ] ^{
+                1+ [\mathrm{years} \times \exp{(LP_\mathrm{EL})} ] ^{
                     1/ \gamma_{\mathrm{EL}}}
             }
             \right)}
@@ -1678,11 +1678,11 @@ def el_lp(vd):
         \begin{align*}
         LP_{\mathrm{EL}} =&''' +
         # alpha
-        f'{vd["EL_coeffs"][0]}' +
+        f'{vd["el_coeffs"][0]}' +
         r''' + & \mathrm{constant} \\''' +
         # 1st coeff
         r'''& \left(''' +
-        f'{vd["EL_coeffs"][1]}' +
+        f'{vd["el_coeffs"][1]}' +
         r'''\times [\textcolor{red}{''' +
         f'{vd["age"]}' +
         r'''}-\textcolor{Fuchsia}{''' +
@@ -1690,17 +1690,17 @@ def el_lp(vd):
         r'''}]\right) + & \mathrm{age} \\''' +
         # 2nd coeff
         r'''& \left(''' +
-        f'{vd["EL_coeffs"][2]}' +
+        f'{vd["el_coeffs"][2]}' +
         r'''\times \textcolor{red}{''' +
         f'{vd["sex"]}' +
         r'''}\right) + & \mathrm{sex}^{*} \\''' +
         # 3rd coeff
         r'''& \left(\textcolor{Fuchsia}{''' +
-        f'{vd["EL_mRS"][vd["mrs"]]}' +
+        f'{vd["el_mRS"]}' +
         r'''} \right) & \mathrm{mRS} \\''' +
         # Next line, value equal to:
         r'''=& \textcolor{red}{''' +
-        f'{vd["LP_EL"]:.4f}' +
+        f'{vd["el_lp"]:.4f}' +
         r'''}
         \end{align*}
         '''
@@ -1716,22 +1716,22 @@ def el_bed_days(vd):
     str = (
         r'''
         \begin{align*}
-        \mathrm{Count (yrs=\textcolor{red}{''' +
-        f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
+        \mathrm{Count (years=\textcolor{red}{''' +
+        f'{vd["survival_median_years"]:.2f}' +
         r'''})} &=
             -\ln{\left(
             \frac{1}{
                 1+ [\textcolor{red}{''' +
-                f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
+                f'{vd["survival_median_years"]:.2f}' +
                 r'''} \times \exp{(-\textcolor{red}{''' +
-                f'{vd["LP_EL"]:.4f}' +
+                f'{vd["el_lp"]:.4f}' +
                 r'''})} ]^{
                 1/ ''' +
-                f'{vd["EL_coeffs"][3]}' +
+                f'{vd["el_coeffs"][3]}' +
                 r'''}}
             \right)} \\
             & = \textcolor{red}{''' +
-            f'{vd["EL_count_list"][vd["mrs"]]:.4f}' +
+            f'{vd["el_count"]:.4f}' +
             r'''} \mathrm{\ days}
         \end{align*}
         '''
@@ -1820,8 +1820,8 @@ def tic_generic():
     str = (
         r'''
         \begin{equation}\tag{22}
-        \mathrm{Count (yrs)} =
-        95\% \times c \times \mathrm{yrs}
+        \mathrm{Count (years)} =
+        95\% \times c \times \mathrm{years}
         \end{equation}
         '''
     )
@@ -1840,16 +1840,16 @@ def tic(vd):
     str = (
         r'''
         \begin{align*}
-        \mathrm{Count (yrs=\textcolor{red}{''' +
-        f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
+        \mathrm{Count (years=\textcolor{red}{''' +
+        f'{vd["survival_median_years"]:.2f}' +
         r'''})} &=
         95\% \times \textcolor{Fuchsia}{''' +
         f'{100.0*perc:.4f}' +
         r'''\%} \times \textcolor{red}{''' +
-        f'{vd["survival_meds_IQRs"][vd["mrs"], 0]:.2f}' +
+        f'{vd["survival_median_years"]:.2f}' +
         r'''} \\
         &= \textcolor{red}{''' +
-        f'{vd["care_years_list"][vd["mrs"]]:.4f}' +
+        f'{vd["care_years"]:.4f}' +
         r'''} \mathrm{\ years}
         \end{align*}
         '''
@@ -1867,8 +1867,8 @@ def count_yeari_generic():
         r'''
         \begin{equation*}\tag{23}
         \mathrm{Count}_i =
-        \mathrm{Count}(\mathrm{yrs}=i) -
-        \mathrm{Count}(\mathrm{yrs}=[i-1])
+        \mathrm{Count}(\mathrm{years}=i) -
+        \mathrm{Count}(\mathrm{years}=[i-1])
         \end{equation*}
         '''
     )
@@ -1943,7 +1943,7 @@ def table_cost_factors_2(vd):
 
 
 def build_table_str_resource_count(
-        counts_yrs, counts_i, discounted_i, discounted_sum
+        counts_years, counts_i, discounted_i, discounted_sum
         ):
     """
     Table of resource use in each year up to the median survival year.
@@ -1955,7 +1955,7 @@ def build_table_str_resource_count(
     # Set up header:
     table_rows = (
         r'''
-        | Year | $\mathrm{Count}(\mathrm{yrs})$ | ''' +
+        | Year | $\mathrm{Count}(\mathrm{years})$ | ''' +
         r'''$\mathrm{Count}_i$ | Discounted use |
         | --- | --- | --- | --- |
         '''
@@ -1980,7 +1980,7 @@ def build_table_str_resource_count(
         if year < skip_min or year > skip_max:
             # Valid entry, so add a row of values to the table:
             row = r'''| ''' + f'{year}' + r''' | ''' + \
-                f'{counts_yrs[i]:.4f}' +\
+                f'{counts_years[i]:.4f}' +\
                 r''' | ''' + f'{counts_i[i]:.4f}' + r''' | ''' +\
                 f'{discounted_i[i]:.4f}' + r''' |
         '''
@@ -2046,7 +2046,7 @@ def discounted_cost(vd, discounted_sum, cost_str, discounted_cost_str,
         f'{discounted_sum:.4f}' +
         r'''} \\
         &= \textcolor{red}{''' +
-        f'£{vd[discounted_cost_str][vd["mrs"]]:.2f}' +
+        f'£{vd[discounted_cost_str]:.2f}' +
         r'''}
         \end{align*}
         '''
@@ -2067,7 +2067,7 @@ def cost_effectiveness(vd, qaly, cost, total):
         r'''
         \begin{equation*}
         \left(''' +
-        f'£{vd["WTP_QALY_gpb"]:.0f}' +
+        f'£{vd["wtp_qaly_gpb"]:.0f}' +
         r'''\times \textcolor{red}{''' +
         f'{qaly:.4f}' +
         r'''}\right) + \textcolor{red}{''' +

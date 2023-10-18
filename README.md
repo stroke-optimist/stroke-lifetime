@@ -30,7 +30,7 @@ If you want to use the models but aren't interested in the Streamlit parts, you 
 + `utilities_lifetime/fixed_params.py` - Constants
 + `utilities_lifetime/main_calculations.py` - Gathers the basic models and calculates all of the useful outputs. 
 
-To work out how to piece it all together, it might be helpful to look at the "Calculations" section of `Interactive_demo.py`
+To work out how to piece it all together, it might be helpful to look at the "Main Calculations" section of `Interactive_demo.py`
 
 
 ### Pages 
@@ -38,12 +38,12 @@ To work out how to piece it all together, it might be helpful to look at the "Ca
 The Streamlit landing page is `1: Introduction.py`. In the sidebar there are a series of other pages to choose, and these are stored in the `pages/` directory:
 
 + `2: Interactive_demo.py` - the main page. The user can select the values of the patient's age, sex, and mRS score, and these are used to populate a series of charts and tables about that patient's expected mortality, QALYs, resource use, and cost-effectiveness.
-+ `3: Advanced_options.py` - currently empty.
++ `3: Advanced_options.py` - calculate the lifetime outcomes for a series of patients.
 + `4: Project.py` - information about the project and people behind this project.
 + `5: Cite_this_work.py` - Zenodo citation. 
 + `6: Resources.py` - links to further useful materials. 
 
-The page topics follow the recommendations of [Tom Monks and Alison Harper (in Proceedings of the Operational Research Society Simulation Workshop 2023 (SW23))](https://doi.org/10.36819/SW23.030). 
+The page topics follow the recommendations of [Tom Monks and Alison Harper (in "Improving the usability of open health service delivery simulation models using Python and web apps")](https://openresearch.nihr.ac.uk/articles/3-48/v1). 
 
 When these pages display a large amount of markdown text in one go, that text is imported from a `.txt` file in `pages/text_for_pages/` to prevent constant re-spacing to keep the lines below 79 characters. 
 
@@ -60,7 +60,7 @@ The `utilities_lifetime` directory contains the bulk of the useful code.
 | `fixed_params.py` | Stores constants and coefficients. |
 | `inputs.py` | Contains a function for reading markdown text from a file and writing to Streamlit. |
 | `latex_equations.py` | Stores many functions that return a string containing a LaTeX-formatted function or a markdown-formatted table that can be written to Streamlit. Some of these are "generic" static formulae and others replace certain symbols in the formula with variables. |
-| `main_calculations.py` | Contains more complicated functions with much python jiggery-pokery for calculating lots of quantities in one go. Typically uses the functions in `models.py` but wrapped in a "for" loop. |
+| `main_calculations.py` | Contains more complicated functions with much python jiggery-pokery for calculating lots of quantities in one go. Typically uses the functions in `models.py`. |
 | `models.py` | Contains functions for calculating the simpler quantities, i.e. those that can be described by a short formula rather than lots of python jiggery-pokery.  |
 
 `utilities_lifetime/` also contains an empty `__init__.py` file that allows the container scripts to import functions directly from the latex equations script. 
