@@ -478,13 +478,8 @@ def find_ae_count(
     """
     # creates the lambda function for the equation
     # AL - for python, changed this to a variable:
-<<<<<<< HEAD
-    lambda_factor = np.exp(-fixed_params.A_E_coeffs[3] * A_E_lp)
-    # equation that estimates the A_E admissions count
-=======
     lambda_factor = np.exp(-ae_coeffs[3] * ae_lp)
     # equation that estimates the ae admissions count
->>>>>>> refactoring_separate_mrs
     # Define this to help fit everything on one line:
     c = (-lambda_factor) * (years**ae_coeffs[3])
     # Final count:
