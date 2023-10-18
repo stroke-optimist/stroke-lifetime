@@ -198,6 +198,79 @@ def main():
         df_fixed_params['Dichotomous'] = get_fixed_params('Dichotomous').values()
         st.write(df_fixed_params)
 
+        # # New df for change in outcome
+        # df_outcome_changes = pd.DataFrame(columns=[
+        #     'age', 'sex_label', 'mrs', 'mrs_post', 'net_benefit', 'net_benefit_post', 'net_benefit_diff'])
+        # patient = 0
+        # for age in sorted(set(df['age'])):
+        #     for sex_label in sorted(set(df['sex_label'])):
+        #         for mrs in sorted(set(df['mrs'])):
+        #             df_here = df[
+        #                 (df['age'] == age) &
+        #                 (df['sex_label'] == sex_label) &
+        #                 (df['mrs'] == mrs) 
+        #             ]
+        #             net_benefit_here = df_here['net_benefit'].values[0]
+        #             for mrs_post in sorted(set(df['mrs'])):
+        #                 df_there = df[
+        #                     (df['age'] == age) &
+        #                     (df['sex_label'] == sex_label) &
+        #                     (df['mrs'] == mrs_post) 
+        #                 ]
+        #                 net_benefit_there = df_there['net_benefit'].values[0]
+        #                 diff = net_benefit_here - net_benefit_there
+
+        #                 df_outcome_changes.loc[patient] = [age, sex_label, mrs, mrs_post, net_benefit_here, net_benefit_there, diff]
+        #                 patient += 1
+        # st.write(df_outcome_changes)
+
+        # Test plot
+        from plotly.express.colors import sample_colorscale
+        colours = sample_colorscale('viridis', np.linspace(0, 1, len(sorted(set(df['age'])))))
+
+        import plotly.graph_objs as go
+        fig = go.Figure()
+        fig.update_layout(
+            width=800,
+            height=800,
+            margin_l=0, margin_r=0, margin_t=0, margin_b=0
+            )
+        for a, age in enumerate(sorted(set(df['age']))):
+        # for a, age in enumerate(sorted(set(df['age']))[:1]):
+            colour = colours[a]
+            for s, sex_label in enumerate(sorted(set(df['sex_label']))):
+                m = 'circle' if sex_label == 'Female' else 'square'
+                # for mrs in sorted(set(df['mrs'])):
+                    # for mrs_post in sorted(set(df['mrs'])):
+                    #     if mrs < mrs_post:
+                df_here = df[
+                    (df['age'] == age) &
+                    (df['sex_label'] == sex_label) #&
+                    # (df_outcome_changes['mrs'] == mrs) 
+                    # (df_outcome_changes['mrs_post'] == mrs_post)
+                ]
+
+                # x1 = df_here['mrs'].values[0]
+                # x2 = df_here['mrs_post'].values[0]
+                # y1 = df_here['net_benefit'].values[0]
+                # y2 = df_here['net_benefit_post'].values[0]
+
+                # net_benefit survival_median_years qalys_total
+
+                fig.add_trace(go.Scatter(
+                    x=df_here['mrs'],#[x1, x2],
+                    y=df_here['net_benefit'],#[y1, y2],
+                    mode='lines+markers',
+                    marker_color=colour, #age.values[0],
+                    marker_symbol=m,
+                    marker_line_color='black',
+                    marker_line_width=1.0,
+                    line_color=colour,
+                    connectgaps=True
+                    # opacity=0.1
+                ))
+        st.plotly_chart(fig)
+
         # ----- The end! -----
 
 
