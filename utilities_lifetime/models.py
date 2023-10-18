@@ -403,7 +403,7 @@ def find_A_E_Count(age, sex, mrs, yrs):
     A_E_lp = find_lp_AE_Count(age, sex, mrs)
     # creates the lambda function for the equation
     # AL - for python, changed this to a variable:
-    lambda_factor = np.exp(fixed_params.A_E_coeffs[3] * A_E_lp)
+    lambda_factor = np.exp(-fixed_params.A_E_coeffs[3] * A_E_lp)
     # equation that estimates the A_E admissions count
     # Define this to help fit everything on one line:
     c = (-lambda_factor) * (yrs**fixed_params.A_E_coeffs[3])
