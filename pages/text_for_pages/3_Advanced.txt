@@ -1,9 +1,0 @@
-# To be printed as markdown on the "Advanced Options" page. 
-# ---------------------------------------------------------------------
-
-# Advanced options
-
-Perhaps this page could allow the user to upload their own file, and then a result could be calculated. 
-
-There are lots of things that Streamlit can do. [Have a look here for ideas](https://docs.streamlit.io/library/api-reference).
-

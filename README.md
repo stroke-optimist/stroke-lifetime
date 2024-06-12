@@ -1,5 +1,9 @@
-# Lifetime stroke outcome model
+# stroke-lifetime
 
+
+__NOTE:__ This is a copy of the original streamlit lifetime stroke outcome repository. The following information is now partly out of date as it still contains references to the Streamlit app.
+
+--- 
 
 [![Open in Streamlit][streamlit-img]][streamlit-link] [![DOI][doi-img]][doi-link]
 
