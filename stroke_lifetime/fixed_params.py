@@ -21,21 +21,7 @@ all of the numbers came from. It's also better for the values that
 are calculated every time, and in case one day we change the dicts
 to another format but need to keep the same data.
 """
-import streamlit as st
 import numpy as np
-
-
-def page_setup():
-    """
-    Set up the display in the tab in your browser.
-
-    n.b. Set page to widescreen must be first call to st.
-    """
-    st.set_page_config(
-        page_title='Lifetime outcomes',
-        page_icon='💷',
-        # layout='wide'
-        )
 
 
 def get_fixed_params(model_input_str: str):
@@ -604,14 +590,3 @@ def make_fixed_params_dicho_model(fixed_params):
         el_mRS=el_mRS
     )
 
-
-# Colour scheme to match Excel hazard chart:
-# #RRGGBB in hex.
-colours_excel = [
-    '#ffc000',   # mRS 0
-    '#ed7d31',   # mRS 1
-    '#a5a5a5',   # mRS 2
-    '#b4c7e7',   # mRS 3
-    '#5b9bd5',   # mRS 4
-    '#70ad47',   # mRS 5
-]

@@ -6,9 +6,6 @@ These were adapted from the following R script:
 # Imports:
 import numpy as np
 
-# Import constants:
-# import utilities_lifetime.fixed_params as fixed_params
-
 
 # #####################################################################
 # ############################ Mortality ##############################

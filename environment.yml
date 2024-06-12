@@ -1,0 +1,10 @@
+name: stroke-lifetime-dev
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - numpy
+  - pip:
+    - setuptools
+    - twine
+    - wheel

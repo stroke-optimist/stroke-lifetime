@@ -8,7 +8,7 @@ and stores the results in a dictionary.
 import numpy as np
 
 # Import functions for calculating various quantities:
-import utilities_lifetime.models as model
+from . import models as model
 
 
 # #####################################################################
