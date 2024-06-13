@@ -28,7 +28,7 @@ def main_calculations(
 
     Inputs:
     -------
-    age            - float or int. Patient's age.
+    age            - float or int. Patient's age in years.
     sex            - int. Patient's sex, 0 for female and 1 for male.
     sex_str        - str. Either "Male" or "Female".
     mrs            - int. Patient's mRS score from 0 to 5.
@@ -39,48 +39,48 @@ def main_calculations(
     Returns:
     --------
     results_dict - dict. All of the useful results. Keys:
-        age                        - float.
-        sex                        - int.
-        sex_label                  - str.
-        model_type_str             - str.
-        mrs                        - int.
-        outcome_type               - str.
-        years             - np.array.
-        death_in_year_1_prob                    - float.
-        death_in_year_1_lp                   - float.
-        death_in_year_n_lp                   - float.
-        death_in_year_n_probs                - np.array.
+        age                                         - float.
+        sex                                         - int.
+        sex_label                                   - str.
+        model_type_str                              - str.
+        mrs                                         - int.
+        outcome_type                                - str.
+        years                                       - np.array.
+        death_in_year_1_prob                        - float.
+        death_in_year_1_lp                          - float.
+        death_in_year_n_lp                          - float.
+        death_in_year_n_probs                       - np.array.
         death_in_year_n_probs_first_invalid_index   - float.
-        hazard_by_year                - np.array.
-        survival_by_year              - np.array.
-        fhazard_by_year               - np.array.
-        survival_meds_IQRs         - np.array.
-        survival_year1             - float.
-        year_when_zero_survival      - float.
-        qalys                      - float.
-        qalys_by_year              - np.array.
-        raw_qalys_by_year          - np.array.
-        total_discounted_cost      - float.
-        lp_ae                      - float.
-        ae_count                   - float.
-        lp_nel                     - float.
-        nel_count                  - float.
-        lp_el                      - float.
-        el_count                   - float.
-        care_years                 - float.
-        ae_counts_by_year          - np.array.
-        nel_counts_by_year         - np.array.
-        el_counts_by_year          - np.array.
-        care_years_by_year         - np.array.
-        ae_discounted_by_year         - np.array.
-        nel_discounted_by_year        - np.array.
-        el_discounted_by_year         - np.array.
-        care_years_discounted_by_year - np.array.
-        ae_discounted_cost         - float.
-        nel_discounted_cost        - float.
-        el_discounted_cost         - float.
-        care_years_discounted_cost - float.
-        net_benefit                - float.
+        hazard_by_year                              - np.array.
+        survival_by_year                            - np.array.
+        fhazard_by_year                             - np.array.
+        survival_meds_IQRs                          - np.array.
+        survival_year1                              - float.
+        year_when_zero_survival                     - float.
+        qalys                                       - float.
+        qalys_by_year                               - np.array.
+        raw_qalys_by_year                           - np.array.
+        total_discounted_cost                       - float.
+        lp_ae                                       - float.
+        ae_count                                    - float.
+        lp_nel                                      - float.
+        nel_count                                   - float.
+        lp_el                                       - float.
+        el_count                                    - float.
+        care_years                                  - float.
+        ae_counts_by_year                           - np.array.
+        nel_counts_by_year                          - np.array.
+        el_counts_by_year                           - np.array.
+        care_years_by_year                          - np.array.
+        ae_discounted_by_year                       - np.array.
+        nel_discounted_by_year                      - np.array.
+        el_discounted_by_year                       - np.array.
+        care_years_discounted_by_year               - np.array.
+        ae_discounted_cost                          - float.
+        nel_discounted_cost                         - float.
+        el_discounted_cost                          - float.
+        care_years_discounted_cost                  - float.
+        net_benefit                                 - float.
     """
     # ##################################
     # ########## CALCULATIONS ##########
@@ -428,18 +428,18 @@ def find_cumhazard_with_time(
 
     Inputs:
     -------
-    years - list or array. List of integer years.
-    gz_gamma       - float. Gompertz gamma coefficient.
-    death_in_year_1_prob   - float. Probability of death in year 1.
-    death_in_year_n_lp       - float. Linear predictor for probability of death
-                     after year 1.
+    years                - list or array. List of integer years.
+    gz_gamma             - float. Gompertz gamma coefficient.
+    death_in_year_1_prob - float. Probability of death in year 1.
+    death_in_year_n_lp   - float. Linear predictor for probability
+                           of death after year 1.
 
     Returns:
     --------
-    death_in_year_n_probs    - array. List of cumulative probability of death
-                     in each year.
-    survival_by_year  - array. List of survival for each year.
-    hazard_by_year  - array. List of hazard for each year.
+    death_in_year_n_probs - array. List of cumulative probability
+                            of death in each year.
+    survival_by_year      - array. List of survival for each year.
+    hazard_by_year        - array. List of hazard for each year.
     """
     # Store hazards in here. First value will be from year 2.
     hazard_by_year = [0.0, 0.0]
@@ -477,16 +477,16 @@ def calculate_prob_death_per_year(
 
     Inputs:
     -------
-    years - list or array. List of integer years.
-    gz_gamma       - float. Gompertz gamma coefficient.
-    death_in_year_1_prob   - float. Probability of death in year 1.
-    death_in_year_n_lp       - float. Linear predictor for probability of death
-                     after year 1.
+    years                - list or array. List of integer years.
+    gz_gamma             - float. Gompertz gamma coefficient.
+    death_in_year_1_prob - float. Probability of death in year 1.
+    death_in_year_n_lp   - float. Linear predictor for probability
+                           of death after year 1.
 
     Returns:
     --------
-    death_in_year_n_probs - np.array. Probability of death during each year
-                  given in the input time list.
+    death_in_year_n_probs - np.array. Probability of death during
+                            each year given in the input time list.
     """
     death_in_year_n_probs = []
     for year in years[1:]:
@@ -508,11 +508,11 @@ def calculate_survival_iqr(
 
     Inputs:
     -------
-    age           - float. Patient's age.
-    gz_gamma      - Gompertz gamma coefficient.
-    lpDeath_yearn - float. Linear predictor for probability of death
-                    after year one.
-    death_in_year_1_prob  - float. Probability of death in year one.
+    age                  - float. Patient's age.
+    gz_gamma             - Gompertz gamma coefficient.
+    lpDeath_yearn        - float. Linear predictor for probability
+                           of death after year one.
+    death_in_year_1_prob - float. Probability of death in year one.
 
     Returns:
     years_to_note - list. Contains [median, lower IQR, upper IQR,
@@ -553,6 +553,7 @@ def find_resource_count_for_all_years(
     lifetime of this patient.
 
     Inputs:
+    -------
     median_survival_years     - list or array. List of six floats, each
                                 of which is the median survival year
                                 for each mRS score.
@@ -570,6 +571,7 @@ def find_resource_count_for_all_years(
                                 care.
 
     Returns:
+    --------
     counts - list. Contains the resource use for each year from 1 to
              the median survival year (rounded up).
     """
@@ -617,12 +619,14 @@ def find_discounted_resource_use_for_all_years(
     From Resource_Use sheet in Excel v7.
 
     Inputs:
+    -------
     resource_list              - list or array. List of resource use
                                  in each year of the remaining
                                  lifetime (not cumulative).
     discount_factor_QALYs_perc - float. Discount factor for QALYs.
 
     Returns:
+    --------
     discounted_resource_list - list. Contains the discounted resource
                                use for each year in the remaining
                                lifetime (not cumulative).
@@ -653,9 +657,11 @@ def build_table_qaly_by_change_in_outcome(qalys):
     and invalid cells already contain either '-' or '' depending.
 
     Inputs:
+    -------
     qalys - list or array. The list of six QALYs, one for each mRS.
 
     Returns:
+    --------
     table - np.array. The table of changes in QALYs.
     """
     table = []
@@ -683,11 +689,13 @@ def build_table_discounted_change(total_discounted_cost):
     and invalid cells already contain either '-' or '' depending.
 
     Inputs:
+    -------
     total_discounted_cost - list or array. The list of six discounted
                             resource use totals, one for each mRS,
                             summed over all four resources.
 
     Returns:
+    --------
     table - np.array. The table of changes in discounted resource use.
     """
     # Turn into grid by change of outcome:
@@ -719,12 +727,14 @@ def build_table_cost_effectiveness(net_benefit):
     row and each column is a different mRS score.
 
     Inputs:
+    -------
     qaly_table               - array. Table of QALYs by change in
                                outcome.
     cost_table               - array. Table of discounted change in
                                cost by change in outcome.
 
     Returns:
+    --------
     table_cost_effectiveness - array. Table with the cost effectiveness
                                values, and invalid data treated the
                                same as in the input QALY and cost

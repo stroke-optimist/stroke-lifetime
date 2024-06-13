@@ -1,5 +1,6 @@
 """
 This script contains functions for the risk and resource use models.
+
 These were adapted from the following R script:
   test.harnes.R, received 17/NOV/2022 from Peter McMeekin.
 """

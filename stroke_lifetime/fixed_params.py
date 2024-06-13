@@ -43,38 +43,38 @@ def get_fixed_params(model_input_str: str):
     Returns:
     --------
     fixed_params - dict. The dictionary of fixed parameters. Keys:
-        time_max_post_discharge_year    - int.
-        qaly_age_coeff                - float.
-        qaly_age2_coeff               - float.
-        qaly_sex_coeff                - float.
-        discount_factor_QALYs_perc    - float.
-        discount_factor_costs_perc    - float.
-        wtp_qaly_gpb                  - float.
-        cost_ae_gbp                   - float.
-        cost_elective_bed_day_gbp     - float.
-        cost_non_elective_bed_day_gbp - float.
-        cost_residential_day_gbp      - float.
+        time_max_post_discharge_year        - int.
+        qaly_age_coeff                      - float.
+        qaly_age2_coeff                     - float.
+        qaly_sex_coeff                      - float.
+        discount_factor_QALYs_perc          - float.
+        discount_factor_costs_perc          - float.
+        wtp_qaly_gpb                        - float.
+        cost_ae_gbp                         - float.
+        cost_elective_bed_day_gbp           - float.
+        cost_non_elective_bed_day_gbp       - float.
+        cost_residential_day_gbp            - float.
         n_patients_care_home                - np.array.
         n_patients_not_care_home            - np.array.
         n_patients_care_home_over70         - np.array.
         n_patients_not_care_home_over70     - np.array.
         n_patients_care_home_not_over70     - np.array.
         n_patients_not_care_home_not_over70 - np.array.
-        perc_care_home_all_ages       - float.
-        perc_care_home_over70         - float.
-        perc_care_home_not_over70     - float.
-        utility_list                  - list.
-        lg_coeffs                     - np.array.
-        lg_mean_ages                  - np.array.
-        gz_coeffs                     - np.array.
-        gz_gamma                      - float.
-        gz_mean_age                   - float.
-        ae_coeffs                     - np.array.
-        ae_mRS                        - np.array.
-        nel_coeffs                    - np.array.
-        nel_mRS                       - np.array.
-        el_coeffs                     - np.array.
-        el_mRS                        - np.array.
+        perc_care_home_all_ages             - float.
+        perc_care_home_over70               - float.
+        perc_care_home_not_over70           - float.
+        utility_list                        - list.
+        lg_coeffs                           - np.array.
+        lg_mean_ages                        - np.array.
+        gz_coeffs                           - np.array.
+        gz_gamma                            - float.
+        gz_mean_age                         - float.
+        ae_coeffs                           - np.array.
+        ae_mRS                              - np.array.
+        nel_coeffs                          - np.array.
+        nel_mRS                             - np.array.
+        el_coeffs                           - np.array.
+        el_mRS                              - np.array.
     """
     # Start with parameters that are shared for all model types:
     fixed_params_shared = make_fixed_params_shared()
@@ -99,23 +99,23 @@ def make_fixed_params_shared():
     Returns:
     --------
     dict. The dictionary of fixed parameters. Keys:
-        time_max_post_discharge_year    - int.
-        qaly_age_coeff                - float.
-        qaly_age2_coeff               - float.
-        qaly_sex_coeff                - float.
-        discount_factor_QALYs_perc    - float.
-        discount_factor_costs_perc    - float.
-        wtp_qaly_gpb                  - float.
-        cost_ae_gbp                   - float.
-        cost_elective_bed_day_gbp     - float.
-        cost_non_elective_bed_day_gbp - float.
-        cost_residential_day_gbp      - float.
-        n_patients_care_home                   - np.array.
-        n_patients_not_care_home               - np.array.
-        n_patients_care_home_over70            - np.array.
-        n_patients_not_care_home_over70        - np.array.
-        n_patients_care_home_not_over70        - np.array.
-        n_patients_not_care_home_not_over70    - np.array.
+        time_max_post_discharge_year        - int.
+        qaly_age_coeff                      - float.
+        qaly_age2_coeff                     - float.
+        qaly_sex_coeff                      - float.
+        discount_factor_QALYs_perc          - float.
+        discount_factor_costs_perc          - float.
+        wtp_qaly_gpb                        - float.
+        cost_ae_gbp                         - float.
+        cost_elective_bed_day_gbp           - float.
+        cost_non_elective_bed_day_gbp       - float.
+        cost_residential_day_gbp            - float.
+        n_patients_care_home                - np.array.
+        n_patients_not_care_home            - np.array.
+        n_patients_care_home_over70         - np.array.
+        n_patients_not_care_home_over70     - np.array.
+        n_patients_care_home_not_over70     - np.array.
+        n_patients_not_care_home_not_over70 - np.array.
     """
 
     # Calculate survival and hazard up to and including this year:
@@ -398,21 +398,21 @@ def make_fixed_params_dicho_model(fixed_params):
     Returns:
     --------
     dict. The dictionary of fixed parameters. Keys:
-        perc_care_home_all_ages       - float.
-        perc_care_home_over70         - float.
-        perc_care_home_not_over70     - float.
-        utility_list                  - list.
-        lg_coeffs                     - np.array.
-        lg_mean_ages                  - np.array.
-        gz_coeffs                     - np.array.
-        gz_gamma                      - float.
-        gz_mean_age                   - float.
-        ae_coeffs                     - np.array.
-        ae_mRS                        - np.array.
-        nel_coeffs                    - np.array.
-        nel_mRS                       - np.array.
-        el_coeffs                     - np.array.
-        el_mRS                        - np.array.
+        perc_care_home_all_ages   - float.
+        perc_care_home_over70     - float.
+        perc_care_home_not_over70 - float.
+        utility_list              - list.
+        lg_coeffs                 - np.array.
+        lg_mean_ages              - np.array.
+        gz_coeffs                 - np.array.
+        gz_gamma                  - float.
+        gz_mean_age               - float.
+        ae_coeffs                 - np.array.
+        ae_mRS                    - np.array.
+        nel_coeffs                - np.array.
+        nel_mRS                   - np.array.
+        el_coeffs                 - np.array.
+        el_mRS                    - np.array.
     """
     # ----- Discharge destinations -----
 
@@ -589,4 +589,3 @@ def make_fixed_params_dicho_model(fixed_params):
         el_coeffs=el_coeffs,
         el_mRS=el_mRS
     )
-
