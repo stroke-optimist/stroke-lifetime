@@ -41,7 +41,7 @@ There are three main modules in the package:
 + `main_calculations.py` - Gathers the basic models and calculates all of the useful outputs. 
 
 
-<a href="https://lifetime-stroke-outcome.streamlit.app/"><img align="right" src="https://raw.githubusercontent.com/stroke-optimist/stroke-lifetime/main/docs/streamlit_lifetime_preview_rotated" alt="Animated preview of the Streamlit app."></a>
+<a href="https://lifetime-stroke-outcome.streamlit.app/"><img align="right" src="https://raw.githubusercontent.com/stroke-optimist/stroke-lifetime/main/docs/streamlit_lifetime_preview_rotated.gif" alt="Animated preview of the Streamlit app."></a>
 
 ## 👑 Example usage: Streamlit app
 
