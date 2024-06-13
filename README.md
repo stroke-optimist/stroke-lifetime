@@ -1,7 +1,7 @@
 # stroke-lifetime
 
 [![GitHub Badge][github-img]][github-link] [![PyPI][pypi-img]][pypi-link] 
-[![Open in Streamlit][streamlit-img]][streamlit-link] 
+[![Open in Streamlit][streamlit-img]][streamlit-link] [![DOI][doi-img]][doi-link]
 
 Toolkit for calculating lifetime survival probabilities and resource use for patients after stroke.
 
@@ -67,6 +67,9 @@ A conda environment file, `environment.yml`, is provided in the GitHub repositor
 
 [pypi-img]: https://img.shields.io/pypi/v/stroke-lifetime?label=pypi%20package
 [pypi-link]: https://pypi.org/project/stroke-lifetime/
+
+[doi-img]: https://zenodo.org/badge/814086731.svg
+[doi-link]: https://zenodo.org/doi/10.5281/zenodo.11637387
 
 [github-link-stroke-optimist]: https://github.com/stroke-optimist/
 
