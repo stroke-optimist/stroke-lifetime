@@ -3,8 +3,12 @@ channels:
   - defaults
   - conda-forge
 dependencies:
+  - matplotlib
   - numpy
+  - pandas
+  - pip
   - pip:
     - setuptools
+    - stroke-lifetime
     - twine
     - wheel
