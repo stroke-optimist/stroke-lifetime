@@ -88,7 +88,7 @@ def main_calculations(
 
         # Assign these placeholder values:
         a = np.array([])  # empty array
-        f = np.NaN        # Not a Number
+        f = np.nan        # Not a Number
         s = 'n/a'         # string
 
         # These parameters will be placed in the dictionary later:
@@ -197,7 +197,7 @@ def main_calculations(
                 death_in_year_n_probs_invalid_inds[0])
         except IndexError:
             # If there are no invalid values, store Not A Number:
-            death_in_year_n_probs_first_invalid_index = np.NaN
+            death_in_year_n_probs_first_invalid_index = np.nan
         # Add one to the index because we start hazard_by_year from year 0
         # but death_in_year_n_probs from year 1.
 
@@ -596,7 +596,7 @@ def find_resource_count_for_all_years(
         median_survival_years,
         count_function,
         coeffs=[],
-        average_care_year=np.NaN,
+        average_care_year=np.nan,
         LP=None
         ):
     """
